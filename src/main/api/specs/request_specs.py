@@ -1,12 +1,4 @@
-import requests
-import logging
 from typing import Dict
-
-from src.main.api.configs.config import Config
-from src.main.api.models.login_user_request import LoginUserRequest
-from src.main.api.requests.skeleton.requesters.crud_requester import CrudRequester
-from src.main.api.requests.skeleton.endpoint import Endpoint
-from src.main.api.specs.response_specs import ResponseSpecs
 
 
 class RequestSpecs:
@@ -16,3 +8,12 @@ class RequestSpecs:
             "Content-Type": "application/json",
             "Accept": "application/json"
         }
+
+    @staticmethod
+    def admin_auth_spec():
+        headers = RequestSpecs.default_req_headers()
+        headers["Authorization"] = ("Bearer eyJ0eXAiOiAiVENWMiJ9."
+                                    "ZjYxSjJoNWhLb2QybTEtRjBySkYwWHdjM0Jn."
+                                    "NDA5NWE2ODYtNzllNi00MmM2LWJiNGQtZTc5MGNmYzZmMWJk")
+
+        return headers

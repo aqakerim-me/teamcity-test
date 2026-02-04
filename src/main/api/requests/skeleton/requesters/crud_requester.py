@@ -28,7 +28,7 @@ class CrudRequester(HttpRequest, CrudEndpointInterface):
 
     def get(self, id: Optional[int] = None): 
         response = requests.get(
-            url=f'{self.base_url}{self.endpoint.value.url}{("/" + str(id)) if id is not None else ""}',
+            url=f'{self.base_url}{self.endpoint.value.url}{("/id:" + str(id)) if id is not None else ""}',
             headers=self.request_spec
         )
         self.response_spec(response)
@@ -38,7 +38,7 @@ class CrudRequester(HttpRequest, CrudEndpointInterface):
 
     def delete(self, id: int) -> requests.Response:
         response = requests.delete(
-            url=f'{self.base_url}{self.endpoint.value.url}/{id}',
+            url=f'{self.base_url}{self.endpoint.value.url}/id:{id}',
             headers=self.request_spec
         )
         self.response_spec(response)

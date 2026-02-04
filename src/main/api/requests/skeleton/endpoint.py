@@ -1,21 +1,56 @@
 from dataclasses import dataclass
 from enum import Enum
+from typing import Optional
 
-from src.main.api.models.create_user_request import CreateUserRequest
-from src.main.api.models.create_user_response import CreateUserResponse
 from src.main.api.models.base_model import BaseModel
+from src.main.api.models.create_project_request import CreateProjectRequest
+from src.main.api.models.create_project_response import CreateProjectResponse, ProjectsListResponse
+from src.main.api.models.create_user_request import CreateUserRequest
+from src.main.api.models.create_user_response import CreateUserResponse, UsersListResponse
 
 
 @dataclass(frozen=True)
 class EndpointConfig:
     url: str
-    request_model: BaseModel
-    response_model: BaseModel
+    request_model: Optional[type[BaseModel]]
+    response_model: Optional[type[BaseModel]]
 
 
 class Endpoint(Enum):
     ADMIN_CREATE_USER = EndpointConfig(
-        url='/admin/users',
+        url='/users',
         request_model=CreateUserRequest,
         response_model=CreateUserResponse
     )
+
+    ADMIN_DELETE_USER = EndpointConfig(
+        url="/users",
+        request_model=None,
+        response_model=None
+    )
+
+    ADMIN_GET_ALL_USERS = EndpointConfig(
+        url="/users",
+        request_model=None,
+        response_model=UsersListResponse
+    )
+
+    ADMIN_CREATE_PROJECT = EndpointConfig(
+        url='/projects',
+        request_model=CreateProjectRequest,
+        response_model=CreateProjectResponse
+    )
+
+    ADMIN_DELETE_PROJECT = EndpointConfig(
+        url="/projects",
+        request_model=None,
+        response_model=None
+    )
+
+    ADMIN_GET_ALL_PROJECTS = EndpointConfig(
+        url="/projects",
+        request_model=None,
+        response_model=ProjectsListResponse
+    )
+
+
