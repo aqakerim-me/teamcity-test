@@ -24,4 +24,4 @@ class CreateProjectResponse(BaseModel):
 class ProjectsListResponse(BaseModel):
     count: int
     href: str
-    user: List[CreateProjectResponse]
+    projects: List[CreateProjectResponse]
