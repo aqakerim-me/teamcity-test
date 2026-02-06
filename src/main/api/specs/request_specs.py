@@ -10,6 +10,10 @@ class RequestSpecs:
         }
 
     @staticmethod
+    def unauth_spec():
+        return RequestSpecs.default_req_headers()
+
+    @staticmethod
     def admin_auth_spec():
         headers = RequestSpecs.default_req_headers()
         headers["Authorization"] = ("Bearer eyJ0eXAiOiAiVENWMiJ9."

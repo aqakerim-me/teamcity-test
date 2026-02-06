@@ -1,4 +1,4 @@
-from typing import Optional, TypeVar
+from typing import Optional, TypeVar, Union
 from pydantic import TypeAdapter
 
 from src.main.api.requests.skeleton.requesters.crud_requester import CrudRequester
@@ -28,4 +28,4 @@ class ValidatedCrudRequester(HttpRequest):
         return self._adapter.validate_python(response.json())
 
     def update(self, id: int): ...
-    def delete(self, id: int): ...
+    def delete(self, id: int | str): ...
