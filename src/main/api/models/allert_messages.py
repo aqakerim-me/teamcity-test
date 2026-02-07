@@ -10,3 +10,7 @@ class AlertMessages(str, Enum):
     PROJECT_EXISTS = "already"
     USERNAME_TOO_LONG = "size limit: 191 table: USERS column: USERNAME"
     USERNAME_EMPTY = "Username must not be empty when creating user"
+    BUILD_TYPE_NOT_FOUND = "Build type not found"
+    BUILD_NOT_FOUND = "Build not found"
+    BUILD_ALREADY_FINISHED = "Build already finished"
+    INVALID_BUILD_STATE = "Invalid build state"
