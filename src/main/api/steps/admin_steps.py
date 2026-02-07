@@ -7,7 +7,7 @@ from src.main.api.models.create_project_request import CreateProjectRequest
 from src.main.api.models.create_project_response import CreateProjectResponse, ProjectsListResponse
 from src.main.api.models.create_user_request import CreateUserRequest
 from src.main.api.models.create_user_response import CreateUserResponse
-from src.main.api.requests.skeleton.endpoint import Endpoint
+from src.main.api.requests.skeleton.endpoint import Endpoint, EndpointConfig
 from src.main.api.requests.skeleton.requesters.crud_requester import CrudRequester
 from src.main.api.requests.skeleton.requesters.validated_crud_requester import ValidatedCrudRequester
 from src.main.api.specs.request_specs import RequestSpecs
@@ -157,4 +157,118 @@ class AdminSteps(BaseSteps):
             else f"{len(error_value)} errors"
         )
         logging.info(f"Invalid project creation blocked correctly: {error_msg}")
+
+    @staticmethod
+    def create_simple_build_type(project_id: str, build_type_name: str) -> str:
+        """
+        Create a simple build type with a basic command line runner.
+        
+        Args:
+            project_id: ID of the project to create the build type in
+            build_type_name: Name for the build type
+            
+        Returns:
+            str: Build type ID
+        """
+        import uuid
+        
+        # Generate a unique build type ID
+        build_type_id = f"{project_id}_{build_type_name.replace(' ', '_')}_{uuid.uuid4().hex[:8]}"
+        
+        # Create a minimal build type configuration
+        build_type_xml = f"""<?xml version="1.0" encoding="UTF-8"?>
+<buildType xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" uuid="{uuid.uuid4()}" xsi:noNamespaceSchemaLocation="https://www.jetbrains.com/teamcity/schemas/9.0/project-config.xsd">
+  <name>{build_type_name}</name>
+  <description>Test build type created by automation</description>
+  <settings>
+    <options>
+      <option name="allowExternalStatus" value="true" />
+      <option name="buildNumberPattern" value="%build.counter%" />
+      <option name="checkoutMode" value="ON_AGENT" />
+      <option name="cleanBuildFailed" value="false" />
+      <option name="cleanBuildFailedIncremental" value="true" />
+      <option name="cleanBuildIncremental" value="true" />
+      <option name="cleanBuildSuccessful" value="false" />
+      <option name="cleanBuildSuccessfulIncremental" value="true" />
+      <option name="executionTimeoutMin" value="5" />
+      <option name="maxRunningBuilds" value="1" />
+    </options>
+    <parameters />
+    <build-runners>
+      <runner id="RUNNER_1" name="" type="simpleRunner">
+        <parameters>
+          <param name="script.content" value="echo 'Test build executed successfully'" />
+          <param name="teamcity.step.mode" value="default" />
+          <param name="use.custom.script" value="true" />
+        </parameters>
+      </runner>
+    </build-runners>
+    <vcs-settings />
+    <requirements />
+    <build-triggers />
+    <cleanup>
+      <policy type="builds" keep-all="false">
+        <keep-builds count="10" />
+      </policy>
+      <policy type="history" keep-all="false">
+        <keep-days count="7" />
+      </policy>
+    </cleanup>
+  </settings>
+</buildType>"""
+
+        # Create the build type via API
+        endpoint = EndpointConfig(
+            url=f"/projects/id:{project_id}/buildTypes",
+            request_model=None,
+            response_model=None
+        )
+        
+        headers = {
+            "Content-Type": "application/xml",
+            "Accept": "application/xml"
+        }
+        
+        from src.main.api.specs.request_specs import RequestSpecs
+        spec = RequestSpecs.admin_auth_spec()
+        
+        response = CrudRequester(
+            spec,
+            endpoint,
+            ResponseSpecs.request_returns_ok(),
+        ).post_with_custom_headers(build_type_xml, headers)
+        
+        # Extract the build type ID from the response
+        import re
+        match = re.search(r'<id>([^<]+)</id>', response.text)
+        if match:
+            actual_build_type_id = match.group(1)
+            logging.info(f"Created build type: {actual_build_type_id}")
+            return actual_build_type_id
+        else:
+            # Fallback: return the generated ID
+            logging.info(f"Created build type (generated ID): {build_type_id}")
+            return build_type_id
+    
+    @staticmethod
+    def delete_build_type(build_type_id: str):
+        """
+        Delete a build type.
+        
+        Args:
+            build_type_id: ID of the build type to delete
+        """
+        endpoint = EndpointConfig(
+            url=f"/buildTypes/id:{build_type_id}",
+            request_model=None,
+            response_model=None
+        )
+        
+        ValidatedCrudRequester(
+            RequestSpecs.admin_auth_spec(),
+            endpoint,
+            ResponseSpecs.entity_was_deleted(),
+        ).delete()
+        
+        logging.info(f"Deleted build type: {build_type_id}")
 
