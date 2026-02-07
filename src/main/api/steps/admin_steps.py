@@ -31,7 +31,6 @@ class AdminSteps(BaseSteps):
         assert user.id > 0, "User ID should be positive"
 
         self.created_objects.append(user)
-        logging.debug(f"Added user to cleanup list: {user.username}, ID: {user.id}")
         logging.info(
             f"User created: {user.username}, ID: {user.id}"
         )
@@ -63,7 +62,6 @@ class AdminSteps(BaseSteps):
             Endpoint.ADMIN_DELETE_USER,
             ResponseSpecs.entity_was_deleted(),
         ).delete(id)
-        logging.debug(f"User deleted: ID {id}")
 
     @staticmethod
     def get_all_users() -> List[CreateUserResponse]:
@@ -97,7 +95,6 @@ class AdminSteps(BaseSteps):
         assert project_id_response.strip(), "Project ID must not be empty or whitespace"
 
         self.created_objects.append(create_project_response)
-        logging.debug(f"Added project to cleanup list: {create_project_response.name}, ID: {create_project_response.id}")
         logging.info(
             f"User created: {create_project_response.name}, ID: {project_id_response}"
         )
@@ -114,9 +111,7 @@ class AdminSteps(BaseSteps):
         ).get()
 
         projects = projects_list.project
-
         assert len(projects) > 0, "projects list should not be empty"
-
         logging.info(f"Retrieved {len(projects)} projects")
         return projects
 

@@ -21,8 +21,6 @@ class TestCreateProjectPositive:
         assert project_id in project_ids, \
             f"Created project ID '{project_id}' not found in projects list"
 
-        api_manager.admin_steps.delete_project(project_id)
-
     def test_create_project_min_id_length(self, api_manager: ApiManager):
         create_project_request = CreateProjectRequest(
             id=GenerateData.get_project_id_with_length(1),
