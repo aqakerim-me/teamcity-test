@@ -76,3 +76,15 @@ class AgentSteps:
             ResponseSpecs.request_returns_ok_and_body("true"),
         ).update(path_params={"id": agent_id}, data="true")
         logging.info(f"Agent id:{agent_id} enabled")
+
+    @staticmethod
+    def get_agent_by_id(agent_id: int) -> AgentResponse:
+        """Получение агента по ID"""
+        agent = ValidatedCrudRequester(
+            RequestSpecs.admin_auth_spec(),
+            Endpoint.AGENTS_BY_ID,
+            ResponseSpecs.request_returns_ok_and_body("true"),
+        ).get(agent_id)
+        logging.info(f"Agent id:{agent_id} enabled")
+
+        return agent

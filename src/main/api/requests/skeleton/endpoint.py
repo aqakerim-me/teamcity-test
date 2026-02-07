@@ -93,4 +93,10 @@ class Endpoint(Enum):
         response_model=None
     )
 
+    AGENTS_BY_ID = EndpointConfig(
+        url="/agents",
+        request_model=None,
+        response_model=AgentResponse
+    )
+
 

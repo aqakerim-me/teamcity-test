@@ -1,9 +1,9 @@
 import logging
-from typing import List, Optional
+from typing import List
 
 from src.main.api.models.allert_messages import AlertMessages
 from src.main.api.models.create_project_request import CreateProjectRequest
-from src.main.api.models.create_project_response import CreateProjectResponse, ProjectsListResponse
+from src.main.api.models.create_project_response import CreateProjectResponse
 from src.main.api.models.create_user_request import CreateUserRequest
 from src.main.api.models.create_user_response import CreateUserResponse
 from src.main.api.requests.skeleton.endpoint import Endpoint
