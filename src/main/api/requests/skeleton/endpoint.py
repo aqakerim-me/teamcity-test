@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Optional
 
+from src.main.api.models.agent_response import AgentResponse, AgentsListResponse
 from src.main.api.models.base_model import BaseModel
 from src.main.api.models.create_project_request import CreateProjectRequest
 from src.main.api.models.create_project_response import CreateProjectResponse, ProjectsListResponse
@@ -17,6 +18,7 @@ class EndpointConfig:
 
 
 class Endpoint(Enum):
+    # Users API
     ADMIN_CREATE_USER = EndpointConfig(
         url='/users',
         request_model=CreateUserRequest,
@@ -35,6 +37,13 @@ class Endpoint(Enum):
         response_model=UsersListResponse
     )
 
+    ADMIN_GET_USER_BY_ID = EndpointConfig(
+        url="/users",
+        request_model=None,
+        response_model=CreateUserResponse
+    )
+
+    # Projects API
     ADMIN_CREATE_PROJECT = EndpointConfig(
         url='/projects',
         request_model=CreateProjectRequest,
@@ -51,6 +60,37 @@ class Endpoint(Enum):
         url="/projects",
         request_model=None,
         response_model=ProjectsListResponse
+    )
+
+    ADMIN_GET_PROJECT_BY_ID = EndpointConfig(
+        url="/projects",
+        request_model=None,
+        response_model=CreateProjectResponse
+    )
+
+    # Agents API
+    AGENTS_LIST = EndpointConfig(
+        url="/agents",
+        request_model=None,
+        response_model=AgentsListResponse
+    )
+
+    AGENTS_BY_NAME = EndpointConfig(
+        url="/agents/{name}",
+        request_model=None,
+        response_model=AgentResponse
+    )
+
+    AGENTS_AUTHORIZED = EndpointConfig(
+        url="/agents/id:{id}/authorized",
+        request_model=None,
+        response_model=None
+    )
+
+    AGENTS_ENABLED = EndpointConfig(
+        url="/agents/id:{id}/enabled",
+        request_model=None,
+        response_model=None
     )
 
 
