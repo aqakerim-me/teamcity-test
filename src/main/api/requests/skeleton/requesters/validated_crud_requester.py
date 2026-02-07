@@ -16,10 +16,17 @@ class ValidatedCrudRequester(HttpRequest):
             endpoint=endpoint,
             response_spec=response_spec
         )
-        self._adapter = TypeAdapter(self.endpoint.value.response_model)
+        endpoint_config = self.endpoint.value if hasattr(self.endpoint, "value") else self.endpoint
+        self._adapter = (
+            TypeAdapter(endpoint_config.response_model)
+            if endpoint_config.response_model is not None
+            else None
+        )
 
     def post(self, model: Optional[T] = None):
         response = self.crud_requester.post(model)
+        if self._adapter is None:
+            return response
         return self._adapter.validate_python(response.json())
 
     def get(
