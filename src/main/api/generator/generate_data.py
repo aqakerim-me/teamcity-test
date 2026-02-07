@@ -69,3 +69,22 @@ class GenerateData:
                 string.punctuation
         )
         return "".join(random.choices(allowed_chars, k=length))
+
+    @staticmethod
+    def get_build_type_name() -> str:
+        words = faker.words(nb=random.randint(2, 4))
+        return "_".join(words).title()
+
+    @staticmethod
+    def get_build_parameter_name() -> str:
+        prefix = random.choice(["env.", "system.", "config."])
+        name = "".join(
+            random.choices(string.ascii_uppercase, k=random.randint(3, 8))
+        )
+        return f"{prefix}{name}"
+
+    @staticmethod
+    def get_build_parameter_value() -> str:
+        length = random.randint(5, 50)
+        allowed_chars = string.ascii_letters + string.digits + "_-."
+        return "".join(random.choices(allowed_chars, k=length))
