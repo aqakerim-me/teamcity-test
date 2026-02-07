@@ -28,6 +28,10 @@ class ResponseSpecs:
         return ResponseSpecs._make_status_checker([HTTPStatus.OK, HTTPStatus.NO_CONTENT])
 
     @staticmethod
+    def request_returns_not_found() -> Callable[[Response], None]:
+        return ResponseSpecs._make_status_checker([HTTPStatus.NOT_FOUND])
+
+    @staticmethod
     def request_returns_bad_request_or_server_error(error_value: AlertMessages) -> Callable[[Response], None]:
         def check(response: Response):
             assert response.status_code in (HTTPStatus.BAD_REQUEST, HTTPStatus.INTERNAL_SERVER_ERROR), (
