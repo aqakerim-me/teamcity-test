@@ -13,6 +13,9 @@ T = TypeVar('T', bound=BaseModel)
 
 
 class CrudRequester(HttpRequest, CrudEndpointInterface):
+    def _endpoint_config(self):
+        return self.endpoint.value if hasattr(self.endpoint, "value") else self.endpoint
+
     @property
     def base_url(self) -> str:
         return f"{Config.get('server')}{Config.get('apiVersion')}"
@@ -66,8 +69,9 @@ class CrudRequester(HttpRequest, CrudEndpointInterface):
         return response
 
     def delete(self, id: int | str) -> requests.Response:
+        endpoint_config = self._endpoint_config()
         response = requests.delete(
-            url=f'{self.base_url}{self.endpoint.value.url}/id:{id}',
+            url=f'{self.base_url}{endpoint_config.url}/id:{id}',
             headers=self.request_spec
         )
         self.response_spec(response)
