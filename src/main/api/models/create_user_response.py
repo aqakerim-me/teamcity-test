@@ -11,6 +11,7 @@ class CreateUserResponse(BaseModel):
     properties: Optional[Dict[str, Any]] = None
     roles: Optional[Dict[str, Any]] = None
     groups: Optional[Dict[str, Any]] = None
+    password: Optional[str] = None  # не приходит с API, заполняется в шагах для последующего использования
 
 class UsersListResponse(BaseModel):
     count: int

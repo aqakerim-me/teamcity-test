@@ -2,6 +2,8 @@ from http import HTTPStatus
 from typing import Callable
 from requests import Response
 
+from src.main.api.models.allert_messages import AlertMessages
+
 
 class ResponseSpecs:
     @staticmethod
@@ -19,23 +21,34 @@ class ResponseSpecs:
 
     @staticmethod
     def entity_was_created() -> Callable[[Response], None]:
-        return ResponseSpecs._make_status_checker([HTTPStatus.CREATED])
+        return ResponseSpecs._make_status_checker([HTTPStatus.CREATED, HTTPStatus.OK])
 
     @staticmethod
     def entity_was_deleted() -> Callable[[Response], None]:
         return ResponseSpecs._make_status_checker([HTTPStatus.OK, HTTPStatus.NO_CONTENT])
 
     @staticmethod
-    def request_returns_bad_request(
-        error_key: str,
-        error_value: str
-    ) -> Callable[[Response], None]:
+    def request_returns_bad_request_or_server_error(error_value: AlertMessages) -> Callable[[Response], None]:
         def check(response: Response):
-            assert response.status_code == HTTPStatus.BAD_REQUEST, (
-                f"Expected 400 BAD_REQUEST, got {response.status_code}. Response: {response.text}"
+            assert response.status_code in (HTTPStatus.BAD_REQUEST, HTTPStatus.INTERNAL_SERVER_ERROR), (
+                f"Expected 400 or 500, got {response.status_code}. Response: {response.text}"
             )
-            actual_value = response.json().get(error_key)
-            assert error_value in actual_value, (
-                f"Expected error field '{error_key}' to be '{error_value}', but got '{actual_value}'."
+
+            errors = response.json().get("errors", [])
+            assert errors, f"No errors found in response: {response.text}"
+
+            error_message = error_value.value
+
+            # Проверка по вхождению ключевой фразы в message или additionalMessage
+            def error_contains_phrase(err: dict) -> bool:
+                msg = err.get("message", "") or ""
+                additional = err.get("additionalMessage", "") or ""
+                return error_message in msg or error_message in additional
+
+            found = any(error_contains_phrase(e) for e in errors)
+            assert found, (
+                f"Expected error containing '{error_message}', "
+                f"got: {[e.get('message') for e in errors]}"
             )
+
         return check

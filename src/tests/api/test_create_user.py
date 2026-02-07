@@ -40,16 +40,16 @@ class TestCreateUserPositive:
 class TestCreateUserNegative:
 
     @pytest.mark.parametrize(
-        "username, password, error_key, error_values",
+        "username, password, error_value",
         [
             # Пустой username
-            ("", GenerateData.get_password(), "username", AlertMessages.USERNAME_IS_EMPTY),
+            ("", GenerateData.get_password(), AlertMessages.USERNAME_EMPTY),
 
             # Слишком длинный username (>191)
-            (GenerateData.get_username_with_length(192), GenerateData.get_password(), "username",
+            (GenerateData.get_username_with_length(192), GenerateData.get_password(),
              AlertMessages.USERNAME_TOO_LONG)
         ]
     )
-    def test_invalid_project_id(self, api_manager: ApiManager, username, password, error_key, error_values):
+    def test_invalid_project_id(self, api_manager: ApiManager, username, password, error_value):
         create_user_request = CreateUserRequest(username = username, password = password)
-        api_manager.admin_steps.create_invalid_user(create_user_request, error_key, error_values)
+        api_manager.admin_steps.create_invalid_user(create_user_request, error_value)

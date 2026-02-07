@@ -1,5 +1,7 @@
 from typing import Dict
 
+from src.main.api.configs.config import Config
+
 
 class RequestSpecs:
     @staticmethod
@@ -16,8 +18,7 @@ class RequestSpecs:
     @staticmethod
     def admin_auth_spec():
         headers = RequestSpecs.default_req_headers()
-        headers["Authorization"] = ("Bearer eyJ0eXAiOiAiVENWMiJ9."
-                                    "ZjYxSjJoNWhLb2QybTEtRjBySkYwWHdjM0Jn."
-                                    "NDA5NWE2ODYtNzllNi00MmM2LWJiNGQtZTc5MGNmYzZmMWJk")
-
+        token = Config.get("admin.bearerToken")
+        if token:
+            headers["Authorization"] = f"Bearer {token}"
         return headers
