@@ -3,6 +3,10 @@ from enum import Enum
 from typing import Optional
 
 from src.main.api.models.base_model import BaseModel
+from src.main.api.models.build_list_response import BuildListResponse
+from src.main.api.models.build_queue_response import BuildQueueResponse
+from src.main.api.models.build_response import BuildResponse
+from src.main.api.models.start_build_request import StartBuildRequest
 from src.main.api.models.create_project_request import CreateProjectRequest
 from src.main.api.models.create_project_response import CreateProjectResponse, ProjectsListResponse
 from src.main.api.models.create_user_request import CreateUserRequest
@@ -51,6 +55,30 @@ class Endpoint(Enum):
         url="/projects",
         request_model=None,
         response_model=ProjectsListResponse
+    )
+
+    BUILD_QUEUE = EndpointConfig(
+        url="/buildQueue",
+        request_model=StartBuildRequest,
+        response_model=BuildResponse
+    )
+
+    BUILD_QUEUE_LIST = EndpointConfig(
+        url="/buildQueue",
+        request_model=None,
+        response_model=BuildQueueResponse
+    )
+
+    BUILDS = EndpointConfig(
+        url="/builds",
+        request_model=None,
+        response_model=BuildResponse
+    )
+
+    BUILDS_LIST = EndpointConfig(
+        url="/builds",
+        request_model=None,
+        response_model=BuildListResponse
     )
 
 
