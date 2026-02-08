@@ -20,6 +20,22 @@ class ResponseSpecs:
         return ResponseSpecs._make_status_checker([HTTPStatus.OK])
 
     @staticmethod
+    def request_returns_forbidden() -> Callable[[Response], None]:
+        return ResponseSpecs._make_status_checker([HTTPStatus.FORBIDDEN])
+
+    @staticmethod
+    def request_returns_ok_and_body(expected_body: str) -> Callable[[Response], None]:
+        """200 OK и тело ответа (text/plain) равно expected_body."""
+
+        def check(response: Response):
+            ResponseSpecs._make_status_checker([HTTPStatus.OK])(response)
+            assert response.text.strip().lower() == expected_body.strip().lower(), (
+                f"Expected body {expected_body!r}, got {response.text!r}"
+            )
+
+        return check
+
+    @staticmethod
     def entity_was_created() -> Callable[[Response], None]:
         return ResponseSpecs._make_status_checker([HTTPStatus.CREATED, HTTPStatus.OK])
 

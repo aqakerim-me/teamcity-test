@@ -35,7 +35,7 @@ class GenerateData:
     @staticmethod
     def get_username() -> str:
         min_length = 1
-        max_length = 191
+        max_length = 20
         length = random.randint(min_length, max_length)
 
         allowed_chars = (

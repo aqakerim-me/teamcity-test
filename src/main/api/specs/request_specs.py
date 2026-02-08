@@ -22,3 +22,4 @@ class RequestSpecs:
         if token:
             headers["Authorization"] = f"Bearer {token}"
         return headers
+

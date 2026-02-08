@@ -14,6 +14,7 @@ class Config:
     - admin.bearerToken -> TC_ADMIN_BEARERTOKEN
     """
 
+    # Определяем корень проекта по текущему файлу
     BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent.parent
     CONFIG_PATH = BASE_DIR / "resources" / "config.properties"
 
@@ -27,14 +28,14 @@ class Config:
         if not cls.CONFIG_PATH.is_file():
             raise FileNotFoundError(f"Config file not found at {cls.CONFIG_PATH}")
 
-        with open(cls.CONFIG_PATH, "r", encoding="utf-8") as f:
+        with open(cls.CONFIG_PATH, 'r', encoding='utf-8') as f:
             for line in f:
                 line = line.strip()
                 if not line or line.startswith("#"):
                     continue
                 if "=" in line:
-                    k, v = line.split("=", 1)
-                    cls._properties[k.strip()] = v.strip()
+                    key, value = line.split("=", 1)
+                    cls._properties[key.strip()] = value.strip()
 
     @classmethod
     def get(cls, key: str, default_value: Any = None) -> Any:
