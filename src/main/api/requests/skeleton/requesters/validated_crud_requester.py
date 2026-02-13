@@ -5,6 +5,7 @@ from src.main.api.requests.skeleton.requesters.crud_requester import CrudRequest
 from src.main.api.models.base_model import BaseModel
 from src.main.api.requests.skeleton.http_request import HttpRequest
 
+
 T = TypeVar('T', bound=BaseModel)
 
 
@@ -16,17 +17,10 @@ class ValidatedCrudRequester(HttpRequest):
             endpoint=endpoint,
             response_spec=response_spec
         )
-        endpoint_config = self.endpoint.value if hasattr(self.endpoint, "value") else self.endpoint
-        self._adapter = (
-            TypeAdapter(endpoint_config.response_model)
-            if endpoint_config.response_model is not None
-            else None
-        )
+        self._adapter = TypeAdapter(self.endpoint.value.response_model)
 
     def post(self, model: Optional[T] = None):
         response = self.crud_requester.post(model)
-        if self._adapter is None:
-            return response
         return self._adapter.validate_python(response.json())
 
     def get(
