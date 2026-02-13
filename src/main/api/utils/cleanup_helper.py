@@ -13,17 +13,17 @@ def cleanup_objects(objects: List[Any]):
 
     logging.info(f"Starting cleanup of {len(objects)} objects")
 
-    temp_created_objects = []
-    temp_api_manager = ApiManager(temp_created_objects)
+    temp_api_manager = ApiManager(objects)
     for obj in objects:
         try:
             if isinstance(obj, CreateProjectResponse):
                 temp_api_manager.admin_steps.delete_project(id=obj.id)
                 logging.info(f"Cleaned up project: {obj.name} (ID: {obj.id})")
-            if isinstance(obj, CreateUserResponse):
+            elif isinstance(obj, CreateUserResponse):
                 temp_api_manager.admin_steps.delete_user(id=obj.id)
                 logging.info(f"Cleaned up user: {obj.username} (ID: {obj.id})")
             else:
                 logging.warning(f"Object type: {type(obj)} is not handled in cleanup")
         except Exception as e:
+            import traceback
             logging.error(f"Failed to cleanup {type(obj)}: {e}")
