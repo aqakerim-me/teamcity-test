@@ -10,3 +10,4 @@ class AlertMessages(str, Enum):
     PROJECT_EXISTS = "already"
     USERNAME_TOO_LONG = "size limit: 191 table: USERS column: USERNAME"
     USERNAME_EMPTY = "Username must not be empty when creating user"
+    ERROR_REPLACING_ITEMS = "Error replacing items"

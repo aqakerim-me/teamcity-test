@@ -3,6 +3,10 @@ from enum import Enum
 from typing import Optional
 
 from src.main.api.models.base_model import BaseModel
+from src.main.api.models.create_build_step_request import CreateBuildStepRequest
+from src.main.api.models.create_build_step_response import CreateBuildStepResponse
+from src.main.api.models.create_buildtype_request import CreateBuildTypeRequest
+from src.main.api.models.create_buildtype_response import CreateBuildTypeResponse
 from src.main.api.models.create_project_request import CreateProjectRequest
 from src.main.api.models.create_project_response import CreateProjectResponse, ProjectsListResponse
 from src.main.api.models.create_user_request import CreateUserRequest
@@ -14,7 +18,6 @@ class EndpointConfig:
     url: str
     request_model: Optional[type[BaseModel]]
     response_model: Optional[type[BaseModel]]
-
 
 class Endpoint(Enum):
     ADMIN_CREATE_USER = EndpointConfig(
@@ -51,6 +54,18 @@ class Endpoint(Enum):
         url="/projects",
         request_model=None,
         response_model=ProjectsListResponse
+    )
+    
+    ADMIN_CREATE_BUILDTYPE = EndpointConfig(
+        url="/buildTypes",
+        request_model=CreateBuildTypeRequest,
+        response_model=CreateBuildTypeResponse
+    )    
+    
+    ADMIN_CREATE_BUILD_STEP = EndpointConfig(
+        url="/buildTypes/id:{BuildTypeId}/steps",
+        request_model=CreateBuildStepRequest,
+        response_model=CreateBuildStepResponse
     )
 
 

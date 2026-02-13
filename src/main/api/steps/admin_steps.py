@@ -3,6 +3,10 @@ import logging
 from typing import List
 
 from src.main.api.models.allert_messages import AlertMessages
+from src.main.api.models.create_build_step_request import CreateBuildStepRequest
+from src.main.api.models.create_build_step_response import CreateBuildStepResponse
+from src.main.api.models.create_buildtype_request import CreateBuildTypeRequest
+from src.main.api.models.create_buildtype_response import CreateBuildTypeResponse
 from src.main.api.models.create_project_request import CreateProjectRequest
 from src.main.api.models.create_project_response import CreateProjectResponse, ProjectsListResponse
 from src.main.api.models.create_user_request import CreateUserRequest
@@ -157,4 +161,42 @@ class AdminSteps(BaseSteps):
             else f"{len(error_value)} errors"
         )
         logging.info(f"Invalid project creation blocked correctly: {error_msg}")
+        
+    @staticmethod
+    def create_buildtype(request: CreateBuildTypeRequest) -> CreateBuildTypeResponse:
+        """Создание buildType через админа"""
+        response = ValidatedCrudRequester(
+            RequestSpecs.admin_auth_spec(),
+            Endpoint.ADMIN_CREATE_BUILDTYPE,
+            ResponseSpecs.request_returns_ok(),
+        ).post(request)
+        logging.info(f"Create buildType with ID {request.id}")
+        return response        
+    
+    @staticmethod
+    def create_build_step(request: CreateBuildStepRequest, build_type_id: str) -> CreateBuildStepResponse:
+        """Создание build step через админа"""
+        response = ValidatedCrudRequester(
+            RequestSpecs.admin_auth_spec(),
+            Endpoint.ADMIN_CREATE_BUILD_STEP,
+            ResponseSpecs.request_returns_ok(),
+            path_params={"BuildTypeId": build_type_id},
+        ).post(request)
+        logging.info(f"Create build step with name {request.name}")
+        return response
+    
+    
+    @staticmethod
+    def create_invalid_build_step(request: CreateBuildStepRequest, build_type_id: str, error_value: str):
+        """Попытка создания невалидного build step с проверкой ошибки"""
+        response = CrudRequester(
+            RequestSpecs.admin_auth_spec(),
+            Endpoint.ADMIN_CREATE_BUILD_STEP,
+            ResponseSpecs.request_returns_bad_request_or_server_error(error_value),
+            path_params={"BuildTypeId": build_type_id},
+        ).post(request)
+        logging.info(f"Invalid build step creation blocked correctly with name {request.name} and error {error_value}")
+        return response
+    
+    
 

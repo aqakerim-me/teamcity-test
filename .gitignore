@@ -4,6 +4,7 @@ __pycache__/
 
 # Editor settings
 .vscode/
+.idea/
 
 # Virtual environments
 venv/

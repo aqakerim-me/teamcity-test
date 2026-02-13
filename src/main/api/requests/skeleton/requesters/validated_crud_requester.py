@@ -10,12 +10,13 @@ T = TypeVar('T', bound=BaseModel)
 
 
 class ValidatedCrudRequester(HttpRequest):
-    def __init__(self, request_spec, endpoint, response_spec):
-        super().__init__(request_spec, endpoint, response_spec)
+    def __init__(self, request_spec, endpoint, response_spec, path_params=None):
+        super().__init__(request_spec, endpoint, response_spec, path_params)
         self.crud_requester = CrudRequester(
             request_spec=request_spec,
             endpoint=endpoint,
-            response_spec=response_spec
+            response_spec=response_spec,
+            path_params=path_params,
         )
         self._adapter = TypeAdapter(self.endpoint.value.response_model)
 
