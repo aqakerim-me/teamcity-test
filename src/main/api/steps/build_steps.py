@@ -185,12 +185,18 @@ class BuildSteps(BaseSteps):
     @staticmethod
     def trigger_invalid_build(build_request: StartBuildRequest, error_value: str):
         """Attempt to trigger invalid build with error validation"""
-        CrudRequester(
+        response = CrudRequester(
             RequestSpecs.admin_auth_spec(),
             Endpoint.BUILD_QUEUE,
             ResponseSpecs.request_returns_not_found(),
         ).post(build_request)
+
+        # Additional assertion to verify error was returned
+        errors = response.json().get("errors", [])
+        assert len(errors) > 0, f"Expected errors in response, got: {response.text}"
+
         logging.info(f"Invalid build trigger blocked correctly: {error_value}")
+        return response
 
     @staticmethod
     def cancel_invalid_build(build_id: int, comment: str, error_value: str):
@@ -199,9 +205,15 @@ class BuildSteps(BaseSteps):
         url = f"{Endpoint.BUILD_QUEUE.value.url}/id:{build_id}"
         endpoint = EndpointConfig(url=url, request_model=None, response_model=None)
 
-        CrudRequester(
+        response = CrudRequester(
             RequestSpecs.admin_auth_spec(),
             endpoint,
             ResponseSpecs.request_returns_not_found(),
         ).post(cancel_request)
+
+        # Additional assertion to verify error was returned
+        errors = response.json().get("errors", [])
+        assert len(errors) > 0, f"Expected errors in response, got: {response.text}"
+
         logging.info(f"Invalid build cancellation blocked correctly for ID {build_id}")
+        return response

@@ -6,7 +6,6 @@ from src.main.api.models.start_build_request import BuildTypeRef, StartBuildRequ
 
 
 @pytest.mark.api
-@pytest.mark.api_version("teamcity")
 class TestTriggerBuildPositive:
     def test_trigger_build_success(self, api_manager: ApiManager, build_type: str):
         build = api_manager.build_steps.trigger_build(build_type)
@@ -36,7 +35,6 @@ class TestTriggerBuildPositive:
 
 
 @pytest.mark.api
-@pytest.mark.api_version("teamcity")
 class TestGetBuildPositive:
     def test_get_build_by_id_success(self, api_manager: ApiManager, build_type: str):
         build = api_manager.build_steps.trigger_build(build_type)
@@ -78,7 +76,6 @@ class TestGetBuildPositive:
 
 
 @pytest.mark.api
-@pytest.mark.api_version("teamcity")
 class TestBuildQueuePositive:
     def test_get_build_queue_success(self, api_manager: ApiManager, build_type: str):
         api_manager.build_steps.get_build_queue()
@@ -121,22 +118,45 @@ class TestBuildQueuePositive:
 
 
 @pytest.mark.api
-@pytest.mark.api_version("teamcity")
 class TestTriggerBuildNegative:
     def test_trigger_nonexistent_buildtype(self, api_manager: ApiManager):
         build_request = StartBuildRequest(
             buildType=BuildTypeRef(id="NonExistent_BuildType_12345")
         )
 
-        api_manager.build_steps.trigger_invalid_build(
+        response = api_manager.build_steps.trigger_invalid_build(
             build_request,
             "Build type not found"
         )
 
+        assert response.status_code == 404, (
+            f"Expected 404 Not Found for non-existent build type, got: {response.status_code}"
+        )
+
+        errors = response.json().get("errors", [])
+        assert len(errors) > 0, "Expected errors in response"
+
+        error_text = errors[0].get("message", "")
+        assert "found" in error_text.lower(), (
+            f"Expected 'found' in error message, got: {error_text}"
+        )
+
     def test_cancel_nonexistent_build(self, api_manager: ApiManager):
         non_existent_id = 999999999
-        api_manager.build_steps.cancel_invalid_build(
+        response = api_manager.build_steps.cancel_invalid_build(
             non_existent_id,
             comment="Test cancellation",
             error_value="Build not found"
+        )
+
+        assert response.status_code == 404, (
+            f"Expected 404 Not Found for non-existent build, got: {response.status_code}"
+        )
+
+        errors = response.json().get("errors", [])
+        assert len(errors) > 0, "Expected errors in response"
+
+        error_text = errors[0].get("message", "")
+        assert "found" in error_text.lower(), (
+            f"Expected 'found' in error message, got: {error_text}"
         )
