@@ -9,17 +9,21 @@ from src.main.api.models.create_project_request import CreateProjectRequest
 @pytest.mark.api
 class TestCreateProjectPositive:
     def test_create_project_with_valid_id(self,api_manager: ApiManager):
-        project_id = GenerateData.get_project_id()
         create_project_request = CreateProjectRequest(
-            id=project_id,
+            id=GenerateData.get_project_id(),
             name=GenerateData.get_project_name()
         )
         api_manager.admin_steps.create_project(create_project_request)
 
         projects = api_manager.admin_steps.get_all_projects()
         project_ids = [project.id for project in projects]
-        assert project_id in project_ids, \
-            f"Created project ID '{project_id}' not found in projects list"
+        assert create_project_request.id in project_ids, \
+            f"Created project ID '{create_project_request.id}' not found in projects list"
+
+        project_names = [project.name for project in projects]
+        assert create_project_request.name in project_names, \
+            f"Created project name '{create_project_request.name}' not found in projects list"
+
 
     def test_create_project_min_id_length(self, api_manager: ApiManager):
         create_project_request = CreateProjectRequest(
@@ -28,12 +32,31 @@ class TestCreateProjectPositive:
         )
         api_manager.admin_steps.create_project(create_project_request)
 
+        projects = api_manager.admin_steps.get_all_projects()
+        project_ids = [project.id for project in projects]
+        assert create_project_request.id in project_ids, \
+            f"Created project ID '{create_project_request.id}' not found in projects list"
+
+        project_names = [project.name for project in projects]
+        assert create_project_request.name in project_names, \
+            f"Created project name '{create_project_request.name}' not found in projects list"
+
     def test_create_project_max_id_length(self, api_manager: ApiManager):
         create_project_request = CreateProjectRequest(
             id=GenerateData.get_project_id_with_length(225),
             name=GenerateData.get_project_name()
         )
         api_manager.admin_steps.create_project(create_project_request)
+
+        projects = api_manager.admin_steps.get_all_projects()
+        project_ids = [project.id for project in projects]
+        assert create_project_request.id in project_ids, \
+            f"Created project ID '{create_project_request.id}' not found in projects list"
+
+        project_names = [project.name for project in projects]
+        assert create_project_request.name in project_names, \
+            f"Created project name '{create_project_request.name}' not found in projects list"
+
 
 
 @pytest.mark.api

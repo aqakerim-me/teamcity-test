@@ -6,7 +6,7 @@ from src.main.api.utils.cleanup_helper import cleanup_objects
 
 
 # Создание списка данных и очистка
-@pytest.fixture
+@pytest.fixture(scope="function")
 def created_objects():
     objects: List[Any] = []
     yield objects

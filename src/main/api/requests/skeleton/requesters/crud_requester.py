@@ -1,9 +1,10 @@
-from typing import Optional, TypeVar
+from typing import Any, Dict, Optional, TypeVar
+from urllib.parse import urlencode
+
 import requests
 
 from src.main.api.configs.config import Config
 from src.main.api.models.base_model import BaseModel
-from src.main.api.requests.skeleton.endpoint import Endpoint
 from src.main.api.requests.skeleton.http_request import HttpRequest
 from src.main.api.requests.skeleton.interfaces.crud_end_interface import CrudEndpointInterface
 
@@ -21,28 +22,66 @@ class CrudRequester(HttpRequest, CrudEndpointInterface):
     def base_url(self) -> str:
         return f"{Config.get('server')}{Config.get('apiVersion')}"
 
-    def post(self, model: Optional[T] = None) -> requests.Response:
-        body = model.model_dump() if model is not None else ''
+    def _build_url(self, path_params: Optional[Dict[str, Any]] = None, query_params: Optional[Dict[str, str]] = None) -> str:
+        url = f"{self.base_url}{self.endpoint.value.url}"
+        if path_params:
+            for key, value in path_params.items():
+                url = url.replace(f"{{{key}}}", str(value))
+        if query_params:
+            url += "?" + urlencode(query_params)
+        return url
+
+    def post(
+        self,
+        model: Optional[T] = None,
+        path_params: Optional[Dict[str, Any]] = None,
+        query_params: Optional[Dict[str, str]] = None,
+    ) -> requests.Response:
+        body = model.model_dump() if model is not None else None
+
+        url = self._build_url(
+            path_params=path_params,
+            query_params=query_params
+        )
 
         response = requests.post(
-            url=f'{self.base_url}{self._resolved_url()}',
+            url=url,
             headers=self.request_spec,
             json=body
         )
         self.response_spec(response)
         return response
 
-    def get(self, id: Optional[int] = None): 
-        response = requests.get(
-            url=f'{self.base_url}{self._resolved_url()}{("/id:" + str(id)) if id is not None else ""}',
-            headers=self.request_spec
-        )
+    def get(
+        self,
+        id: Optional[int | str] = None,
+        path_params: Optional[Dict[str, Any]] = None,
+        query_params: Optional[Dict[str, str]] = None,
+    ) -> requests.Response:
+        if path_params is not None:
+            url = self._build_url(path_params=path_params, query_params=query_params)
+        else:
+            url = f"{self.base_url}{self.endpoint.value.url}"
+            if id is not None:
+                url += f"/id:{id}"
+            if query_params:
+                url += "?" + urlencode(query_params)
+        response = requests.get(url, headers=self.request_spec)
         self.response_spec(response)
         return response
 
-    def update(self, model: BaseModel, id: int): ...
+    def update(
+        self,
+        path_params: Optional[Dict[str, Any]] = None,
+        data: Optional[str] = None,
+    ) -> requests.Response:
+        url = self._build_url(path_params=path_params)
+        headers = {**self.request_spec, "Content-Type": "text/plain", "Accept": "text/plain"}
+        response = requests.put(url, headers=headers, data=data or "")
+        self.response_spec(response)
+        return response
 
-    def delete(self, id: int) -> requests.Response:
+    def delete(self, id: int | str) -> requests.Response:
         response = requests.delete(
             url=f'{self.base_url}{self._resolved_url()}/id:{id}',
             headers=self.request_spec
