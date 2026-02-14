@@ -69,3 +69,11 @@ class GenerateData:
                 string.punctuation
         )
         return "".join(random.choices(allowed_chars, k=length))
+    
+    @staticmethod
+    def get_step_id() -> str:
+        return "step_" + "".join(random.choices(string.ascii_letters + string.digits, k=8))
+    
+    @staticmethod
+    def get_build_type_id() -> str:
+        return "buildType_" + "".join(random.choices(string.ascii_letters + string.digits, k=8))

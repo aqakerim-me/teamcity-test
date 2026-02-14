@@ -11,3 +11,6 @@ class AlertMessages(str, Enum):
     USERNAME_TOO_LONG = "size limit: 191 table: USERS column: USERNAME"
     USERNAME_EMPTY = "Username must not be empty when creating user"
     ERROR_REPLACING_ITEMS = "Error replacing items"
+    NO_STEP_WITH_ID = "No step with id"
+    NO_BUILD_TYPE_FOUND = "No build type nor template is found by id"
+    CREATED_STEP_CANNOT_HAVE_EMPTY_TYPE = "Created step cannot have empty 'type'."

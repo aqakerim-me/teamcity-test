@@ -114,4 +114,20 @@ class Endpoint(Enum):
         response_model=AgentResponse
     )
 
+    ADMIN_GET_BUILD_STEP_BY_ID = EndpointConfig(
+        url="/buildTypes/id:{BuildTypeId}/steps/{stepId}",
+        request_model=None,
+        response_model=CreateBuildStepResponse
+    )
 
+    ADMIN_DELETE_BUILD_STEP = EndpointConfig(
+        url="/buildTypes/id:{BuildTypeId}/steps/{stepId}",
+        request_model=None,
+        response_model=None
+    )
+    
+    ADMIN_UPDATE_BUILD_STEP = EndpointConfig(
+        url="/buildTypes/id:{BuildTypeId}/steps/{stepId}",
+        request_model=CreateBuildStepRequest,
+        response_model=CreateBuildStepResponse
+    )
