@@ -4,7 +4,7 @@ import time
 import pytest
 
 from src.main.api.classes.api_manager import ApiManager
-from src.main.api.generator.generate_data import GenerateData
+from src.main.api.generators.generate_data import GenerateData
 from src.main.api.models.create_project_request import CreateProjectRequest
 
 

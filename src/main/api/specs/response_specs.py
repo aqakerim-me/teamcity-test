@@ -7,6 +7,28 @@ from src.main.api.models.allert_messages import AlertMessages
 
 class ResponseSpecs:
     @staticmethod
+    def _check_error_response(response: Response, expected_statuses: tuple[HTTPStatus, ...], error_value: AlertMessages):
+        assert response.status_code in expected_statuses, (
+            f"Expected {expected_statuses}, got {response.status_code}. Response: {response.text}"
+        )
+
+        errors = response.json().get("errors", [])
+        assert errors, f"No errors found in response: {response.text}"
+
+        error_message = error_value.value
+
+        def error_contains_phrase(err: dict) -> bool:
+            msg = err.get("message", "") or ""
+            additional = err.get("additionalMessage", "") or ""
+            return error_message in msg or error_message in additional
+
+        found = any(error_contains_phrase(e) for e in errors)
+        assert found, (
+            f"Expected error containing '{error_message}', "
+            f"got: {[e.get('message') for e in errors]}"
+        )
+
+    @staticmethod
     def _make_status_checker(expected_statuses: list[HTTPStatus]) -> Callable[[Response], None]:
         def check(response: Response):
             assert response.status_code in expected_statuses, (
@@ -44,31 +66,25 @@ class ResponseSpecs:
         return ResponseSpecs._make_status_checker([HTTPStatus.OK, HTTPStatus.NO_CONTENT])
 
     @staticmethod
-    def request_returns_not_found() -> Callable[[Response], None]:
-        return ResponseSpecs._make_status_checker([HTTPStatus.NOT_FOUND])
+    def request_returns_bad_request_or_server_error(
+        error_value: AlertMessages
+    ) -> Callable[[Response], None]:
+
+        def check(response: Response):
+            ResponseSpecs._check_error_response(
+                response,
+                (HTTPStatus.BAD_REQUEST, HTTPStatus.INTERNAL_SERVER_ERROR),
+                error_value
+            )
+
+        return check
 
     @staticmethod
-    def request_returns_bad_request_or_server_error(error_value: AlertMessages) -> Callable[[Response], None]:
+    def request_returns_not_found(
+            error_value: AlertMessages | None = None
+    ) -> Callable[[Response], None]:
+
         def check(response: Response):
-            assert response.status_code in (HTTPStatus.BAD_REQUEST, HTTPStatus.INTERNAL_SERVER_ERROR), (
-                f"Expected 400 or 500, got {response.status_code}. Response: {response.text}"
-            )
-
-            errors = response.json().get("errors", [])
-            assert errors, f"No errors found in response: {response.text}"
-
-            error_message = error_value.value
-
-            # Проверка по вхождению ключевой фразы в message или additionalMessage
-            def error_contains_phrase(err: dict) -> bool:
-                msg = err.get("message", "") or ""
-                additional = err.get("additionalMessage", "") or ""
-                return error_message in msg or error_message in additional
-
-            found = any(error_contains_phrase(e) for e in errors)
-            assert found, (
-                f"Expected error containing '{error_message}', "
-                f"got: {[e.get('message') for e in errors]}"
-            )
+            assert response.status_code == HTTPStatus.NOT_FOUND
 
         return check

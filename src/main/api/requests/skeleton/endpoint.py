@@ -2,12 +2,16 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Optional
 
-from src.main.api.models.agent_response import AgentResponse, AgentsListResponse
-from src.main.api.models.base_model import BaseModel
 from src.main.api.models.build_list_response import BuildListResponse
 from src.main.api.models.build_queue_response import BuildQueueResponse
 from src.main.api.models.build_response import BuildResponse
 from src.main.api.models.start_build_request import StartBuildRequest
+from src.main.api.models.agent_response import AgentResponse, AgentsListResponse
+from src.main.api.models.base_model import BaseModel
+from src.main.api.models.create_build_step_request import CreateBuildStepRequest
+from src.main.api.models.create_build_step_response import CreateBuildStepResponse
+from src.main.api.models.create_buildtype_request import CreateBuildTypeRequest
+from src.main.api.models.create_buildtype_response import CreateBuildTypeResponse
 from src.main.api.models.create_project_request import CreateProjectRequest
 from src.main.api.models.create_project_response import CreateProjectResponse, ProjectsListResponse
 from src.main.api.models.create_user_request import CreateUserRequest
@@ -19,7 +23,6 @@ class EndpointConfig:
     url: str
     request_model: Optional[type[BaseModel]]
     response_model: Optional[type[BaseModel]]
-
 
 class Endpoint(Enum):
     ADMIN_CREATE_USER = EndpointConfig(
@@ -56,6 +59,18 @@ class Endpoint(Enum):
         url="/projects",
         request_model=None,
         response_model=ProjectsListResponse
+    )
+    
+    ADMIN_CREATE_BUILDTYPE = EndpointConfig(
+        url="/buildTypes",
+        request_model=CreateBuildTypeRequest,
+        response_model=CreateBuildTypeResponse
+    )    
+    
+    ADMIN_CREATE_BUILD_STEP = EndpointConfig(
+        url="/buildTypes/id:{BuildTypeId}/steps",
+        request_model=CreateBuildStepRequest,
+        response_model=CreateBuildStepResponse
     )
 
     ADMIN_GET_PROJECT_BY_ID = EndpointConfig(
@@ -95,6 +110,11 @@ class Endpoint(Enum):
         response_model=AgentResponse
     )
 
+    ADMIN_GET_BUILD_STEP_BY_ID = EndpointConfig(
+        url="/buildTypes/id:{BuildTypeId}/steps/{stepId}",
+        request_model=None,
+        response_model=CreateBuildStepResponse
+    )
     BUILD_QUEUE = EndpointConfig(
         url="/buildQueue",
         request_model=StartBuildRequest,
@@ -120,3 +140,14 @@ class Endpoint(Enum):
     )
 
 
+    ADMIN_DELETE_BUILD_STEP = EndpointConfig(
+        url="/buildTypes/id:{BuildTypeId}/steps/{stepId}",
+        request_model=None,
+        response_model=None
+    )
+    
+    ADMIN_UPDATE_BUILD_STEP = EndpointConfig(
+        url="/buildTypes/id:{BuildTypeId}/steps/{stepId}",
+        request_model=CreateBuildStepRequest,
+        response_model=CreateBuildStepResponse
+    )
