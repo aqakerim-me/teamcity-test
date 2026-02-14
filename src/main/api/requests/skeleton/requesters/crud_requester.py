@@ -22,18 +22,12 @@ class CrudRequester(HttpRequest, CrudEndpointInterface):
     def base_url(self) -> str:
         return f"{Config.get('server')}{Config.get('apiVersion')}"
 
-<<<<<<< HEAD
     def _build_url(
         self,
         path_params: Optional[Dict[str, Any]] = None,
         query_params: Optional[Dict[str, str]] = None,
     ) -> str:
         url = f"{self.base_url}{self.endpoint.value.url}"
-=======
-    def _build_url(self, path_params: Optional[Dict[str, Any]] = None, query_params: Optional[Dict[str, str]] = None) -> str:
-        endpoint_config = self._endpoint_config()
-        url = f"{self.base_url}{endpoint_config.url}"
->>>>>>> origin/main
         if path_params:
             for key, value in path_params.items():
                 url = url.replace(f"{{{key}}}", str(value))
@@ -110,7 +104,6 @@ class CrudRequester(HttpRequest, CrudEndpointInterface):
         self.response_spec(response)
         return response
 
-<<<<<<< HEAD
     def delete(
         self,
         id: Optional[int | str] = None,
@@ -129,13 +122,5 @@ class CrudRequester(HttpRequest, CrudEndpointInterface):
 
         response = requests.delete(url=url, headers=self.request_spec)
 
-=======
-    def delete(self, id: int | str) -> requests.Response:
-        endpoint_config = self._endpoint_config()
-        response = requests.delete(
-            url=f'{self.base_url}{endpoint_config.url}/id:{id}',
-            headers=self.request_spec
-        )
->>>>>>> origin/main
         self.response_spec(response)
         return response

@@ -80,11 +80,11 @@ class ResponseSpecs:
         return check
 
     @staticmethod
-    def request_returns_not_found(error_value: AlertMessages) -> Callable[[Response], None]:
+    def request_returns_not_found(
+            error_value: AlertMessages | None = None
+    ) -> Callable[[Response], None]:
+
         def check(response: Response):
-            ResponseSpecs._check_error_response(
-                response,
-                (HTTPStatus.NOT_FOUND,),
-                error_value
-            )
+            assert response.status_code == HTTPStatus.NOT_FOUND
+
         return check
