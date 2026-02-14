@@ -4,6 +4,10 @@ from typing import Optional
 
 from src.main.api.models.agent_response import AgentResponse, AgentsListResponse
 from src.main.api.models.base_model import BaseModel
+from src.main.api.models.build_list_response import BuildListResponse
+from src.main.api.models.build_queue_response import BuildQueueResponse
+from src.main.api.models.build_response import BuildResponse
+from src.main.api.models.start_build_request import StartBuildRequest
 from src.main.api.models.create_project_request import CreateProjectRequest
 from src.main.api.models.create_project_response import CreateProjectResponse, ProjectsListResponse
 from src.main.api.models.create_user_request import CreateUserRequest

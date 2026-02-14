@@ -1,5 +1,6 @@
 import random
 import string
+import time
 from faker import Faker
 
 faker = Faker()
@@ -14,12 +15,14 @@ class GenerateData:
 
     @staticmethod
     def get_project_id() -> str:
+        # Use timestamp + random to ensure uniqueness
+        timestamp_suffix = str(int(time.time() * 1000))[-6:]  # Last 6 digits of ms timestamp
         first_char = random.choice(string.ascii_letters)
         allowed_chars = string.ascii_letters + string.digits + "_"
         rest = "".join(
-            random.choices(allowed_chars, k=random.randint(2, 15))
+            random.choices(allowed_chars, k=random.randint(4, 8))
         )
-        return first_char + rest
+        return first_char + rest + timestamp_suffix
 
     @staticmethod
     def get_project_id_with_length(length: int) -> str:

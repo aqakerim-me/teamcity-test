@@ -82,7 +82,7 @@ class BuildSteps(BaseSteps):
         return build_response
 
     def get_builds_by_buildtype(self, build_type_id: str) -> List[BuildResponse]:
-        url = f"{Endpoint.BUILDS_LIST.value.url}?locator=buildType:id:{build_type_id}"
+        url = f"{Endpoint.BUILDS_LIST.value.url}?locator=buildType:id:{build_type_id},state:any"
         endpoint = self._endpoint_for_url(url, response_model=BuildListResponse)
 
         builds_list = ValidatedCrudRequester(

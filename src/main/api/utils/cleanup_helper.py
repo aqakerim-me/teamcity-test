@@ -12,10 +12,26 @@ def cleanup_objects(objects: List[Any]):
         logging.info("No objects to cleanup")
         return
 
-    logging.info(f"Starting cleanup of {len(objects)} objects")
-
-    temp_api_manager = ApiManager(objects)
+    # Deduplicate objects by ID to avoid double cleanup
+    seen_ids = {}
+    unique_objects = []
     for obj in objects:
+        obj_id = None
+        if isinstance(obj, (CreateProjectResponse, CreateUserResponse)):
+            obj_id = (type(obj).__name__, obj.id)
+        elif isinstance(obj, BuildResponse):
+            obj_id = (type(obj).__name__, obj.id)
+
+        if obj_id and obj_id not in seen_ids:
+            seen_ids[obj_id] = True
+            unique_objects.append(obj)
+        elif not obj_id:
+            unique_objects.append(obj)
+
+    logging.info(f"Starting cleanup of {len(unique_objects)} objects")
+
+    temp_api_manager = ApiManager(unique_objects)
+    for obj in unique_objects:
         try:
             if isinstance(obj, CreateProjectResponse):
                 temp_api_manager.admin_steps.delete_project(id=obj.id)
