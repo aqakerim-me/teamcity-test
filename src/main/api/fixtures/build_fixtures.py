@@ -1,3 +1,4 @@
+import logging
 import time
 
 import pytest
@@ -26,24 +27,19 @@ def build_type(api_manager: ApiManager):
 
         yield build_type_id
 
-        # Cleanup: delete build type and project
+        # Cleanup: delete build type (not tracked in created_objects)
+        # Project cleanup will be handled by created_objects fixture automatically
         try:
             api_manager.admin_steps.delete_build_type(build_type_id)
         except Exception as e:
-            print(f"Warning: Could not delete build type {build_type_id}: {e}")
-
-        try:
-            api_manager.admin_steps.delete_project(project.id)
-            # Remove from created_objects to avoid double cleanup
-            api_manager.admin_steps.created_objects.remove(project)
-        except Exception as e:
-            print(f"Warning: Could not delete project {project.id}: {e}")
+            logging.warning(f"Could not delete build type {build_type_id}: {e}")
     except Exception as e:
         pytest.skip(f"TeamCity server not ready (may be in maintenance mode): {e}")
 
 
 @pytest.fixture
 def queued_build(api_manager: ApiManager, build_type: str):
+    """Trigger multiple builds and return one that's still queued"""
     # Trigger multiple builds to saturate agents and keep some in queue
     builds = []
     for _ in range(5):
@@ -55,23 +51,14 @@ def queued_build(api_manager: ApiManager, build_type: str):
         for build in builds:
             status = api_manager.build_steps.get_build_by_id(build.id, fields="id,buildTypeId,state")
             if status.state == "queued":
+                # Remove this build from created_objects so it doesn't get auto-cleaned
+                # Test will handle cleanup (cancelling the build)
+                if build in api_manager.build_steps.created_objects:
+                    api_manager.build_steps.created_objects.remove(build)
                 yield build
-                # Cancel remaining builds
-                for b in builds:
-                    if b.id != build.id:
-                        try:
-                            api_manager.build_steps.wait_for_build_completion(b.id, timeout=30)
-                        except Exception:
-                            pass
                 return
         time.sleep(0.5)
 
-    # Cleanup all builds
-    for build in builds:
-        try:
-            api_manager.build_steps.wait_for_build_completion(build.id, timeout=30)
-        except Exception:
-            pass
     pytest.skip("Build left queue too quickly to cancel")
 
 
@@ -84,25 +71,22 @@ def running_build(api_manager: ApiManager, build_type: str):
             yield build
             return
         time.sleep(2)
-    yield build
+    pytest.skip("Build completed too quickly to catch in 'running' state")
 
 
 @pytest.fixture
 def completed_build(api_manager: ApiManager, build_type: str):
+    """Trigger a build and wait for it to complete"""
     build = api_manager.build_steps.trigger_build(build_type)
-    completed_build = api_manager.build_steps.wait_for_build_completion(build.id)
-    yield completed_build
+    completed_build_response = api_manager.build_steps.wait_for_build_completion(build.id)
+    yield completed_build_response
 
 
 @pytest.fixture
 def multiple_builds(api_manager: ApiManager, build_type: str):
+    """Trigger multiple builds for testing"""
     builds = []
     for _ in range(3):
         build = api_manager.build_steps.trigger_build(build_type)
         builds.append(build)
     yield builds
-    for build in builds:
-        try:
-            api_manager.build_steps.wait_for_build_completion(build.id, timeout=60)
-        except Exception:
-            pass

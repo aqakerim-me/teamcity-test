@@ -181,3 +181,27 @@ class BuildSteps(BaseSteps):
             ResponseSpecs.entity_was_deleted(),
         ).delete(build_id)
         logging.info(f"Deleted build: ID {build_id}")
+
+    @staticmethod
+    def trigger_invalid_build(build_request: StartBuildRequest, error_value: str):
+        """Attempt to trigger invalid build with error validation"""
+        CrudRequester(
+            RequestSpecs.admin_auth_spec(),
+            Endpoint.BUILD_QUEUE,
+            ResponseSpecs.request_returns_not_found(),
+        ).post(build_request)
+        logging.info(f"Invalid build trigger blocked correctly: {error_value}")
+
+    @staticmethod
+    def cancel_invalid_build(build_id: int, comment: str, error_value: str):
+        """Attempt to cancel non-existent build with error validation"""
+        cancel_request = BuildCancelRequest(comment=comment, readdIntoQueue=False)
+        url = f"{Endpoint.BUILD_QUEUE.value.url}/id:{build_id}"
+        endpoint = EndpointConfig(url=url, request_model=None, response_model=None)
+
+        CrudRequester(
+            RequestSpecs.admin_auth_spec(),
+            endpoint,
+            ResponseSpecs.request_returns_not_found(),
+        ).post(cancel_request)
+        logging.info(f"Invalid build cancellation blocked correctly for ID {build_id}")
