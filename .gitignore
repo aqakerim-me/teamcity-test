@@ -1,3 +1,5 @@
+.idea/
+
 # Python bytecode
 __pycache__/
 *.pyc
@@ -12,4 +14,4 @@ env/
 .venv/
 
 # Docs (не выкладывать в репозиторий)
-docs/
+docs/.idea/

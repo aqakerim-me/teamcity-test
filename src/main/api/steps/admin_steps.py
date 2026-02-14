@@ -102,7 +102,7 @@ class AdminSteps(BaseSteps):
 
         self.created_objects.append(create_project_response)
         logging.info(
-            f"User created: {create_project_response.name}, ID: {project_id_response}"
+            f"Project created: {create_project_response.name}, ID: {project_id_response}"
         )
         return create_project_response
 
@@ -285,3 +285,70 @@ class AdminSteps(BaseSteps):
             f"Invalid update build step blocked correctly with ID {step_id} and error {error_value}"
         )
         return response
+    def create_simple_build_type(project_id: str, build_type_name: str) -> str:
+        """
+        Create a simple build type with a basic command line runner.
+
+        Args:
+            project_id: ID of the project to create the build type in
+            build_type_name: Name for the build type
+
+        Returns:
+            str: Build type ID
+        """
+        import requests
+        from src.main.api.configs.config import Config
+
+        # Create a minimal build type configuration using JSON
+        build_type_data = {
+            "name": build_type_name,
+            "project": {"id": project_id},
+            "steps": {
+                "step": [
+                    {
+                        "name": "Simple Step",
+                        "type": "simpleRunner",
+                        "properties": {
+                            "property": [
+                                {"name": "script.content", "value": "echo 'Test build executed successfully'"},
+                                {"name": "teamcity.step.mode", "value": "default"},
+                                {"name": "use.custom.script", "value": "true"}
+                            ]
+                        }
+                    }
+                ]
+            }
+        }
+
+        url = f"{Config.get('server')}{Config.get('apiVersion')}/buildTypes"
+        headers = {**RequestSpecs.admin_auth_spec(), "Content-Type": "application/json", "Accept": "application/json"}
+
+        response = requests.post(url, headers=headers, json=build_type_data)
+        ResponseSpecs.request_returns_ok()(response)
+
+        # Extract the build type ID from the response
+        response_json = response.json()
+        build_type_id = response_json.get("id")
+
+        logging.info(f"Created build type: {build_type_id}")
+        return build_type_id
+    
+    @staticmethod
+    def delete_build_type(build_type_id: str):
+        """
+        Delete a build type.
+
+        Args:
+            build_type_id: ID of the build type to delete
+        """
+        import requests
+        from src.main.api.configs.config import Config
+
+        url = f"{Config.get('server')}{Config.get('apiVersion')}/buildTypes/id:{build_type_id}"
+        headers = RequestSpecs.admin_auth_spec()
+
+        response = requests.delete(url, headers=headers)
+        ResponseSpecs.entity_was_deleted()(response)
+
+        logging.info(f"Deleted build type: {build_type_id}")
+

@@ -5,7 +5,12 @@ from src.main.api.requests.skeleton.requesters.crud_requester import CrudRequest
 from src.main.api.models.base_model import BaseModel
 from src.main.api.requests.skeleton.http_request import HttpRequest
 
+<<<<<<< HEAD
 T = TypeVar("T", bound=BaseModel)
+=======
+
+T = TypeVar('T', bound=BaseModel)
+>>>>>>> origin/main
 
 
 class ValidatedCrudRequester(HttpRequest):
@@ -17,8 +22,14 @@ class ValidatedCrudRequester(HttpRequest):
             response_spec=response_spec,
             path_params=path_params,
         )
-        self._adapter = TypeAdapter(self.endpoint.value.response_model)
+        endpoint_config = self.endpoint.value if hasattr(self.endpoint, "value") else self.endpoint
+        self._adapter = (
+            TypeAdapter(endpoint_config.response_model)
+            if endpoint_config.response_model is not None
+            else None
+        )
 
+<<<<<<< HEAD
     def post(
         self,
         model: Optional[T] = None,
@@ -30,6 +41,12 @@ class ValidatedCrudRequester(HttpRequest):
             path_params=path_params,
             query_params=query_params,
         )
+=======
+    def post(self, model: Optional[T] = None):
+        response = self.crud_requester.post(model)
+        if self._adapter is None:
+            return response
+>>>>>>> origin/main
         return self._adapter.validate_python(response.json())
 
     def get(
@@ -38,9 +55,15 @@ class ValidatedCrudRequester(HttpRequest):
         path_params: Optional[dict] = None,
         query_params: Optional[dict] = None,
     ):
+<<<<<<< HEAD
         response = self.crud_requester.get(
             id=id, path_params=path_params, query_params=query_params
         )
+=======
+        response = self.crud_requester.get(id=id, path_params=path_params, query_params=query_params)
+        if self._adapter is None:
+            return response
+>>>>>>> origin/main
         return self._adapter.validate_python(response.json())
 
     def update(
