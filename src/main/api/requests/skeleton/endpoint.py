@@ -4,6 +4,10 @@ from typing import Optional
 
 from src.main.api.models.agent_response import AgentResponse, AgentsListResponse
 from src.main.api.models.base_model import BaseModel
+from src.main.api.models.build_list_response import BuildListResponse
+from src.main.api.models.build_queue_response import BuildQueueResponse
+from src.main.api.models.build_response import BuildResponse
+from src.main.api.models.start_build_request import StartBuildRequest
 from src.main.api.models.create_project_request import CreateProjectRequest
 from src.main.api.models.create_project_response import CreateProjectResponse, ProjectsListResponse
 from src.main.api.models.create_user_request import CreateUserRequest
@@ -18,7 +22,6 @@ class EndpointConfig:
 
 
 class Endpoint(Enum):
-    # Users API
     ADMIN_CREATE_USER = EndpointConfig(
         url='/users',
         request_model=CreateUserRequest,
@@ -37,13 +40,6 @@ class Endpoint(Enum):
         response_model=UsersListResponse
     )
 
-    ADMIN_GET_USER_BY_ID = EndpointConfig(
-        url="/users",
-        request_model=None,
-        response_model=CreateUserResponse
-    )
-
-    # Projects API
     ADMIN_CREATE_PROJECT = EndpointConfig(
         url='/projects',
         request_model=CreateProjectRequest,
@@ -97,6 +93,30 @@ class Endpoint(Enum):
         url="/agents",
         request_model=None,
         response_model=AgentResponse
+    )
+
+    BUILD_QUEUE = EndpointConfig(
+        url="/buildQueue",
+        request_model=StartBuildRequest,
+        response_model=BuildResponse
+    )
+
+    BUILD_QUEUE_LIST = EndpointConfig(
+        url="/buildQueue",
+        request_model=None,
+        response_model=BuildQueueResponse
+    )
+
+    BUILDS = EndpointConfig(
+        url="/builds",
+        request_model=None,
+        response_model=BuildResponse
+    )
+
+    BUILDS_LIST = EndpointConfig(
+        url="/builds",
+        request_model=None,
+        response_model=BuildListResponse
     )
 
 
