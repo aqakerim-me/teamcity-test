@@ -2,7 +2,7 @@ import pytest
 
 from src.main.api.classes.api_manager import ApiManager
 from src.main.api.models.build_type_request import BuildTypeRequest
-from src.main.api.models.build_type_response import BuildTypeResponse
+from src.main.api.models.comparison.model_assertions import ModelAssertions
 from src.main.api.generators.generate_data import GenerateData
 
 
@@ -29,9 +29,7 @@ class TestBuildTypesPositive:
         )
 
         created_buildtype = api_manager.admin_steps.create_buildtype(build_type_request)
-        assert created_buildtype.id == build_type_request.id, "Build type ID should match"
-        assert created_buildtype.name == build_type_request.name, "Build type name should match"
-        assert created_buildtype.project["id"] == project_id, "Project ID should match"
+        ModelAssertions(build_type_request, created_buildtype).match()
 
     def test_get_buildtype_by_id_success(self, api_manager: ApiManager):
         build_types = api_manager.admin_steps.get_all_buildtypes()
@@ -58,9 +56,7 @@ class TestBuildTypesPositive:
         )
 
         created_buildtype = api_manager.admin_steps.create_buildtype(build_type_request)
-        assert created_buildtype.id == build_type_request.id, "Build type ID should match"
-        assert created_buildtype.name == build_type_request.name, "Build type name should match"
-        assert created_buildtype.project["id"] == project_id, "Project ID should match"
+        ModelAssertions(build_type_request, created_buildtype).match()
 
     def test_create_buildtype_with_name_success(self, api_manager: ApiManager):
         # Get existing project first (skip Root project)
@@ -76,9 +72,7 @@ class TestBuildTypesPositive:
         )
 
         created_buildtype = api_manager.admin_steps.create_buildtype(build_type_request)
-        assert created_buildtype.id == build_type_request.id, "Build type ID should match"
-        assert created_buildtype.name == build_type_request.name, "Build type name should match"
-        assert created_buildtype.project["id"] == project_id, "Project ID should match"
+        ModelAssertions(build_type_request, created_buildtype).match()
 
     def test_update_buildtype_settings_success(self, api_manager: ApiManager):
         build_types = api_manager.admin_steps.get_all_buildtypes()
@@ -222,9 +216,7 @@ class TestBuildTypesWithProjectId:
         )
 
         created_buildtype = api_manager.admin_steps.create_buildtype(build_type_request)
-        assert created_buildtype.id == build_type_request.id, "Build type ID should match"
-        assert created_buildtype.name == build_type_request.name, "Build type name should match"
-        assert created_buildtype.project["id"] == project_id, "Project ID should match"
+        ModelAssertions(build_type_request, created_buildtype).match()
 
     def test_create_buildtype_with_specific_name_success(self, api_manager: ApiManager):
         # Get existing project first (skip Root project)
@@ -240,9 +232,7 @@ class TestBuildTypesWithProjectId:
         )
 
         created_buildtype = api_manager.admin_steps.create_buildtype(build_type_request)
-        assert created_buildtype.id == build_type_request.id, "Build type ID should match"
-        assert created_buildtype.name == "TestBuildType_CustomName", "Build type name should be custom value"
-        assert created_buildtype.projectId == project_id, "Project ID should match"
+        ModelAssertions(build_type_request, created_buildtype).match()
 
 
 @pytest.mark.api
