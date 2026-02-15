@@ -6,9 +6,7 @@ import requests
 from src.main.api.configs.config import Config
 from src.main.api.models.base_model import BaseModel
 from src.main.api.requests.skeleton.http_request import HttpRequest
-from src.main.api.requests.skeleton.interfaces.crud_end_interface import (
-    CrudEndpointInterface,
-)
+from src.main.api.requests.skeleton.interfaces.crud_end_interface import CrudEndpointInterface
 
 
 T = TypeVar("T", bound=BaseModel)
@@ -35,17 +33,13 @@ class CrudRequester(HttpRequest, CrudEndpointInterface):
             url += "?" + urlencode(query_params)
         return url
 
-    def post(
-        self,
-        model: Optional[T] = None,
-        path_params: Optional[Dict[str, Any]] = None,
-        query_params: Optional[Dict[str, str]] = None,
-    ) -> requests.Response:
-        body = model.model_dump() if model is not None else None
-
-        url = self._build_url(path_params=path_params, query_params=query_params)
-
-        response = requests.post(url=url, headers=self.request_spec, json=body)
+    def post(self, model: Optional[T] = None, path_params: Optional[Dict[str, Any]] = None) -> requests.Response:
+        body = model.model_dump() if model is not None else ''
+        response = requests.post(
+            url=self._build_url(path_params=path_params),
+            headers=self.request_spec,
+            json=body
+        )
         self.response_spec(response)
         return response
 
@@ -85,24 +79,51 @@ class CrudRequester(HttpRequest, CrudEndpointInterface):
 
     def update(
         self,
-        model: Optional[Any] = None,
         path_params: Optional[Dict[str, Any]] = None,
-        json_body: Optional[Dict[str, Any]] = None,
+        data: Optional[any] = None,
+        content_type: Optional[str] = None,
     ) -> requests.Response:
-
-        if model is not None:
-            json_body = model.model_dump()
-
         url = self._build_url(path_params=path_params)
+        headers = {**self.request_spec}
+        if content_type:
+            headers["Content-Type"] = content_type
+            headers["Accept"] = content_type
+        else:
+            headers["Content-Type"] = "text/plain"
+            headers["Accept"] = "text/plain"
 
-        response = requests.put(
-            url=url,
-            headers=self.request_spec,
-            json=json_body
-        )
+        # Handle different data types
+        if data is None:
+            response = requests.put(url, headers=headers, data='')
+        elif content_type == "application/json":
+            # For JSON, check for model_dump first (pydantic models)
+            if hasattr(data, 'model_dump'):
+                response = requests.put(url, headers=headers, json=data.model_dump())
+            elif isinstance(data, dict):
+                response = requests.put(url, headers=headers, json=data)
+            elif isinstance(data, str):
+                import json
+                response = requests.put(url, headers=headers, json=json.loads(data))
+            else:
+                import json
+                # Last resort - try to convert to string and parse
+                response = requests.put(url, headers=headers, json=json.loads(str(data)))
+        else:
+            # For text/plain, expect string data
+            body = data if isinstance(data, str) else str(data)
+            response = requests.put(url, headers=headers, data=body)
 
         self.response_spec(response)
         return response
+
+    def put(
+        self,
+        path_params: Optional[Dict[str, Any]] = None,
+        data: Optional[any] = None,
+        content_type: Optional[str] = None,
+    ) -> requests.Response:
+        """Alias for update method - PUT request"""
+        return self.update(path_params=path_params, data=data, content_type=content_type)
 
     def delete(
         self,
