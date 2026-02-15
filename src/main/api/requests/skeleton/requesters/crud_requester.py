@@ -25,7 +25,8 @@ class CrudRequester(HttpRequest, CrudEndpointInterface):
         path_params: Optional[Dict[str, Any]] = None,
         query_params: Optional[Dict[str, str]] = None,
     ) -> str:
-        url = f"{self.base_url}{self.endpoint.value.url}"
+        endpoint_config = self._endpoint_config()
+        url = f"{self.base_url}{endpoint_config.url}"
         if path_params:
             for key, value in path_params.items():
                 url = url.replace(f"{{{key}}}", str(value))

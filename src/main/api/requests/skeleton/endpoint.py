@@ -89,6 +89,11 @@ class Endpoint(Enum):
         request_model=None,
         response_model=AgentResponse
     )
+    AGENTS_ENABLED = EndpointConfig(
+        url="/agents/id:{id}/enabled",
+        request_model=None,
+        response_model=None
+    )
 
     BUILD_QUEUE = EndpointConfig(
         url="/buildQueue",
@@ -99,7 +104,25 @@ class Endpoint(Enum):
     BUILD_QUEUE_LIST = EndpointConfig(
         url="/buildQueue",
         request_model=None,
-        response_model=BuildTypeListResponse
+        response_model=BuildQueueResponse
+    )
+
+    BUILD_QUEUE_BY_ID = EndpointConfig(
+        url="/buildQueue/id:{buildId}",
+        request_model=None,
+        response_model=None
+    )
+
+    BUILDS = EndpointConfig(
+        url="/builds",
+        request_model=None,
+        response_model=BuildResponse
+    )
+
+    BUILDS_LIST = EndpointConfig(
+        url="/builds",
+        request_model=None,
+        response_model=BuildListResponse
     )
 
     BUILD_TYPE_BY_ID = EndpointConfig(

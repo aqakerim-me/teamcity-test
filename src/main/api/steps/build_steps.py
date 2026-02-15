@@ -202,6 +202,7 @@ class BuildSteps(BaseSteps):
     def cancel_invalid_build(build_id: int, comment: str, error_value: str):
         """Attempt to cancel non-existent build with error validation"""
         cancel_request = BuildCancelRequest(comment=comment, readdIntoQueue=False)
+
         url = f"{Endpoint.BUILD_QUEUE.value.url}/id:{build_id}"
         endpoint = EndpointConfig(url=url, request_model=None, response_model=None)
 

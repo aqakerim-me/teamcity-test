@@ -403,7 +403,7 @@ class AdminSteps(BaseSteps):
         CrudRequester(
             RequestSpecs.admin_auth_spec(),
             Endpoint.ADMIN_GET_BUILD_STEP,
-            ResponseSpecs.request_returns_bad_request_or_server_error(error_value),
+            ResponseSpecs.request_returns_not_found(error_value),
         ).get(step_id, path_params={"buildTypeId": build_type_id, "stepId": step_id})
         error_msg = error_value if isinstance(error_value, str) else f"{len(error_value)} errors"
         logging.info(f"Invalid build step get blocked correctly: {error_msg}")
@@ -425,7 +425,7 @@ class AdminSteps(BaseSteps):
         CrudRequester(
             RequestSpecs.admin_auth_spec(),
             Endpoint.ADMIN_UPDATE_BUILD_STEP,
-            ResponseSpecs.request_returns_bad_request_or_server_error(error_value),
+            ResponseSpecs.request_returns_not_found(error_value),
         ).put(path_params={"BuildTypeId": build_type_id, "stepId": step_id}, data=step_request, content_type="application/json")
         error_msg = error_value if isinstance(error_value, str) else f"{len(error_value)} errors"
         logging.info(f"Invalid build step update blocked correctly: {error_msg}")
