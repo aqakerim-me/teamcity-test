@@ -3,6 +3,7 @@ from typing import Any, List
 
 from src.main.api.classes.api_manager import ApiManager
 from src.main.api.models.build_response import BuildResponse
+from src.main.api.models.build_type_response import BuildTypeResponse
 from src.main.api.models.create_project_response import CreateProjectResponse
 from src.main.api.models.create_user_response import CreateUserResponse
 
@@ -20,6 +21,8 @@ def cleanup_objects(objects: List[Any]):
         if isinstance(obj, (CreateProjectResponse, CreateUserResponse)):
             obj_id = (type(obj).__name__, obj.id)
         elif isinstance(obj, BuildResponse):
+            obj_id = (type(obj).__name__, obj.id)
+        elif isinstance(obj, BuildTypeResponse):
             obj_id = (type(obj).__name__, obj.id)
 
         if obj_id and obj_id not in seen_ids:
@@ -42,6 +45,9 @@ def cleanup_objects(objects: List[Any]):
             elif isinstance(obj, BuildResponse):
                 temp_api_manager.build_steps.delete_build(build_id=obj.id)
                 logging.info(f"Cleaned up build: ID {obj.id}")
+            elif isinstance(obj, BuildTypeResponse):
+                temp_api_manager.admin_steps.delete_buildtype(obj.id)
+                logging.info(f"Cleaned up build type: {obj.name} (ID: {obj.id})")
             else:
                 logging.warning(f"Object type: {type(obj)} is not handled in cleanup")
         except Exception as e:

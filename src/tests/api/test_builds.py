@@ -1,6 +1,7 @@
 import pytest
 
 from src.main.api.classes.api_manager import ApiManager
+from src.main.api.models.allert_messages import AlertMessages
 from src.main.api.models.build_response import BuildResponse
 from src.main.api.models.start_build_request import BuildTypeRef, StartBuildRequest
 
@@ -126,7 +127,7 @@ class TestTriggerBuildNegative:
 
         response = api_manager.build_steps.trigger_invalid_build(
             build_request,
-            "Build type not found"
+            AlertMessages.BUILD_TYPE_NOT_FOUND
         )
 
         assert response.status_code == 404, (
@@ -146,7 +147,7 @@ class TestTriggerBuildNegative:
         response = api_manager.build_steps.cancel_invalid_build(
             non_existent_id,
             comment="Test cancellation",
-            error_value="Build not found"
+            error_value=AlertMessages.BUILD_NOT_FOUND
         )
 
         assert response.status_code == 404, (

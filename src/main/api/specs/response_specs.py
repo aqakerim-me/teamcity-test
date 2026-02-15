@@ -85,6 +85,16 @@ class ResponseSpecs:
     ) -> Callable[[Response], None]:
 
         def check(response: Response):
-            assert response.status_code == HTTPStatus.NOT_FOUND
+            if error_value:
+                ResponseSpecs._check_error_response(
+                    response,
+                    (HTTPStatus.NOT_FOUND,),
+                    error_value
+                )
+            else:
+                assert response.status_code == HTTPStatus.NOT_FOUND, (
+                    f"Expected status {HTTPStatus.NOT_FOUND}, but got {response.status_code}. "
+                    f"Response body: {response.text}"
+                )
 
         return check
