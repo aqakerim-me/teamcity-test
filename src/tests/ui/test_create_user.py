@@ -1,10 +1,8 @@
-import time
-
 import pytest
 from playwright.sync_api import Page
 
 from src.main.api.classes.api_manager import ApiManager
-from src.main.api.generator.generate_data import GenerateData
+from src.main.api.generators.generate_data import GenerateData
 from src.main.api.models.create_user_request import CreateUserRequest
 from src.main.ui.pages.admin_page import AdminPage
 from src.main.ui.pages.teamcity_alerts import TeamCityAlert
@@ -30,19 +28,13 @@ class TestCreateUser:
             TeamCityAlert.USER_CREATED_SUCCESSFULLY
         )
 
-        # ШАГ 2: проверка, что пользователь был создан на API
-        max_wait_seconds = 10
-        for _ in range(max_wait_seconds):
-            users = api_manager.admin_steps.get_all_users()
-            user_usernames = [u.username for u in users]
-            if user_request.username in user_usernames:
-                break
-            time.sleep(1)
-        
-        users = api_manager.admin_steps.get_all_users()
-        user_usernames = [u.username for u in users]
-        assert user_request.username in user_usernames, \
-            f"Expected user '{user_request.username}' to be created, but it's not in the list"
+        # ШАГ 2: проверка, что пользователь был создан на API (с retry)
+        user = api_manager.admin_steps.wait_user_appears(
+            username=user_request.username,
+            page=page,
+        )
+        assert user.username == user_request.username, \
+            f"Expected user '{user_request.username}' to be created, but got '{user.username}'"
 
     @pytest.mark.parametrize(
         "username, password, expected_error",

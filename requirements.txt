@@ -5,4 +5,4 @@ faker
 # softest
 # rstr
 pytest-playwright
-playwright
+allure-pytest

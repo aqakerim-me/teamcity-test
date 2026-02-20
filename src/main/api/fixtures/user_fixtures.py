@@ -1,8 +1,10 @@
 import pytest
 
 from src.main.api.classes.api_manager import ApiManager
+from src.main.api.configs.config import Config
 from src.main.api.generators.generate_data import GenerateData
 from src.main.api.models.create_project_request import CreateProjectRequest
+from src.main.api.models.create_user_request import CreateUserRequest
 
 
 # Создание проекта

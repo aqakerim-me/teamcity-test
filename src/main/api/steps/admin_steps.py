@@ -1,5 +1,7 @@
 import logging
-from typing import List
+from typing import List, Optional
+
+from playwright.sync_api import Page
 
 from src.main.api.models.allert_messages import AlertMessages
 from src.main.api.models.create_build_step_request import CreateBuildStepRequest
@@ -18,6 +20,7 @@ from src.main.api.requests.skeleton.requesters.validated_crud_requester import (
 from src.main.api.specs.request_specs import RequestSpecs
 from src.main.api.specs.response_specs import ResponseSpecs
 from src.main.api.steps.base_steps import BaseSteps
+from src.main.api.utils.retry import RetryUtils
 
 
 class AdminSteps(BaseSteps):
@@ -351,4 +354,98 @@ class AdminSteps(BaseSteps):
         ResponseSpecs.entity_was_deleted()(response)
 
         logging.info(f"Deleted build type: {build_type_id}")
+
+    def wait_project_appears(
+        self,
+        project_id: str,
+        page: Optional[Page] = None,
+        max_attempts: int = 10,
+        delay_seconds: float = 1.0,
+    ) -> CreateProjectResponse:
+        """
+        Ожидает появления проекта в списке проектов.
+
+        Args:
+            project_id: ID проекта для поиска
+            page: Playwright Page для логирования в Allure (опционально)
+            max_attempts: Максимальное количество попыток
+            delay_seconds: Задержка между попытками в секундах
+
+        Returns:
+            CreateProjectResponse: Найденный проект
+
+        Raises:
+            TimeoutError: Если проект не появился за указанное время
+        """
+        def action():
+            projects = self.get_all_projects()
+            logging.info(
+                f"Attempt: looking for project_id='{project_id}', "
+                f"found projects: {[p.id for p in projects]}"
+            )
+            return projects
+
+        projects = RetryUtils.retry(
+            title=f"Wait for project '{project_id}' to appear in API",
+            action=action,
+            condition=lambda pl: project_id in [p.id for p in pl],
+            max_attempts=max_attempts,
+            delay_seconds=delay_seconds,
+            page=page,
+        )
+
+        # Найти и вернуть конкретный проект
+        for project in projects:
+            if project.id == project_id:
+                logging.info(f"Project '{project_id}' found successfully")
+                return project
+
+        raise ValueError(f"Project '{project_id}' not found in projects list")
+
+    def wait_user_appears(
+        self,
+        username: str,
+        page: Optional[Page] = None,
+        max_attempts: int = 10,
+        delay_seconds: float = 1.0,
+    ) -> CreateUserResponse:
+        """
+        Ожидает появления пользователя в списке пользователей.
+
+        Args:
+            username: Username пользователя для поиска
+            page: Playwright Page для логирования в Allure (опционально)
+            max_attempts: Максимальное количество попыток
+            delay_seconds: Задержка между попытками в секундах
+
+        Returns:
+            CreateUserResponse: Найденный пользователь
+
+        Raises:
+            TimeoutError: Если пользователь не появился за указанное время
+        """
+        def action():
+            users = self.get_all_users()
+            logging.info(
+                f"Attempt: looking for username='{username}', "
+                f"found users: {[u.username for u in users]}"
+            )
+            return users
+
+        users = RetryUtils.retry(
+            title=f"Wait for user '{username}' to appear in API",
+            action=action,
+            condition=lambda u_list: username in [u.username for u in u_list],
+            max_attempts=max_attempts,
+            delay_seconds=delay_seconds,
+            page=page,
+        )
+
+        # Найти и вернуть конкретного пользователя
+        for user in users:
+            if user.username == username:
+                logging.info(f"User '{username}' found successfully")
+                return user
+
+        raise ValueError(f"User '{username}' not found in users list")
 

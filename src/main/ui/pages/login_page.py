@@ -1,3 +1,5 @@
+from playwright.sync_api import Page
+
 from src.main.ui.pages.base_page import BasePage
 from src.main.ui.pages.ui_element import UIElement
 

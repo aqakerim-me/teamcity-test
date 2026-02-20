@@ -7,7 +7,6 @@ from src.main.api.models.create_user_request import CreateUserRequest
 from src.main.api.specs.request_specs import RequestSpecs
 from src.main.api.utils.step_logger import StepLogger
 from src.main.ui.pages.ui_element import UIElement
-from src.main.api.configs.config import Config
 
 T = TypeVar("T", bound="BasePage")
 
@@ -19,6 +18,7 @@ class BasePage(ABC):
 
     def _get_ui_base_url(self) -> str:
         """Получение базового URL из конфига"""
+        from src.main.api.configs.config import Config
         server = Config.get("server", "http://localhost:8111")
         return server
 

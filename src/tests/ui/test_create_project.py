@@ -1,10 +1,8 @@
-import time
-
 import pytest
 from playwright.sync_api import Page
 
 from src.main.api.classes.api_manager import ApiManager
-from src.main.api.generator.generate_data import GenerateData
+from src.main.api.generators.generate_data import GenerateData
 from src.main.api.models.create_project_request import CreateProjectRequest
 from src.main.ui.pages.projects_page import ProjectsPage
 from src.main.ui.pages.teamcity_alerts import TeamCityAlert
@@ -29,23 +27,15 @@ class TestCreateProject:
             TeamCityAlert.PROJECT_CREATED_SUCCESSFULLY
         )
 
-        # ШАГ 2: проверка, что проект был создан на API
-        max_wait_seconds = 10
-        for _ in range(max_wait_seconds):
-            projects = api_manager.admin_steps.get_all_projects()
-            project_ids = [p.id for p in projects]
-            if project_id in project_ids:
-                break
-            time.sleep(1)
-        
-        projects = api_manager.admin_steps.get_all_projects()
-        project_ids = [p.id for p in projects]
-        assert project_id in project_ids, \
-            f"Expected project ID '{project_id}' to be created, but it's not in the list"
-        
-        project_names = [p.name for p in projects]
-        assert project_name in project_names, \
-            f"Expected project name '{project_name}' to be created, but it's not in the list"
+        # ШАГ 2: проверка, что проект был создан на API (с retry)
+        project = api_manager.admin_steps.wait_project_appears(
+            project_id=project_id,
+            page=page,
+        )
+        assert project.id == project_id, \
+            f"Expected project ID '{project_id}', got '{project.id}'"
+        assert project.name == project_name, \
+            f"Expected project name '{project_name}', got '{project.name}'"
 
     def test_edit_project_parameters(
         self, api_manager: ApiManager, page: Page, create_project: CreateProjectRequest
