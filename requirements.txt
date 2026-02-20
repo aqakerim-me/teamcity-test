@@ -6,3 +6,4 @@ faker
 # rstr
 pytest-playwright
 allure-pytest
+playwright
