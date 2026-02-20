@@ -2,7 +2,6 @@ from enum import Enum
 
 
 class TeamCityAlert(str, Enum):
-    """Сообщения алертов для TeamCity UI"""
     
     # Успешные операции
     PROJECT_CREATED_SUCCESSFULLY = "Project created successfully"
@@ -20,6 +19,6 @@ class TeamCityAlert(str, Enum):
     PASSWORD_EMPTY = "Password must not be empty"
     
     # Ошибки логина
-    INVALID_CREDENTIALS = "Invalid username or password"
+    INVALID_CREDENTIALS = "Incorrect username or password"
     USERNAME_REQUIRED = "Username is required"
     PASSWORD_REQUIRED = "Password is required"

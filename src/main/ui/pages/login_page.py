@@ -11,37 +11,42 @@ class LoginPage(BasePage):
     @property
     def username_input(self) -> UIElement:
         return UIElement(
-            self.page.locator('input[name="username"], input[id="username"], input[placeholder*="Username" i]').first,
+            self.page.locator('input[name="username"]').first,
             name="Username input"
         )
 
     @property
     def password_input(self) -> UIElement:
         return UIElement(
-            self.page.locator('input[name="password"], input[id="password"], input[type="password"]').first,
+            self.page.locator('input[name="password"], input[type="password"]').first,
             name="Password input"
         )
 
     @property
     def login_button(self) -> UIElement:
         return UIElement(
-            self.page.locator('button:has-text("Log in"), button[type="submit"], input[type="submit"]').first,
+            self.page.locator('input[name="submitLogin"], input[type="submit"], button:has-text("Log in")').first,
             name="Login button"
         )
 
     @property
     def error_message(self) -> UIElement:
         return UIElement(
-            self.page.locator('.errorMessage, .error, [class*="error"]').first,
+            self.page.locator('#errorMessage, [role="alert"], .tcMessage').first,
             name="Error message"
         )
 
     def login(self, username: str, password: str):
-        """Выполнить логин"""
         def _action():
             self.username_input.to_be_visible().fill(username)
             self.password_input.to_be_visible().fill(password)
-            self.login_button.click()
+            # Нажимаем Enter в поле пароля вместо клика по кнопке — универсальный способ
+            try:
+                self.password_input.locator.press("Enter")
+            except Exception:
+                # fallback: клик по кнопке, если Enter не работает
+                self.login_button.click()
+            self.page.wait_for_load_state("networkidle")
             return self
 
         return self._step(

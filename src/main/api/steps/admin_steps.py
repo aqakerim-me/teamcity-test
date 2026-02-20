@@ -425,7 +425,25 @@ class AdminSteps(BaseSteps):
             TimeoutError: Если пользователь не появился за указанное время
         """
         def action():
-            users = self.get_all_users()
+            import requests
+            from src.main.api.configs.config import Config
+
+            url = f"{Config.get('server')}{Config.get('apiVersion')}/users"
+            params = {
+                "locator": f"username:{username}",
+                "fields": "user(username,id,href,name)",
+            }
+            response = requests.get(
+                url=url,
+                headers=RequestSpecs.admin_auth_spec(),
+                params=params,
+                timeout=10,
+            )
+            ResponseSpecs.request_returns_ok()(response)
+
+            payload = response.json()
+            users_raw = payload.get("user", []) if isinstance(payload, dict) else []
+            users = [CreateUserResponse(**u) for u in users_raw]
             logging.info(
                 f"Attempt: looking for username='{username}', "
                 f"found users: {[u.username for u in users]}"

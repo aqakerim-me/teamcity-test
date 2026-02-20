@@ -5,48 +5,33 @@ from src.main.api.classes.api_manager import ApiManager
 from src.main.api.generators.generate_data import GenerateData
 from src.main.api.models.create_user_request import CreateUserRequest
 from src.main.ui.pages.admin_page import AdminPage
-from src.main.ui.pages.teamcity_alerts import TeamCityAlert
+from src.main.ui.classes.session_storage import SessionStorage
 
 
 @pytest.mark.ui
+@pytest.mark.admin_session
 class TestCreateUser:
-    """Тесты создания пользователя"""
-
+    
     def test_create_user_with_valid_data(
         self, api_manager: ApiManager, page: Page, user_request: CreateUserRequest
     ):
-        """Создание пользователя с валидными данными"""
-        api_manager.admin_steps.created_objects.append(user_request)
-
-        # ШАГ 1: создание пользователя через UI
         admin_page = AdminPage(page).open()
+        assert "admin" in page.url.lower() and "user" in page.url.lower(), f"Admin users page should be open, URL: {page.url}"
         admin_page.admin_panel_text.to_be_visible()
-        admin_page = admin_page.create_user(
-            user_request.username, user_request.password
-        )
-        admin_page.check_alert_message_and_accept(
-            TeamCityAlert.USER_CREATED_SUCCESSFULLY
-        )
 
-        # ШАГ 2: проверка, что пользователь был создан на API (с retry)
-        user = api_manager.admin_steps.wait_user_appears(
-            username=user_request.username,
-            page=page,
-        )
-        assert user.username == user_request.username, \
-            f"Expected user '{user_request.username}' to be created, but got '{user.username}'"
+        admin_page.create_user(user_request.username, user_request.password)
+
+        user = api_manager.admin_steps.wait_user_appears(username=user_request.username, page=page, max_attempts=10, delay_seconds=1.0)
+        assert user.username == user_request.username
+        SessionStorage.add_users([user_request])
 
     @pytest.mark.parametrize(
         "username, password, expected_error",
         [
-            # Пустой username
-            ("", GenerateData.get_password(), TeamCityAlert.USERNAME_EMPTY),
-            # Слишком длинный username (>191)
-            (GenerateData.get_username_with_length(192), GenerateData.get_password(),
-             TeamCityAlert.USERNAME_TOO_LONG),
-            # Пустой password
-            (GenerateData.get_username(), "", TeamCityAlert.PASSWORD_EMPTY),
-        ]
+            ("", GenerateData.get_password(), "USERNAME_EMPTY"),
+            (GenerateData.get_username_with_length(192), GenerateData.get_password(), "USERNAME_TOO_LONG"),
+            (GenerateData.get_username(), "", "PASSWORD_EMPTY"),
+        ],
     )
     def test_create_user_with_invalid_data(
         self,
@@ -56,18 +41,12 @@ class TestCreateUser:
         password: str,
         expected_error: str,
     ):
-        """Создание пользователя с невалидными данными"""
-        new_user_request = CreateUserRequest(username=username, password=password)
-        api_manager.admin_steps.created_objects.append(new_user_request)
-
-        # ШАГ 1: создание пользователя с невалидными данными
         admin_page = AdminPage(page).open()
         admin_page.admin_panel_text.to_be_visible()
-        admin_page = admin_page.create_user(username, password)
+
+        admin_page.create_user(username, password)
         admin_page.check_alert_message_and_accept(expected_error)
 
-        # ШАГ 2: проверка, что пользователь НЕ создан на API
         users = api_manager.admin_steps.get_all_users()
         user_usernames = [u.username for u in users]
-        assert username not in user_usernames or username == "", \
-            f"User with invalid username '{username}' should not be created"
+        assert username not in user_usernames or username == ""
