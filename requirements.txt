@@ -4,4 +4,5 @@ pydantic
 faker
 # softest
 # rstr
-# pytest-playwright
+pytest-playwright
+playwright
