@@ -10,7 +10,8 @@ from src.main.api.models.create_build_step_request import CreateBuildStepRequest
 from src.main.api.models.create_build_step_response import CreateBuildStepResponse
 from src.main.api.models.build_type_request import BuildTypeRequest
 from src.main.api.models.build_type_response import BuildTypeResponse, BuildTypeListResponse
-from src.main.api.requests.skeleton.endpoint import Endpoint, EndpointConfig
+from src.main.api.models.build_type_settings_response import BuildTypeSettingsResponse
+from src.main.api.requests.skeleton.endpoint import Endpoint
 from src.main.api.requests.skeleton.requesters.crud_requester import CrudRequester
 from src.main.api.requests.skeleton.requesters.validated_crud_requester import ValidatedCrudRequester
 from src.main.api.specs.request_specs import RequestSpecs
@@ -279,26 +280,24 @@ class AdminSteps(BaseSteps):
         return build_type
 
     @staticmethod
-    def get_buildtype_settings(build_type_id: str) -> BuildTypeResponse:
+    def get_buildtype_settings(build_type_id: str) -> BuildTypeSettingsResponse:
         """Get build type settings"""
-        # Settings endpoint returns different format, skip validation
-        build_type = ValidatedCrudRequester(
+        settings_response = ValidatedCrudRequester(
             RequestSpecs.admin_auth_spec(),
             Endpoint.BUILD_TYPE_SETTINGS,
             ResponseSpecs.request_returns_ok(),
         ).get(path_params={"buildTypeId": build_type_id})
-        return build_type
+        return settings_response
 
     @staticmethod
-    def update_buildtype_settings(build_type_id: str, update_request: dict):
+    def update_buildtype_settings(build_type_id: str, update_request: dict) -> BuildTypeSettingsResponse:
         """Update build type settings"""
-        ValidatedCrudRequester(
+        settings_response = ValidatedCrudRequester(
             RequestSpecs.admin_auth_spec(),
             Endpoint.BUILD_TYPE_SETTINGS,
             ResponseSpecs.request_returns_ok(),
         ).put(path_params={"buildTypeId": build_type_id}, data=update_request, content_type="application/json")
-        # Return None as API response format varies
-        return None
+        return settings_response
 
     @staticmethod
     def get_buildtypes_by_project(project_id: str) -> Optional[BuildTypeListResponse]:

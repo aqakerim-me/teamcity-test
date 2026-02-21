@@ -1,5 +1,5 @@
 from src.main.api.models.base_model import BaseModel
-from typing import Annotated, Optional, Dict, Any
+from typing import Optional, Dict, Any
 
 
 class BuildTypeResponse(BaseModel):
