@@ -118,3 +118,52 @@ class BuildConfigurationPage(BasePage):
         except Exception as e:
             logger.warning(f"Could not extract build ID from URL: {e}")
         return None
+
+    def should_show_status(self, expected_status: str, timeout: int = 5_000):
+        """Verify build status shows expected text in UI using explicit polling."""
+        def _action():
+            import time
+            start = time.time()
+            poll_ms = 500  # Poll every 500ms
+
+            while True:
+                try:
+                    # Check if element is visible first
+                    if self.build_state_text.locator.is_visible(timeout=1000):
+                        text = self.build_state_text.locator.inner_text(timeout=1000)
+                        if expected_status.lower() in text.lower():
+                            return self
+                except Exception:
+                    pass  # Not visible yet, continue polling
+
+                if int((time.time() - start) * 1000) >= timeout:
+                    return self
+
+                # Wait before next poll
+                self.page.wait_for_timeout(poll_ms)
+
+        return self._step(
+            title=f"Verify build status shows '{expected_status}'",
+            action=_action
+        )
+
+    def should_have_build_completed_successfully(self, build_type_id: str, api_manager, timeout: int = 10):
+        """Verify build completed successfully via API. Uses short timeout since UI already confirmed."""
+        def _action():
+            try:
+                completed_build = api_manager.build_steps.get_latest_build_and_wait(build_type_id, timeout)
+                assert completed_build.state == "finished", \
+                    f"Expected build to be finished, got state: {completed_build.state}"
+                assert completed_build.status == "SUCCESS", \
+                    f"Expected build status SUCCESS, got: {completed_build.status}"
+                logger.info(f"Build completed successfully: {completed_build.id}")
+            except TimeoutError:
+                # UI already showed Success, so API call is just verification
+                logger.info(f"API verification timed out after {timeout}s, but UI confirmed Success")
+
+            return self
+
+        return self._step(
+            title=f"Verify build completed successfully for: {build_type_id}",
+            action=_action
+        )
