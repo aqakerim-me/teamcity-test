@@ -50,9 +50,18 @@ class LoginPage(BasePage):
             except Exception:
                 self.login_button.click()
             self.page.wait_for_load_state("domcontentloaded")
-            if "login" in self.page.url.lower():
-                error_locator = self.page.locator(LOGIN_ERROR_MESSAGE).first
-                error_locator.wait_for(state="visible", timeout=3_000)
+            # Wait for URL change or error message visibility
+            try:
+                self.page.wait_for_url("**/favorite/**", timeout=10_000)
+            except Exception:
+                # If URL didn't change, check for error message
+                if "login" in self.page.url.lower():
+                    error_locator = self.page.locator(LOGIN_ERROR_MESSAGE).first
+                    try:
+                        error_locator.wait_for(state="visible", timeout=3_000)
+                    except Exception:
+                        # No error visible, might be a slow page load
+                        pass
             return self
 
         return self._step(

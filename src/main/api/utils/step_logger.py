@@ -1,7 +1,11 @@
 import json
+import logging
+import time
 from typing import Any, Callable, TypeVar
 
 from playwright.sync_api import Page
+
+logger = logging.getLogger(__name__)
 
 T = TypeVar("T")
 
@@ -22,6 +26,8 @@ class StepLogger:
         attach_dom_on_fail: bool = True,
     ) -> T | None:
         """Логирование шагов UI тестов с Allure (screenshot/DOM при падении)."""
+        start_time = time.time()
+
         def _run():
             if page:
                 StepLogger._attach_page_url(page)
@@ -30,7 +36,10 @@ class StepLogger:
         if allure:
             with allure.step(title):
                 try:
-                    return _run()
+                    result = _run()
+                    elapsed = time.time() - start_time
+                    logger.info(f"[UI STEP] {title} - {elapsed:.2f}s")
+                    return result
                 except Exception:
                     if page:
                         if screenshot_on_fail:
@@ -39,9 +48,12 @@ class StepLogger:
                             StepLogger._attach_dom(page)
                     raise
         else:
-            print(f"[UI STEP] {title}")
+            logger.info(f"[UI STEP] {title}")
             try:
-                return _run()
+                result = _run()
+                elapsed = time.time() - start_time
+                logger.info(f"[UI STEP] {title} - {elapsed:.2f}s")
+                return result
             except Exception:
                 if page and screenshot_on_fail:
                     try:

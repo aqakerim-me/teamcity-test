@@ -1,5 +1,7 @@
 import logging
+import sys
 import time
+import traceback
 
 import pytest
 
@@ -10,7 +12,10 @@ from src.main.api.models.create_project_request import CreateProjectRequest
 
 @pytest.fixture
 def build_type(api_manager: ApiManager):
-    """Create a project and a simple build type for testing"""
+    """Create a project and a simple build type for testing.
+
+    Returns: tuple of (build_type_id, project_id)
+    """
     try:
         # Create a test project
         project_request = CreateProjectRequest(
@@ -25,7 +30,8 @@ def build_type(api_manager: ApiManager):
             build_type_name="Test Build"
         )
 
-        yield build_type_id
+        # Return both build_type_id and project_id for UI tests
+        yield (build_type_id, project.id)
 
         # Cleanup: delete build type (not tracked in created_objects)
         # Project cleanup will be handled by created_objects fixture automatically
@@ -34,16 +40,21 @@ def build_type(api_manager: ApiManager):
         except Exception as e:
             logging.warning(f"Could not delete build type {build_type_id}: {e}")
     except Exception as e:
+        exc_info = ''.join(traceback.format_exception(type(e), e, e.__traceback__))
+        logging.error(f"Full error in build_type fixture:\n{exc_info}")
         pytest.skip(f"TeamCity server not ready (may be in maintenance mode): {e}")
 
 
 @pytest.fixture
-def queued_build(api_manager: ApiManager, build_type: str):
+def queued_build(api_manager: ApiManager, build_type: tuple):
     """Trigger multiple builds and return one that's still queued"""
+    # Extract build_type_id from tuple
+    build_type_id, _ = build_type
+
     # Trigger multiple builds to saturate agents and keep some in queue
     builds = []
     for _ in range(5):
-        build = api_manager.build_steps.trigger_build(build_type)
+        build = api_manager.build_steps.trigger_build(build_type_id)
         builds.append(build)
 
     # Find a build that's still queued
@@ -63,8 +74,11 @@ def queued_build(api_manager: ApiManager, build_type: str):
 
 
 @pytest.fixture
-def running_build(api_manager: ApiManager, build_type: str):
-    build = api_manager.build_steps.trigger_build(build_type)
+def running_build(api_manager: ApiManager, build_type: tuple):
+    # Extract build_type_id from tuple
+    build_type_id, _ = build_type
+
+    build = api_manager.build_steps.trigger_build(build_type_id)
     for _ in range(10):
         build_status = api_manager.build_steps.get_build_by_id(build.id, fields="id,buildTypeId,state")
         if build_status.state == "running":
@@ -75,18 +89,24 @@ def running_build(api_manager: ApiManager, build_type: str):
 
 
 @pytest.fixture
-def completed_build(api_manager: ApiManager, build_type: str):
+def completed_build(api_manager: ApiManager, build_type: tuple):
     """Trigger a build and wait for it to complete"""
-    build = api_manager.build_steps.trigger_build(build_type)
+    # Extract build_type_id from tuple
+    build_type_id, _ = build_type
+
+    build = api_manager.build_steps.trigger_build(build_type_id)
     completed_build_response = api_manager.build_steps.wait_for_build_completion(build.id)
     yield completed_build_response
 
 
 @pytest.fixture
-def multiple_builds(api_manager: ApiManager, build_type: str):
+def multiple_builds(api_manager: ApiManager, build_type: tuple):
     """Trigger multiple builds for testing"""
+    # Extract build_type_id from tuple
+    build_type_id, _ = build_type
+
     builds = []
     for _ in range(3):
-        build = api_manager.build_steps.trigger_build(build_type)
+        build = api_manager.build_steps.trigger_build(build_type_id)
         builds.append(build)
     yield builds
