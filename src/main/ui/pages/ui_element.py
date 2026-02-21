@@ -1,4 +1,10 @@
+import logging
+import time
+
 from playwright.sync_api import Locator
+
+
+logger = logging.getLogger(__name__)
 
 
 class UIElement:
@@ -23,26 +29,24 @@ class UIElement:
         return self
 
     def get_text(self) -> str:
-        """Получить текст элемента, пробуя разные методы"""
-        try:
-            text = self.locator.inner_text()
-            if text.strip():
-                return text
-        except Exception:
-            pass
+        """Return element text using multiple strategies."""
         try:
             text = self.locator.text_content() or ""
             if text.strip():
                 return text
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.debug("text_content failed for %s: %s", self.name, exc)
+        try:
+            text = self.locator.inner_text()
+            if text.strip():
+                return text
+        except Exception as exc:
+            logger.debug("inner_text failed for %s: %s", self.name, exc)
         return self.locator.inner_text()
 
     def wait_for_text_not_empty(self, timeout: int = 5000) -> str:
-        """Ожидание появления непустого текста в элементе"""
+        """Wait until element text becomes non-empty."""
         self.locator.wait_for(state="visible", timeout=timeout)
-        # Ожидание, что текст появился (не пустой)
-        import time
         start_time = time.time()
         while time.time() - start_time < timeout / 1000:
             text = self.locator.inner_text().strip()

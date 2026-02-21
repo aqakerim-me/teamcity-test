@@ -1,8 +1,10 @@
 import logging
 from typing import List, Optional
 
+import requests
 from playwright.sync_api import Page
 
+from src.main.api.configs.config import Config
 from src.main.api.models.allert_messages import AlertMessages
 from src.main.api.models.create_build_step_request import CreateBuildStepRequest
 from src.main.api.models.create_build_step_response import CreateBuildStepResponse
@@ -299,8 +301,6 @@ class AdminSteps(BaseSteps):
         Returns:
             str: Build type ID
         """
-        import requests
-        from src.main.api.configs.config import Config
 
         # Create a minimal build type configuration using JSON
         build_type_data = {
@@ -344,8 +344,6 @@ class AdminSteps(BaseSteps):
         Args:
             build_type_id: ID of the build type to delete
         """
-        import requests
-        from src.main.api.configs.config import Config
 
         url = f"{Config.get('server')}{Config.get('apiVersion')}/buildTypes/id:{build_type_id}"
         headers = RequestSpecs.admin_auth_spec()
@@ -362,21 +360,7 @@ class AdminSteps(BaseSteps):
         max_attempts: int = 10,
         delay_seconds: float = 1.0,
     ) -> CreateProjectResponse:
-        """
-        Ожидает появления проекта в списке проектов.
-
-        Args:
-            project_id: ID проекта для поиска
-            page: Playwright Page для логирования в Allure (опционально)
-            max_attempts: Максимальное количество попыток
-            delay_seconds: Задержка между попытками в секундах
-
-        Returns:
-            CreateProjectResponse: Найденный проект
-
-        Raises:
-            TimeoutError: Если проект не появился за указанное время
-        """
+        """Ожидает появления проекта в списке проектов"""
         def action():
             projects = self.get_all_projects()
             logging.info(
@@ -409,25 +393,8 @@ class AdminSteps(BaseSteps):
         max_attempts: int = 10,
         delay_seconds: float = 1.0,
     ) -> CreateUserResponse:
-        """
-        Ожидает появления пользователя в списке пользователей.
-
-        Args:
-            username: Username пользователя для поиска
-            page: Playwright Page для логирования в Allure (опционально)
-            max_attempts: Максимальное количество попыток
-            delay_seconds: Задержка между попытками в секундах
-
-        Returns:
-            CreateUserResponse: Найденный пользователь
-
-        Raises:
-            TimeoutError: Если пользователь не появился за указанное время
-        """
+        """Ожидает появления пользователя в списке пользователей"""
         def action():
-            import requests
-            from src.main.api.configs.config import Config
-
             url = f"{Config.get('server')}{Config.get('apiVersion')}/users"
             params = {
                 "locator": f"username:{username}",

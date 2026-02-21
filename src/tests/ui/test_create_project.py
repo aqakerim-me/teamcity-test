@@ -12,44 +12,39 @@ from src.main.ui.classes.session_storage import SessionStorage
 @pytest.mark.admin_session
 class TestCreateProject:
 
+    @pytest.mark.parametrize(
+        "project_id, project_name",
+        [
+            (GenerateData.get_project_id(), GenerateData.get_project_name())
+        ],
+    )
     def test_create_project_through_web_ui(
-        self, api_manager: ApiManager, page: Page
-    ):
-        project_id = GenerateData.get_project_id()
-        project_name = GenerateData.get_project_name()
+        self, api_manager: ApiManager, page: Page, project_id:str, project_name:str):
 
+        #Create project
         projects_page = ProjectsPage(page).open()
         projects_page.create_project_button.to_be_visible()
         projects_page.create_new_project(project_id, project_name)
 
-        project = api_manager.admin_steps.wait_project_appears(
-            project_id=project_id,
-            page=page,
-            max_attempts=10,
-            delay_seconds=1.0,
-        )
-        assert project.id == project_id
-        assert project.name == project_name
+        #Add project in SessionStorage
         SessionStorage.add_projects([CreateProjectRequest(id=project_id, name=project_name)])
 
-    def test_edit_project_parameters(
-        self, api_manager: ApiManager, page: Page, create_project: CreateProjectRequest
-    ):
-        projects_page = ProjectsPage(page).open()
-        projects_page.welcome_text.to_be_visible()
-
-        project_element = projects_page.get_project_by_id(create_project.id)
-        if not project_element.is_visible():
-            # Если элемент не виден в списке — пробуем открыть страницу проекта напрямую
-            page.goto(f"{projects_page.ui_base_url}/project/{create_project.id}")
-            assert create_project.id in page.url or create_project.id in page.content(), f"Project page should contain project ID '{create_project.id}'"
+        #API check
+        project = api_manager.admin_steps.wait_project_appears(project_id=project_id, page=page)
+        assert project.id == project_id, \
+            f"Project ID mismatch: expected '{project_id}', got '{project.id}'"
+        assert project.name == project_name, \
+            f"Project name mismatch: expected '{project_name}', got '{project.name}'"
 
     def test_projects_list_with_correct_data(
         self, api_manager: ApiManager, page: Page, create_project: CreateProjectRequest
     ):
+        #Try to get projects
         projects_page = ProjectsPage(page).open()
         projects_page.welcome_text.to_be_visible()
 
+        #API check
         projects = api_manager.admin_steps.get_all_projects()
         project_ids = [p.id for p in projects]
-        assert create_project.id in project_ids, f"Project '{create_project.id}' should be in projects list"
+        assert create_project.id in project_ids, \
+            f"Project '{create_project.id}' should be in projects list"

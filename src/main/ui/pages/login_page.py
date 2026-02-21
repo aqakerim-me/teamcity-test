@@ -1,6 +1,10 @@
-from playwright.sync_api import Page
-
 from src.main.ui.pages.base_page import BasePage
+from src.main.ui.pages.selectors import (
+    LOGIN_BUTTON,
+    LOGIN_ERROR_MESSAGE,
+    LOGIN_PASSWORD_INPUT,
+    LOGIN_USERNAME_INPUT,
+)
 from src.main.ui.pages.ui_element import UIElement
 
 
@@ -11,28 +15,28 @@ class LoginPage(BasePage):
     @property
     def username_input(self) -> UIElement:
         return UIElement(
-            self.page.locator('input[name="username"]').first,
+            self.page.locator(LOGIN_USERNAME_INPUT).first,
             name="Username input"
         )
 
     @property
     def password_input(self) -> UIElement:
         return UIElement(
-            self.page.locator('input[name="password"], input[type="password"]').first,
+            self.page.locator(LOGIN_PASSWORD_INPUT).first,
             name="Password input"
         )
 
     @property
     def login_button(self) -> UIElement:
         return UIElement(
-            self.page.locator('input[name="submitLogin"], input[type="submit"], button:has-text("Log in")').first,
+            self.page.locator(LOGIN_BUTTON).first,
             name="Login button"
         )
 
     @property
     def error_message(self) -> UIElement:
         return UIElement(
-            self.page.locator('#errorMessage, [role="alert"], .tcMessage').first,
+            self.page.locator(LOGIN_ERROR_MESSAGE).first,
             name="Error message"
         )
 
@@ -40,13 +44,15 @@ class LoginPage(BasePage):
         def _action():
             self.username_input.to_be_visible().fill(username)
             self.password_input.to_be_visible().fill(password)
-            # Нажимаем Enter в поле пароля вместо клика по кнопке — универсальный способ
+            # Prefer Enter in password field, fallback to button click
             try:
                 self.password_input.locator.press("Enter")
             except Exception:
-                # fallback: клик по кнопке, если Enter не работает
                 self.login_button.click()
-            self.page.wait_for_load_state("networkidle")
+            self.page.wait_for_load_state("domcontentloaded")
+            if "login" in self.page.url.lower():
+                error_locator = self.page.locator(LOGIN_ERROR_MESSAGE).first
+                error_locator.wait_for(state="visible", timeout=3_000)
             return self
 
         return self._step(

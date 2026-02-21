@@ -1,7 +1,15 @@
-from playwright.sync_api import Page
-
 from src.main.api.generator.generate_data import GenerateData
 from src.main.ui.pages.base_page import BasePage
+from src.main.ui.pages.selectors import (
+    CREATE_PROJECT_BUTTON,
+    PROJECT_ID_INPUT,
+    PROJECT_NAME_INPUT,
+    PROJECT_NAVIGATION_MENU,
+    PROJECT_SUBMIT_BUTTON,
+    PROJECT_WELCOME_TEXT,
+    PROJECTS_LIST,
+    ALERT_SELECTOR,
+)
 from src.main.ui.pages.ui_element import UIElement
 
 
@@ -12,70 +20,49 @@ class ProjectsPage(BasePage):
     @property
     def projects_list(self) -> UIElement:
         return UIElement(
-            self.page.locator('.projects').first,
+            self.page.locator(PROJECTS_LIST).first,
             name="Projects list"
         )
 
     @property
     def create_project_button(self) -> UIElement:
         return UIElement(
-            self.page.locator(
-                'a[href*="/projects/create"], '
-                'a[href*="createObjectMenu.html"][href*="createProjectMenu"], '
-                'a[href*="showMode=createProjectMenu"], '
-                'a:has-text("Create project"), '
-                'a:has-text("Create subproject"), '
-                'button:has-text("Create project"), '
-                '[data-test="create-project"]'
-            ).first,
+            self.page.locator(CREATE_PROJECT_BUTTON).first,
             name="Create project button"
         )
 
     @property
     def project_id_input(self) -> UIElement:
         return UIElement(
-            self.page.locator(
-                '[data-test="project-id-input"], '
-                'input[data-test="project-id-input"], '
-                'input[aria-label="Project ID"]'
-            ).first,
+            self.page.locator(PROJECT_ID_INPUT).first,
             name="Project ID input"
         )
 
     @property
     def project_name_input(self) -> UIElement:
         return UIElement(
-            self.page.locator(
-                '[data-test="project-name-input"], '
-                'input[data-test="project-name-input"], '
-                'input[aria-label="Project name"]'
-            ).first,
+            self.page.locator(PROJECT_NAME_INPUT).first,
             name="Project name input"
         )
 
     @property
     def submit_button(self) -> UIElement:
         return UIElement(
-            self.page.locator(
-                'button[type="submit"], '
-                'input[type="submit"], '
-                'button:has-text("Create"), '
-                'input[value="Create"]'
-            ).first,
+            self.page.locator(PROJECT_SUBMIT_BUTTON).first,
             name="Submit button"
         )
 
     @property
     def welcome_text(self) -> UIElement:
         return UIElement(
-            self.page.locator('main h1, h1').first,
+            self.page.locator(PROJECT_WELCOME_TEXT).first,
             name="Welcome text"
         )
 
     @property
     def navigation_menu(self) -> UIElement:
         return UIElement(
-            self.page.locator('nav').first,
+            self.page.locator(PROJECT_NAVIGATION_MENU).first,
             name="Navigation menu"
         )
 
@@ -112,7 +99,8 @@ class ProjectsPage(BasePage):
             submit_btn.scroll_into_view_if_needed()
             submit_btn.click()
 
-            self.page.wait_for_load_state("networkidle", timeout=10_000)
+            combined = f"{PROJECTS_LIST}, {ALERT_SELECTOR}"
+            self.page.wait_for_selector(combined, timeout=10_000)
             return self
 
         return self._step(
@@ -121,12 +109,12 @@ class ProjectsPage(BasePage):
         )
 
     def get_project_by_id(self, project_id: str) -> UIElement:
-        selector = f'a[href*="{project_id}"], [data-project-id="{project_id}"], [href*="/project/{project_id}"], [href*="/projects/{project_id}"]'
+        selector = f'[data-project-id="{project_id}"]'
         try:
             self.page.wait_for_selector(selector, timeout=5000)
         except Exception:
             pass
         return UIElement(
-            self.page.locator(f'{selector}, td:has-text("{project_id}"), tr:has-text("{project_id}")').first,
+            self.page.locator(selector).first,
             name=f"Project {project_id}"
         )

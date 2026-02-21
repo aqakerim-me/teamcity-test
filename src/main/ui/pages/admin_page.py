@@ -1,6 +1,14 @@
-from playwright.sync_api import Page
-
 from src.main.ui.pages.base_page import BasePage
+from src.main.ui.pages.selectors import (
+    ADMIN_CONFIRM_PASSWORD_INPUT,
+    ADMIN_CREATE_USER_BUTTON,
+    ADMIN_PANEL_TEXT,
+    ADMIN_PASSWORD_INPUT,
+    ADMIN_SUBMIT_BUTTON,
+    ADMIN_USERNAME_INPUT,
+    ADMIN_USERS_LIST,
+    ALERT_SELECTOR,
+)
 from src.main.ui.pages.ui_element import UIElement
 
 
@@ -11,76 +19,49 @@ class AdminPage(BasePage):
     @property
     def admin_panel_text(self) -> UIElement:
         return UIElement(
-            self.page.locator('h1').first,
+            self.page.locator(ADMIN_PANEL_TEXT).first,
             name="Admin panel text"
         )
 
     @property
     def create_user_button(self) -> UIElement:
         return UIElement(
-            self.page.locator(
-                'a[href*="createUser"], '
-                'button:has-text("Create user"), '
-                'a:has-text("Create user")'
-            ).first,
+            self.page.locator(ADMIN_CREATE_USER_BUTTON).first,
             name="Create user button"
         )
 
     @property
     def username_input(self) -> UIElement:
         return UIElement(
-            self.page.locator(
-                'input[name="username"], '
-                'input#username, '
-                'input[name="username1"], '
-                'input#input_teamcityUsername, '
-                'input[name="userName"], '
-                'input#userName'
-            ).first,
+            self.page.locator(ADMIN_USERNAME_INPUT).first,
             name="Username input"
         )
 
     @property
     def password_input(self) -> UIElement:
         return UIElement(
-            self.page.locator(
-                'input[name="password"], '
-                'input#password, '
-                'input[name="password1"], '
-                'input#password1, '
-                'input[type="password"]'
-            ).first,
+            self.page.locator(ADMIN_PASSWORD_INPUT).first,
             name="Password input"
         )
 
     @property
     def confirm_password_input(self) -> UIElement:
         return UIElement(
-            self.page.locator(
-                'input[name="retypedPassword"], '
-                'input#retypedPassword'
-            ).first,
+            self.page.locator(ADMIN_CONFIRM_PASSWORD_INPUT).first,
             name="Confirm password input"
         )
 
     @property
     def submit_button(self) -> UIElement:
         return UIElement(
-            self.page.locator(
-                'button[type="submit"], '
-                'input[type="submit"], '
-                'input[name="submitCreateUser"], '
-                'button:has-text("Create"), '
-                'button:has-text("Save"), '
-                'input[value="Create User"]'
-            ).first,
+            self.page.locator(ADMIN_SUBMIT_BUTTON).first,
             name="Submit button"
         )
 
     @property
     def users_list(self) -> UIElement:
         return UIElement(
-            self.page.locator('table').first,
+            self.page.locator(ADMIN_USERS_LIST).first,
             name="Users list"
         )
 
@@ -117,7 +98,8 @@ class AdminPage(BasePage):
             submit_btn.scroll_into_view_if_needed()
             submit_btn.click()
 
-            self.page.wait_for_load_state("networkidle", timeout=10_000)
+            combined = f"{ADMIN_USERS_LIST}, {ALERT_SELECTOR}"
+            self.page.wait_for_selector(combined, timeout=10_000)
             return self
 
         return self._step(
