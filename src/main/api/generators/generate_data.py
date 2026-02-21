@@ -42,11 +42,14 @@ class GenerateData:
         length = random.randint(min_length, max_length)
 
         allowed_chars = (
-            string.ascii_letters +
+            string.ascii_lowercase +
             string.digits +
             "._-"
         )
-        return "".join(random.choices(allowed_chars, k=length))
+        first_char = random.choice(string.ascii_lowercase)
+        if length == 1:
+            return first_char
+        return first_char + "".join(random.choices(allowed_chars, k=length - 1))
 
     @staticmethod
     def get_username_with_length(length: int) -> str:
@@ -54,23 +57,23 @@ class GenerateData:
             raise ValueError("Username length must be >= 1")
 
         allowed_chars = (
-                string.ascii_letters +
+                string.ascii_lowercase +
                 string.digits +
                 "._-"
         )
-        return "".join(random.choices(allowed_chars, k=length))
+        first_char = random.choice(string.ascii_lowercase)
+        if length == 1:
+            return first_char
+        return first_char + "".join(random.choices(allowed_chars, k=length - 1))
 
     @staticmethod
     def get_password() -> str:
-        min_length = 1
+        min_length = 8
         max_length = 20
         length = random.randint(min_length, max_length)
 
-        allowed_chars = (
-                string.ascii_letters +
-                string.digits +
-                string.punctuation
-        )
+        # Keep password characters UI-friendly to avoid flaky form validation in TeamCity.
+        allowed_chars = string.ascii_letters + string.digits + "_-!@#$%^&*"
         return "".join(random.choices(allowed_chars, k=length))
     
     @staticmethod
