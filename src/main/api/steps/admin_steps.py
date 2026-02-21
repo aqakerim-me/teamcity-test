@@ -290,6 +290,8 @@ class AdminSteps(BaseSteps):
             f"Invalid update build step blocked correctly with ID {step_id} and error {error_value}"
         )
         return response
+
+    @staticmethod
     def create_simple_build_type(project_id: str, build_type_name: str) -> str:
         """
         Create a simple build type with a basic command line runner.
