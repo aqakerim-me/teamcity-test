@@ -173,6 +173,29 @@ class BuildSteps(BaseSteps):
         logging.info(f"Build {build_id} status: {status_response.status}")
         return status_response
 
+    def get_latest_build_and_wait(self, build_type_id: str, timeout: int = DEFAULT_TIMEOUT) -> BuildResponse:
+        """
+        Find the latest build for a build type (in queue or recent) and wait for completion.
+
+        This handles the race condition where a build may complete between triggering
+        and checking, making it not appear in the queue.
+        """
+        # First check queue
+        queue = self.get_build_queue()
+        our_builds_in_queue = [b for b in queue if b.buildTypeId == build_type_id]
+
+        if our_builds_in_queue:
+            build_id = our_builds_in_queue[0].id
+        else:
+            # Not in queue, check recent builds (may have completed already)
+            recent_builds = self.get_builds_by_buildtype(build_type_id)
+            if not recent_builds:
+                raise ValueError(f"No builds found for build type '{build_type_id}'")
+            build_id = recent_builds[0].id
+
+        # Wait for completion (returns immediately if already finished)
+        return self.wait_for_build_completion(build_id, timeout)
+
     @staticmethod
     def delete_build(build_id: int) -> None:
         CrudRequester(
