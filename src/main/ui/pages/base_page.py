@@ -99,12 +99,16 @@ class BasePage(ABC):
             user_request.username, user_request.password
         )
         auth_token = auth_headers.get("Authorization", "")
+
+        # Set up localStorage before navigating to the page
         self.page.set_viewport_size({"width": 1920, "height": 1080})
-        self.page.goto(self.ui_base_url)
-        self.page.evaluate(
-            'token => localStorage.setItem("authToken", token)', auth_token
-        )
-        self.page.reload(wait_until="domcontentloaded")
+
+        # Add init script to set localStorage on page load
+        script = f'() => {{ localStorage.setItem("authToken", {repr(auth_token)}); }}'
+        self.page.add_init_script(script)
+
+        # Now navigate to the base URL
+        self.page.goto(self.ui_base_url, wait_until="domcontentloaded")
 
     def _generate_page_elements(
         self, elements: Locator, constructor: Callable[[Locator], T]
