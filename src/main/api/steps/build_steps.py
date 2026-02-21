@@ -16,7 +16,7 @@ from src.main.api.steps.base_steps import BaseSteps
 
 
 class BuildSteps(BaseSteps):
-    POLL_INTERVAL = 2
+    POLL_INTERVAL = 0.5
     DEFAULT_TIMEOUT = 300
 
     @staticmethod
