@@ -157,3 +157,36 @@ class ProjectsPage(BasePage):
             title=f"Check project matches: {project_id}",
             action=_action
         )
+        
+    def click_new_build_configuration(self, project_name: str):
+        project_selector = f'[data-project-name="{project_name}"]'
+        project_element = self.page.locator(project_selector).first
+        project_element.wait_for(state="visible", timeout=10_000)
+        project_element.scroll_into_view_if_needed()
+        project_element.click()
+
+        new_build_config_button = self.page.get_by_role("button", name="New build configuration")
+        new_build_config_button.wait_for(state="visible", timeout=10_000)
+        new_build_config_button.scroll_into_view_if_needed()
+        new_build_config_button.click()
+
+        from src.main.ui.pages.create_build_config_page import CreateBuildConfigurationPage
+        return CreateBuildConfigurationPage(self.page)
+
+    def should_have_build_configuration(self, build_config_name: str):
+        build_config_selector = f'[data-build-config-name="{build_config_name}"]'
+        try:
+            self.page.wait_for_selector(build_config_selector, timeout=5000)
+        except Exception:
+            raise AssertionError(f"Build configuration '{build_config_name}' not found on Projects page")
+
+        return self
+
+    def should_not_have_build_configuration(self, build_config_name: str):
+        build_config_selector = f'[data-build-config-name="{build_config_name}"]'
+        try:
+            self.page.wait_for_selector(build_config_selector, timeout=5000)
+            raise AssertionError(f"Build configuration '{build_config_name}' was found on Projects page but should not be there")
+        except Exception:
+            pass
+        return self

@@ -46,11 +46,12 @@ class BasePage(ABC):
         return UIElement(self.page.get_by_placeholder("Password"), name="Password")
 
     @abstractmethod
-    def url(self) -> str:
+    def url(self, *args, **kwargs) -> str:
         raise NotImplementedError
 
-    def open(self: T) -> T:
-        target = self.url()
+    def open(self: T, *args, **kwargs) -> T:
+        """Open the page with optional parameters"""
+        target = self.url(*args, **kwargs)
         if self.ui_base_url and target.startswith("/"):
             target = f"{self.ui_base_url}{target}"
         self.page.goto(target, wait_until="domcontentloaded")
