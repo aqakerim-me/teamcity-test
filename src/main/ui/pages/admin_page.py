@@ -1,3 +1,4 @@
+from src.main.api.models.create_user_request import CreateUserRequest
 from src.main.ui.pages.base_page import BasePage
 from src.main.ui.pages.selectors import (
     ADMIN_CONFIRM_PASSWORD_INPUT,
@@ -10,6 +11,7 @@ from src.main.ui.pages.selectors import (
     ALERT_SELECTOR,
 )
 from src.main.ui.pages.ui_element import UIElement
+from src.main.ui.classes.session_storage import SessionStorage
 
 
 class AdminPage(BasePage):
@@ -66,6 +68,8 @@ class AdminPage(BasePage):
         )
 
     def create_user(self, username: str, password: str):
+        SessionStorage.add_users([CreateUserRequest(username=username, password=password)])
+
         def _action():
             try:
                 btn = self.create_user_button.locator
@@ -104,5 +108,35 @@ class AdminPage(BasePage):
 
         return self._step(
             title=f"Create user: {username}",
+            action=_action
+        )
+
+    def should_have_user(self, api_manager, username: str):
+        def _action():
+            user = api_manager.admin_steps.wait_user_appears(
+                username=username,
+                page=self.page
+            )
+            assert user.username == username, (
+                f"User with username mismatch: expected '{username}', got '{user.username}'"
+            )
+            return self
+
+        return self._step(
+            title=f"Check user exists: {username}",
+            action=_action
+        )
+
+    def should_not_have_user(self, api_manager, username: str):
+        def _action():
+            users = api_manager.admin_steps.get_all_users()
+            user_usernames = [u.username for u in users]
+            assert username not in user_usernames or username == "", (
+                f"User with username '{username}' should NOT be created"
+            )
+            return self
+
+        return self._step(
+            title=f"Check user not created: {username}",
             action=_action
         )
