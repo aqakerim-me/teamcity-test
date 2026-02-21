@@ -16,13 +16,14 @@ from src.main.api.models.create_user_request import CreateUserRequest
 from src.main.api.models.create_user_response import CreateUserResponse, UsersListResponse
 from src.main.api.models.create_build_step_request import CreateBuildStepRequest
 from src.main.api.models.create_build_step_response import CreateBuildStepResponse
+from src.main.api.models.build_type_settings_response import BuildTypeSettingsResponse
 
 
 @dataclass(frozen=True)
 class EndpointConfig:
     url: str
-    request_model: Optional[type]
-    response_model: Optional[type]
+    request_model: Optional[type[BaseModel]]
+    response_model: Optional[type[BaseModel]]
 
 
 class Endpoint(Enum):
@@ -110,7 +111,7 @@ class Endpoint(Enum):
     BUILD_QUEUE_BY_ID = EndpointConfig(
         url="/buildQueue/id:{buildId}",
         request_model=None,
-        response_model=None
+        response_model=BuildQueueResponse
     )
 
     BUILDS = EndpointConfig(
@@ -164,7 +165,7 @@ class Endpoint(Enum):
     BUILD_TYPE_SETTINGS = EndpointConfig(
         url="/buildTypes/id:{buildTypeId}/settings",
         request_model=None,
-        response_model=None
+        response_model=BuildTypeSettingsResponse
     )
 
     BUILD_TYPE_ENABLE = EndpointConfig(
@@ -201,4 +202,22 @@ class Endpoint(Enum):
         url="/buildTypes/id:{BuildTypeId}/steps/{stepId}",
         request_model=CreateBuildStepRequest,
         response_model=CreateBuildStepResponse
+    )
+
+    BUILDS_BY_ID = EndpointConfig(
+        url="/builds/id:{buildId}",
+        request_model=None,
+        response_model=BuildResponse
+    )
+
+    BUILD_CANCEL_BY_ID = EndpointConfig(
+        url="/builds/id:{buildId}",
+        request_model=None,
+        response_model=BuildResponse
+    )
+
+    BUILD_QUEUE_CANCEL_BY_ID = EndpointConfig(
+        url="/buildQueue/id:{buildId}",
+        request_model=None,
+        response_model=BuildResponse
     )

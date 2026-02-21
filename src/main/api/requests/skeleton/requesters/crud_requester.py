@@ -81,7 +81,7 @@ class CrudRequester(HttpRequest, CrudEndpointInterface):
     def update(
         self,
         path_params: Optional[Dict[str, Any]] = None,
-        data: Optional[any] = None,
+        data: Optional[Any] = None,
         content_type: Optional[str] = None,
     ) -> requests.Response:
         url = self._build_url(path_params=path_params)
@@ -98,7 +98,7 @@ class CrudRequester(HttpRequest, CrudEndpointInterface):
             response = requests.put(url, headers=headers, data='')
         elif content_type == "application/json":
             # For JSON, check for model_dump first (pydantic models)
-            if hasattr(data, 'model_dump'):
+            if isinstance(data, BaseModel):
                 response = requests.put(url, headers=headers, json=data.model_dump())
             elif isinstance(data, dict):
                 response = requests.put(url, headers=headers, json=data)
@@ -120,7 +120,7 @@ class CrudRequester(HttpRequest, CrudEndpointInterface):
     def put(
         self,
         path_params: Optional[Dict[str, Any]] = None,
-        data: Optional[any] = None,
+        data: Optional[Any] = None,
         content_type: Optional[str] = None,
     ) -> requests.Response:
         """Alias for update method - PUT request"""
