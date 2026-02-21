@@ -5,7 +5,6 @@ from src.main.api.classes.api_manager import ApiManager
 from src.main.api.generators.generate_data import GenerateData
 from src.main.api.models.create_user_request import CreateUserRequest
 from src.main.ui.pages.admin_page import AdminPage
-from src.main.ui.classes.session_storage import SessionStorage
 
 
 @pytest.mark.ui
@@ -16,20 +15,11 @@ class TestCreateUser:
         self, api_manager: ApiManager, page: Page, user_request: CreateUserRequest
     ):
         #Create User
-        admin_page = AdminPage(page).open()
-        admin_page.admin_panel_text.to_be_visible()
-        admin_page.create_user(user_request.username, user_request.password)
-
-        #Add User in SessionStorage
-        SessionStorage.add_users([user_request])
-
-        # API check
-        user = api_manager.admin_steps.wait_user_appears(
-            username=user_request.username,
-            page=page
-        )
-        assert user.username == user_request.username, \
-            f"User with username mismatch: expected '{user_request.username}', got '{user.username}'"
+        AdminPage(page) \
+            .open() \
+            .admin_panel_text.to_be_visible() \
+            .create_user(user_request.username, user_request.password) \
+            .should_have_user(api_manager, user_request.username)
 
 
     @pytest.mark.parametrize(
@@ -49,14 +39,9 @@ class TestCreateUser:
         expected_error: str,
     ):
         #Try to create user
-        admin_page = AdminPage(page).open()
-        admin_page.admin_panel_text.to_be_visible()
-
-        admin_page.create_user(username, password)
-        admin_page.check_alert_message_and_accept(expected_error)
-
-        #API check
-        users = api_manager.admin_steps.get_all_users()
-        user_usernames = [u.username for u in users]
-        assert username not in user_usernames or username == "", \
-            f"User with username '{username}' should NOT be created"
+        AdminPage(page) \
+            .open() \
+            .admin_panel_text.to_be_visible() \
+            .create_user(username, password) \
+            .check_alert_message_and_accept(expected_error) \
+            .should_not_have_user(api_manager, username)
