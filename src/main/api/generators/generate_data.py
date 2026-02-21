@@ -100,18 +100,3 @@ class GenerateData:
         allowed_chars = string.ascii_letters + string.digits + "_-."
         return "".join(random.choices(allowed_chars, k=length))
 
-    @staticmethod
-    def get_buildtype_id() -> str:
-        """Generate a unique build type ID using timestamp + random"""
-        timestamp_suffix = str(int(time.time() * 1000))[-6:]  # Last 6 digits of ms timestamp
-        first_char = random.choice(string.ascii_letters)
-        allowed_chars = string.ascii_letters + string.digits + "_"
-        rest = "".join(
-            random.choices(allowed_chars, k=random.randint(4, 8))
-        )
-        return first_char + rest + timestamp_suffix
-
-    @staticmethod
-    def get_buildtype_name() -> str:
-        """Generate a build type name (alias for get_build_type_name)"""
-        return GenerateData.get_build_type_name()
