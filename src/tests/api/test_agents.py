@@ -3,7 +3,6 @@ import pytest
 from src.main.api.classes.api_manager import ApiManager
 
 
-@pytest.fixture(scope="function")
 def agent_with_state(api_manager: ApiManager):
     """
     Fixture that provides an agent and restores its state after test.
@@ -22,7 +21,6 @@ def agent_with_state(api_manager: ApiManager):
 
 
 @pytest.mark.api
-@pytest.mark.api_version("teamcity")
 class TestAgentsPositive:
     def test_get_list_of_available_agents_success(self, api_manager: ApiManager):
         agents = api_manager.agent_steps.get_all_agents()

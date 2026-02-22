@@ -2,6 +2,6 @@ pytest
 requests
 pydantic
 faker
-# softest
-# rstr
-# pytest-playwright
+softest
+rstr
+pytest-playwright

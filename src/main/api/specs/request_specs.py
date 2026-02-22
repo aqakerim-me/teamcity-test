@@ -23,3 +23,13 @@ class RequestSpecs:
             headers["Authorization"] = f"Bearer {token}"
         return headers
 
+    @staticmethod
+    def user_auth_spec(username: str, password: str):
+        """Аутентификация пользователя для UI тестов"""
+        import base64
+        credentials = f"{username}:{password}"
+        encoded_credentials = base64.b64encode(credentials.encode()).decode()
+        headers = RequestSpecs.default_req_headers()
+        headers["Authorization"] = f"Basic {encoded_credentials}"
+        return headers
+

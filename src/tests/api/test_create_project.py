@@ -90,6 +90,12 @@ class TestCreateProjectNegative:
     def test_invalid_project_id(self, api_manager: ApiManager, project_id, project_name, error_value):
         create_project_request = CreateProjectRequest(id = project_id, name = project_name)
         api_manager.admin_steps.create_invalid_project(create_project_request, error_value)
+        
+        # Проверка, что проект НЕ был создан
+        projects = api_manager.admin_steps.get_all_projects()
+        project_ids = [project.id for project in projects]
+        assert create_project_request.id not in project_ids, \
+            f"Project with invalid ID '{create_project_request.id}' should not be created"
 
     @pytest.mark.parametrize(
         "project_id, error_value",
@@ -104,6 +110,12 @@ class TestCreateProjectNegative:
             name=create_project.name
         )
         api_manager.admin_steps.create_invalid_project(create_project_request, error_value)
+        
+        # Проверка, что проект с дублирующимся именем НЕ был создан
+        projects = api_manager.admin_steps.get_all_projects()
+        project_ids = [project.id for project in projects]
+        assert create_project_request.id not in project_ids, \
+            f"Project with duplicate name '{create_project_request.name}' should not be created"
 
     @pytest.mark.parametrize(
         "project_name, error_value",
@@ -118,3 +130,11 @@ class TestCreateProjectNegative:
             name=project_name
         )
         api_manager.admin_steps.create_invalid_project(create_project_request,error_value)
+        
+        # Проверка, что проект с дублирующимся ID НЕ был создан
+        projects = api_manager.admin_steps.get_all_projects()
+        project_ids = [project.id for project in projects]
+        # Проверяем, что существует только один проект с таким ID (оригинальный)
+        matching_projects = [p for p in projects if p.id == create_project_request.id]
+        assert len(matching_projects) == 1, \
+            f"Expected exactly 1 project with ID '{create_project_request.id}', but found {len(matching_projects)}"

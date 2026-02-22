@@ -10,8 +10,10 @@ class GenerateData:
 
     @staticmethod
     def get_project_name() -> str:
+        # Add timestamp to ensure uniqueness
         words = faker.words(nb=random.randint(1, 3))
-        return " ".join(words).title()
+        timestamp = str(int(time.time() * 1000))[-6:]
+        return " ".join(words).title() + f" {timestamp}"
 
     @staticmethod
     def get_project_id() -> str:
@@ -42,11 +44,14 @@ class GenerateData:
         length = random.randint(min_length, max_length)
 
         allowed_chars = (
-            string.ascii_letters +
+            string.ascii_lowercase +
             string.digits +
             "._-"
         )
-        return "".join(random.choices(allowed_chars, k=length))
+        first_char = random.choice(string.ascii_lowercase)
+        if length == 1:
+            return first_char
+        return first_char + "".join(random.choices(allowed_chars, k=length - 1))
 
     @staticmethod
     def get_username_with_length(length: int) -> str:
@@ -54,28 +59,43 @@ class GenerateData:
             raise ValueError("Username length must be >= 1")
 
         allowed_chars = (
-                string.ascii_letters +
+                string.ascii_lowercase +
                 string.digits +
                 "._-"
         )
-        return "".join(random.choices(allowed_chars, k=length))
+        first_char = random.choice(string.ascii_lowercase)
+        if length == 1:
+            return first_char
+        return first_char + "".join(random.choices(allowed_chars, k=length - 1))
 
     @staticmethod
     def get_password() -> str:
-        min_length = 1
+        min_length = 8
         max_length = 20
         length = random.randint(min_length, max_length)
 
-        allowed_chars = (
-                string.ascii_letters +
-                string.digits +
-                string.punctuation
-        )
+        # Keep password characters UI-friendly to avoid flaky form validation in TeamCity.
+        allowed_chars = string.ascii_letters + string.digits + "_-!@#$%^&*"
         return "".join(random.choices(allowed_chars, k=length))
     
     @staticmethod
     def get_step_id() -> str:
         return "step_" + "".join(random.choices(string.ascii_letters + string.digits, k=8))
+    
+    @staticmethod
+    def get_step_name() -> str:
+        words = faker.words(nb=random.randint(2, 4))
+        return " ".join(words).title()
+    
+    @staticmethod
+    def get_step_script() -> str:
+        # Generate a simple script with random echo statements
+        lines = []
+        for _ in range(random.randint(1, 5)):
+            words = faker.words(nb=random.randint(2, 5))
+            line = "echo " + " ".join(words)
+            lines.append(line)
+        return "\n".join(lines)
     
     @staticmethod
     def get_build_type_id() -> str:
@@ -100,3 +120,7 @@ class GenerateData:
         allowed_chars = string.ascii_letters + string.digits + "_-."
         return "".join(random.choices(allowed_chars, k=length))
 
+    @staticmethod
+    def get_build_configuration_name() -> str:
+        words = faker.words(nb=random.randint(1, 3))
+        return " ".join(words).title()
