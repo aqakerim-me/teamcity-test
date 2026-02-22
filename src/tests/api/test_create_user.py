@@ -70,7 +70,7 @@ class TestCreateUserNegative:
              AlertMessages.USERNAME_TOO_LONG)
         ]
     )
-    def test_invalid_project_id(self, api_manager: ApiManager, username: str, password: str, error_value: AlertMessages):
+    def test_invalid_username(self, api_manager: ApiManager, username: str, password: str, error_value: AlertMessages):
         create_user_request = CreateUserRequest(username = username, password = password)
         api_manager.admin_steps.create_invalid_user(create_user_request, error_value)
 

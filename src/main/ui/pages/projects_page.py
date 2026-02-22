@@ -1,4 +1,7 @@
 from src.main.api.generators.generate_data import GenerateData
+from src.main.api.models.comparison.model_assertions import ModelAssertions
+from src.main.api.models.create_project_request import CreateProjectRequest
+from src.main.ui.classes.session_storage import SessionStorage
 from src.main.ui.pages.base_page import BasePage
 from src.main.ui.pages.selectors import (
     CREATE_PROJECT_BUTTON,
@@ -71,6 +74,9 @@ class ProjectsPage(BasePage):
             project_id = GenerateData.get_project_id()
         if project_name is None:
             project_name = GenerateData.get_project_name()
+        SessionStorage.add_projects(
+            [CreateProjectRequest(id=project_id, name=project_name)]
+        )
 
         def _action():
             try:
@@ -117,6 +123,39 @@ class ProjectsPage(BasePage):
         return UIElement(
             self.page.locator(selector).first,
             name=f"Project {project_id}"
+        )
+
+    def should_have_project(self, api_manager, project_id: str):
+        def _action():
+            projects = api_manager.admin_steps.get_all_projects()
+            project_ids = [p.id for p in projects]
+            assert project_id in project_ids, (
+                f"Project '{project_id}' should be in projects list"
+            )
+            return self
+
+        return self._step(
+            title=f"Check project exists: {project_id}",
+            action=_action
+        )
+
+    def should_match_project(
+        self, api_manager, project_id: str, project_name: str
+    ):
+        def _action():
+            project = api_manager.admin_steps.wait_project_appears(
+                project_id=project_id,
+                page=self.page,
+            )
+            ModelAssertions(
+                CreateProjectRequest(id=project_id, name=project_name),
+                project
+            ).match()
+            return self
+
+        return self._step(
+            title=f"Check project matches: {project_id}",
+            action=_action
         )
         
     def click_new_build_configuration(self, project_name: str):
