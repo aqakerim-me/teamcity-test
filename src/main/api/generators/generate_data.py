@@ -119,7 +119,7 @@ class GenerateData:
         length = random.randint(5, 50)
         allowed_chars = string.ascii_letters + string.digits + "_-."
         return "".join(random.choices(allowed_chars, k=length))
-    
+
     @staticmethod
     def get_build_configuration_name() -> str:
         words = faker.words(nb=random.randint(1, 3))
