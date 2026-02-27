@@ -2,6 +2,8 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Optional
 
+from src.main.api.models.build_steps_response import BuildStepsListResponse
+from src.main.api.models.build_types_reponse import BuildTypesListResponse
 from src.main.api.models.build_list_response import BuildListResponse
 from src.main.api.models.build_queue_response import BuildQueueResponse
 from src.main.api.models.build_response import BuildResponse
@@ -115,6 +117,19 @@ class Endpoint(Enum):
         request_model=None,
         response_model=CreateBuildStepResponse
     )
+    
+    GET_BUILD_STEPS = EndpointConfig(
+        url="/buildTypes/id:{BuildTypeId}/steps",
+        request_model=None,
+        response_model=BuildStepsListResponse
+    )
+    
+    GET_BUILDTYPE_BY_ID = EndpointConfig(
+        url="/buildTypes/id:{BuildTypeId}",
+        request_model=None,
+        response_model=CreateBuildTypeResponse
+    )
+    
     BUILD_QUEUE = EndpointConfig(
         url="/buildQueue",
         request_model=StartBuildRequest,
@@ -150,4 +165,16 @@ class Endpoint(Enum):
         url="/buildTypes/id:{BuildTypeId}/steps/{stepId}",
         request_model=CreateBuildStepRequest,
         response_model=CreateBuildStepResponse
+    )
+    
+    GET_ALL_BUILDTYPES = EndpointConfig(
+        url="/buildTypes",
+        request_model=None,
+        response_model=BuildTypesListResponse
+    )
+    
+    GET_BUILDTYPE_PAUSED_STATUS = EndpointConfig(
+        url="/buildTypes/id:{BuildTypeId}/paused",
+        request_model=None,
+        response_model=None
     )

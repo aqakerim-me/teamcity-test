@@ -2,6 +2,7 @@ import logging
 from typing import List, Optional
 
 import requests
+from src.main.api.models.build_steps_response import BuildStepsListResponse
 from playwright.sync_api import Page
 
 from src.main.api.configs.config import Config
@@ -176,6 +177,28 @@ class AdminSteps(BaseSteps):
         return response
 
     @staticmethod
+    def get_buildtype_by_id(build_type_id: str) -> CreateBuildTypeResponse:
+        """Получение buildType по ID"""
+        response = ValidatedCrudRequester(
+            RequestSpecs.admin_auth_spec(),
+            Endpoint.GET_BUILDTYPE_BY_ID,
+            ResponseSpecs.request_returns_ok(),
+        ).get(path_params={"BuildTypeId": build_type_id})
+        logging.info(f"Get buildType with ID {build_type_id}")
+        return response
+    
+    @staticmethod
+    def get_buildtype_paused_status(build_type_id: str) -> bool:
+        """Получение статуса паузы buildType по ID"""
+        response = ValidatedCrudRequester(
+            RequestSpecs.admin_auth_plain_text_spec(),
+            Endpoint.GET_BUILDTYPE_PAUSED_STATUS,
+            ResponseSpecs.request_returns_ok(),
+        ).get_text(path_params={"BuildTypeId": build_type_id})
+        logging.info(f"BuildType with ID {build_type_id} paused status: {response}")
+        return response.strip().lower() == "true"
+
+    @staticmethod
     def create_build_step(
         request: CreateBuildStepRequest, build_type_id: str
     ) -> CreateBuildStepResponse:
@@ -216,6 +239,32 @@ class AdminSteps(BaseSteps):
         ).get(path_params={"BuildTypeId": build_type_id, "stepId": step_id})
         logging.info(f"Get build step with ID {step_id}")
         return response
+    
+    @staticmethod
+    def get_build_steps(build_type_id: str) -> BuildStepsListResponse:
+        """Получение всех build steps для build type"""
+        response = ValidatedCrudRequester(
+            RequestSpecs.admin_auth_spec(),
+            Endpoint.GET_BUILD_STEPS,
+            ResponseSpecs.request_returns_ok(),
+        ).get(path_params={"BuildTypeId": build_type_id})
+        steps = response.step
+        assert len(steps) > 0, "build steps list should not be empty"
+        logging.info(f"Retrieved {len(steps)} build steps for build type ID {build_type_id}")
+        return steps
+    
+    @staticmethod
+    def get_all_buildtypes() -> List[CreateBuildTypeResponse]:
+        """Получение всех build types"""
+        response = ValidatedCrudRequester(
+            RequestSpecs.admin_auth_spec(),
+            Endpoint.GET_ALL_BUILDTYPES,
+            ResponseSpecs.request_returns_ok(),
+        ).get()
+        build_types = response.buildType
+        assert len(build_types) > 0, "build types list should not be empty"
+        logging.info(f"Retrieved {len(build_types)} build types")
+        return build_types
 
     @staticmethod
     def get_invalid_build_step_by_id(

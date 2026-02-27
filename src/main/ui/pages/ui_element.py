@@ -60,3 +60,15 @@ class UIElement:
 
     def is_enabled(self) -> bool:
         return self.locator.is_enabled()
+
+    def should_have_text(self, expected: str, timeout: int = 5000) -> "UIElement":
+        self.locator.wait_for(state="visible", timeout=timeout)
+        actual = self.get_text().strip()
+        assert expected in actual, \
+            f"Expected '{self.name}' to contain text '{expected}', got '{actual}'"
+        return self
+    
+    def should_not_be_visible(self, timeout: int = 5000) -> "UIElement":
+        self.locator.wait_for(state="hidden", timeout=timeout)
+        assert not self.is_visible(), \
+            f"Expected '{self.name}' to be hidden, but it is visible"

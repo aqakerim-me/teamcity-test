@@ -47,6 +47,17 @@ class ValidatedCrudRequester(HttpRequest):
             id=id, path_params=path_params, query_params=query_params
         )
         return self._adapter.validate_python(response.json())
+    
+    def get_text(
+        self,
+        id: Optional[int | str] = None,
+        path_params: Optional[dict] = None,
+        query_params: Optional[dict] = None,
+    ) -> str:
+        response = self.crud_requester.get(
+            id=id, path_params=path_params, query_params=query_params
+        )
+        return response.text
 
     def update(
         self,
