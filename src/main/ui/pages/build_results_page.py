@@ -256,18 +256,83 @@ class BuildResultsPage(BasePage):
         )
 
     def download_first_artifact(self, download_dir: Path) -> Path:
+        """Download first artifact using either browser download or direct API."""
         with suppress(Exception):
             self.page.get_by_text("Show hidden artifacts").first.click(timeout=2_000)
 
-        links = self.page.locator(BUILD_ARTIFACT_DOWNLOAD_LINK)
-        links.first.wait_for(state="visible", timeout=15_000)
+        # Look specifically for repository download links
+        links = self.page.locator('a[href*="/repository/download/"]')
+        if links.count() == 0:
+            # Fallback to general artifact links
+            links = self.page.locator(BUILD_ARTIFACT_DOWNLOAD_LINK)
 
-        with self.page.expect_download(timeout=30_000) as download_info:
-            links.first.click()
-        download = download_info.value
+        if links.count() == 0:
+            raise AssertionError("No artifact download links found on page")
 
-        target_path = Path(download_dir) / download.suggested_filename
-        download.save_as(str(target_path))
+        links.first.wait_for(state="visible", timeout=10_000)
+
+        # First try: use Playwright's download event
+        try:
+            with self.page.expect_download(timeout=10_000) as download_info:
+                links.first.click()
+            download = download_info.value
+            target_path = Path(download_dir) / download.suggested_filename
+            download.save_as(str(target_path))
+            logger.info("Artifact downloaded via browser to %s", target_path)
+            return target_path
+        except Exception as e:
+            logger.warning(f"Browser download failed: {e}, trying direct URL download")
+
+        # Fallback: get the href and download via requests
+        href = links.first.get_attribute("href")
+        if not href:
+            raise AssertionError("Could not get artifact URL from link")
+
+        # Build full URL from href
+        from urllib.parse import urljoin, urlparse, unquote
+        from src.main.api.configs.config import Config
+
+        server = Config.get('server').rstrip('/')
+        if href.startswith("/"):
+            full_url = urljoin(server, href)
+        elif href.startswith("http"):
+            full_url = href
+        else:
+            # Relative URL - build from current page
+            base = self.page.url.split('?')[0]
+            full_url = urljoin(base, href)
+
+        import requests
+
+        # Use admin credentials for download
+        headers = {
+            "Authorization": f"Bearer {Config.get('admin.bearerToken')}",
+            "Accept": "*/*"
+        }
+
+        response = requests.get(full_url, headers=headers, timeout=30)
+        response.raise_for_status()
+
+        # Extract filename from URL or Content-Disposition
+        import re
+        disposition = response.headers.get("Content-Disposition", "")
+        filename_match = re.search(r'filename[*]?=["\']?([^"\';\s]+)', disposition)
+        if filename_match:
+            filename = unquote(filename_match.group(1))
+        else:
+            # Extract from URL path
+            path = urlparse(full_url).path
+            filename = unquote(path.split("/")[-1])
+            if not filename or '.' not in filename:
+                filename = "artifact.txt"
+
+        # Sanitize filename
+        filename = re.sub(r'[<>:"|?*]', '_', filename)
+        # Remove query string if present
+        filename = filename.split('?')[0].split('#')[0]
+
+        target_path = Path(download_dir) / filename
+        target_path.write_bytes(response.content)
         self.last_download_path = target_path
-        logger.info("Artifact downloaded to %s", target_path)
+        logger.info("Artifact downloaded via API to %s", target_path)
         return target_path
