@@ -29,10 +29,15 @@ class TestCreateBuildConfiguration(BaseUITest):
         build_config_name = GenerateData.get_build_configuration_name()
         projects_page = ProjectsPage(page).open()
         
-        create_build_config_page: CreateBuildConfigurationPage = projects_page.click_new_build_configuration(created_project.name)
-        projects_page: ProjectsPage = create_build_config_page.create_build_configuration(build_config_name)
-        
-        projects_page.should_have_build_configuration(build_config_name)
+        create_build_config_page: CreateBuildConfigurationPage = projects_page.click_new_build_configuration(created_project.id)
+        create_build_config_page.create_build_configuration(build_config_name)
+
+        build_types = api_manager.admin_steps.get_buildtypes_by_project(created_project.id)
+        assert build_types is not None, "Expected build types for project after creation"
+        names = [build_type.name for build_type in build_types.buildType]
+        assert build_config_name in names, (
+            f"Build configuration '{build_config_name}' was not created in project '{created_project.id}'"
+        )
 
 
     def test_add_build_step(self, page: Page, api_manager: ApiManager):
@@ -76,7 +81,12 @@ class TestCreateBuildConfiguration(BaseUITest):
         build_config_name = GenerateData.get_build_configuration_name()
         projects_page = ProjectsPage(page).open()
         
-        create_build_config_page: CreateBuildConfigurationPage = projects_page.click_new_build_configuration(created_project.name)
-        create_build_config_page.cancel_button.click()
-        
-        projects_page.should_not_have_build_configuration(build_config_name)
+        create_build_config_page: CreateBuildConfigurationPage = projects_page.click_new_build_configuration(created_project.id)
+        projects_page = create_build_config_page.cancel_creation()
+
+        build_types = api_manager.admin_steps.get_buildtypes_by_project(created_project.id)
+        if build_types is not None:
+            names = [build_type.name for build_type in build_types.buildType]
+            assert build_config_name not in names, (
+                f"Build configuration '{build_config_name}' was created after cancel"
+            )
