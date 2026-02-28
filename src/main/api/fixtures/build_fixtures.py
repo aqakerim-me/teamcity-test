@@ -4,8 +4,9 @@ import time
 import traceback
 
 import pytest
-import requests
-
+from src.main.api.generators.random_model_generator import RandomModelGenerator
+from src.main.api.models.create_build_step_request import CreateBuildStepRequest
+from src.main.api.models.create_buildtype_request import CreateBuildTypeRequest
 from src.main.api.classes.api_manager import ApiManager
 from src.main.api.configs.config import Config
 from src.main.api.generators.generate_data import GenerateData
@@ -80,15 +81,13 @@ def build_type(api_manager: ApiManager):
     try:
         # Create a test project
         project_request = CreateProjectRequest(
-            id=GenerateData.get_project_id(),
-            name=GenerateData.get_project_name()
+            id=GenerateData.get_project_id(), name=GenerateData.get_project_name()
         )
         project = api_manager.admin_steps.create_project(project_request)
 
         # Create a simple build type
         build_type_id = api_manager.admin_steps.create_simple_build_type(
-            project_id=project.id,
-            build_type_name="Test Build"
+            project_id=project.id, build_type_name="Test Build"
         )
 
         # Return both build_type_id and project_id for UI tests
@@ -121,7 +120,9 @@ def queued_build(api_manager: ApiManager, build_type: tuple):
     # Find a build that's still queued
     for attempt in range(10):
         for build in builds:
-            status = api_manager.build_steps.get_build_by_id(build.id, fields="id,buildTypeId,state")
+            status = api_manager.build_steps.get_build_by_id(
+                build.id, fields="id,buildTypeId,state"
+            )
             if status.state == "queued":
                 # Remove this build from created_objects so it doesn't get auto-cleaned
                 # Test will handle cleanup (cancelling the build)
@@ -141,7 +142,9 @@ def running_build(api_manager: ApiManager, build_type: tuple):
 
     build = api_manager.build_steps.trigger_build(build_type_id)
     for _ in range(10):
-        build_status = api_manager.build_steps.get_build_by_id(build.id, fields="id,buildTypeId,state")
+        build_status = api_manager.build_steps.get_build_by_id(
+            build.id, fields="id,buildTypeId,state"
+        )
         if build_status.state == "running":
             yield build
             return
@@ -152,11 +155,10 @@ def running_build(api_manager: ApiManager, build_type: tuple):
 @pytest.fixture
 def completed_build(api_manager: ApiManager, build_type: tuple):
     """Trigger a build and wait for it to complete"""
-    # Extract build_type_id from tuple
-    build_type_id, _ = build_type
-
-    build = api_manager.build_steps.trigger_build(build_type_id)
-    completed_build_response = api_manager.build_steps.wait_for_build_completion(build.id)
+    build = api_manager.build_steps.trigger_build(build_type)
+    completed_build_response = api_manager.build_steps.wait_for_build_completion(
+        build.id
+    )
     yield completed_build_response
 
 
@@ -174,68 +176,27 @@ def multiple_builds(api_manager: ApiManager, build_type: tuple):
 
 
 @pytest.fixture
-def long_running_build_type(api_manager: ApiManager):
-    """Create build type with long-running script for stop/log/queue tests."""
-    try:
-        project_request = CreateProjectRequest(
+def created_project(api_manager: ApiManager):
+    return api_manager.admin_steps.create_project(
+        CreateProjectRequest(
             id=GenerateData.get_project_id(),
             name=GenerateData.get_project_name(),
         )
-        project = api_manager.admin_steps.create_project(project_request)
-
-        build_type_id = _create_custom_build_type(
-            project_id=project.id,
-            build_type_name="Long Running Build",
-            script_content="echo 'Long build start'\nsleep 60\necho 'Long build end'",
-        )
-        yield (build_type_id, project.id)
-
-        try:
-            api_manager.admin_steps.delete_build_type(build_type_id)
-        except Exception as e:
-            logging.warning(f"Could not delete long-running build type {build_type_id}: {e}")
-    except Exception as e:
-        exc_info = "".join(traceback.format_exception(type(e), e, e.__traceback__))
-        logging.error(f"Full error in long_running_build_type fixture:\n{exc_info}")
-        pytest.skip(f"Could not create long-running build type: {e}")
+    )
 
 
 @pytest.fixture
-def artifact_build_type(api_manager: ApiManager):
-    """Create build type that publishes artifact for artifacts UI test."""
-    try:
-        project_request = CreateProjectRequest(
-            id=GenerateData.get_project_id(),
+def build_config(api_manager: ApiManager, created_project):
+    return api_manager.admin_steps.create_buildtype(
+        CreateBuildTypeRequest(
+            id=created_project.id,
             name=GenerateData.get_project_name(),
+            project={"id": created_project.id},
         )
-        project = api_manager.admin_steps.create_project(project_request)
-
-        script = (
-            "mkdir -p out\n"
-            "echo \"artifact_$(date +%s)\" > out/result.txt\n"
-            "cat out/result.txt"
-        )
-        build_type_id = _create_custom_build_type(
-            project_id=project.id,
-            build_type_name="Artifact Build",
-            script_content=script,
-            artifact_rules="out/result.txt",
-        )
-        yield (build_type_id, project.id)
-
-        try:
-            api_manager.admin_steps.delete_build_type(build_type_id)
-        except Exception as e:
-            logging.warning(f"Could not delete artifact build type {build_type_id}: {e}")
-    except Exception as e:
-        exc_info = "".join(traceback.format_exception(type(e), e, e.__traceback__))
-        logging.error(f"Full error in artifact_build_type fixture:\n{exc_info}")
-        pytest.skip(f"Could not create artifact build type: {e}")
-
-
+    )
 @pytest.fixture
-def build_tracker(api_manager: ApiManager):
-    """Track build IDs during a test and always cancel/cleanup them in teardown."""
-    build_ids: list[int] = []
-    yield build_ids
-    cleanup_triggered_builds(api_manager, build_ids)
+def created_step(api_manager: ApiManager, build_config):
+    return api_manager.admin_steps.create_build_step(
+        RandomModelGenerator.generate(CreateBuildStepRequest), 
+        build_type_id=build_config.id
+    )

@@ -1,30 +1,20 @@
-import time
-
+from src.main.ui.pages.projects_page import ProjectsPage
 from src.main.ui.pages.base_page import BasePage
 from src.main.ui.pages.ui_element import UIElement
 
 
 class CreateBuildConfigurationPage(BasePage):
 
-    def url(self, project_id: str | None = None) -> str:
-        base_path = "/admin/createObjectMenu.html?showMode=createBuildTypeMenu"
-        if project_id:
-            return f"{base_path}&projectId={project_id}#createManually"
-        return f"{base_path}&projectId=_Root#createManually"
+    def url(self) -> str:
+        return "/projects/create"
 
     @property
-    def name_input(self) -> UIElement:
-        return UIElement(
-            self.page.locator("#buildTypeName").first,
-            name="Build configuration name input",
-        )
+    def name_input(self):
+        return self.page.get_by_role("textbox", name="Name")
 
     @property
-    def build_config_id_input(self) -> UIElement:
-        return UIElement(
-            self.page.locator("#buildTypeExternalId").first,
-            name="Build configuration ID input",
-        )
+    def create_button(self):
+        return self.page.locator('[data-test="ring-button-set"]').get_by_role("button", name="Create")
 
     @property
     def create_button(self) -> UIElement:
@@ -33,21 +23,27 @@ class CreateBuildConfigurationPage(BasePage):
             name="Create build configuration button",
         )
 
-    def create_build_configuration(self, name: str):
-        self.name_input.to_be_visible(timeout=10_000).fill(name)
-        build_config_id = "".join(ch if ch.isalnum() else "_" for ch in name)
-        if not build_config_id:
-            build_config_id = "BuildConfig"
-        build_config_id = f"{build_config_id}_{int(time.time() * 1000) % 1000000}"
-        self.build_config_id_input.to_be_visible(timeout=10_000).fill(build_config_id)
-        self.create_button.to_be_visible(timeout=10_000).click()
+    def click_cancel(self) -> "ProjectsPage":
+        self.cancel_button.click()
         self.page.wait_for_load_state("domcontentloaded")
+        return self.get_page(ProjectsPage)
 
+    def fill_name(self, name: str) -> "CreateBuildConfigurationPage":
+        self.name_input.fill(name)
+        return self
+
+    def create_build_configuration(self, name: str):
         from src.main.ui.pages.projects_page import ProjectsPage
-        return ProjectsPage(self.page)
 
-    def cancel_creation(self):
-        self.page.goto(f"{self.ui_base_url}/favorite/projects?mode=builds", wait_until="domcontentloaded")
+        def _action():
+            (
+                self.fill_name(name)
+                    .create_button
+                    .click()
+            )
+            return self.get_page(ProjectsPage)
 
-        from src.main.ui.pages.projects_page import ProjectsPage
-        return ProjectsPage(self.page)
+        return self._step(
+            title=f"Create build configuration: {name}",
+            action=_action,
+        )
