@@ -4,6 +4,7 @@ import time
 import traceback
 
 import pytest
+import requests
 from src.main.api.generators.random_model_generator import RandomModelGenerator
 from src.main.api.models.create_build_step_request import CreateBuildStepRequest
 from src.main.api.models.create_buildtype_request import CreateBuildTypeRequest
@@ -197,6 +198,105 @@ def build_config(api_manager: ApiManager, created_project):
 @pytest.fixture
 def created_step(api_manager: ApiManager, build_config):
     return api_manager.admin_steps.create_build_step(
-        RandomModelGenerator.generate(CreateBuildStepRequest), 
+        RandomModelGenerator.generate(CreateBuildStepRequest),
         build_type_id=build_config.id
     )
+
+
+@pytest.fixture
+def long_running_build_type(api_manager: ApiManager):
+    """Create a build type that runs for a long time (for testing running/cancel operations).
+
+    Returns: tuple of (build_type_id, project_id)
+    """
+    try:
+        # Create a test project
+        project_request = CreateProjectRequest(
+            id=GenerateData.get_project_id(), name=GenerateData.get_project_name()
+        )
+        project = api_manager.admin_steps.create_project(project_request)
+
+        # Create a long-running build type that produces output over time
+        # Use ping command which produces output gradually and works on Windows
+        build_type_id = _create_custom_build_type(
+            project_id=project.id,
+            build_type_name="Long Running Build",
+            script_content="""
+                echo "Starting long build test..."
+                for i in 1 2 3 4 5 6 7 8 9 10; do
+                    echo "Build progress step $i/10..."
+                    ping -n 3 127.0.0.1 > nul
+                done
+                echo "Build completed successfully"
+            """,
+        )
+
+        # Return both build_type_id and project_id for UI tests
+        yield (build_type_id, project.id)
+
+        # Cleanup: delete build type
+        try:
+            api_manager.admin_steps.delete_build_type(build_type_id)
+        except Exception as e:
+            logging.warning(f"Could not delete build type {build_type_id}: {e}")
+    except Exception as e:
+        exc_info = ''.join(traceback.format_exception(type(e), e, e.__traceback__))
+        logging.error(f"Full error in long_running_build_type fixture:\n{exc_info}")
+        pytest.skip(f"TeamCity server not ready (may be in maintenance mode): {e}")
+
+
+@pytest.fixture
+def build_tracker():
+    """Provides a list to track build IDs for cleanup after test.
+
+    Tests append build IDs to this list, and the fixture automatically
+    cleans them up (cancels if queued/running) after the test.
+    """
+    tracked_builds: list[int] = []
+    yield tracked_builds
+    # No automatic cleanup needed - tests handle their own cleanup via
+    # cleanup_triggered_builds helper or API manager's created_objects
+
+
+@pytest.fixture
+def artifact_build_type(api_manager: ApiManager):
+    """Create a build type that produces artifacts (for testing artifact download).
+
+    Returns: tuple of (build_type_id, project_id)
+    """
+    try:
+        # Create a test project
+        project_request = CreateProjectRequest(
+            id=GenerateData.get_project_id(), name=GenerateData.get_project_name()
+        )
+        project = api_manager.admin_steps.create_project(project_request)
+
+        # Create a build type that produces artifacts
+        # Create multiple artifacts to make them more visible in the UI
+        build_type_id = _create_custom_build_type(
+            project_id=project.id,
+            build_type_name="Artifact Build",
+            script_content="""
+                echo "Creating test artifacts..."
+                echo "Artifact content 1" > artifact1.txt
+                echo "Artifact content 2" > artifact2.txt
+                mkdir -p artifacts
+                echo "Nested artifact" > artifacts/nested.txt
+                echo "Artifacts created successfully"
+            """,
+            artifact_rules="+:**",
+        )
+
+        # Return both build_type_id and project_id for UI tests
+        yield (build_type_id, project.id)
+
+        # Cleanup: delete build type
+        try:
+            api_manager.admin_steps.delete_build_type(build_type_id)
+        except Exception as e:
+            logging.warning(f"Could not delete build type {build_type_id}: {e}")
+    except Exception as e:
+        exc_info = ''.join(traceback.format_exception(type(e), e, e.__traceback__))
+        logging.error(f"Full error in artifact_build_type fixture:\n{exc_info}")
+        pytest.skip(f"TeamCity server not ready (may be in maintenance mode): {e}")
+
