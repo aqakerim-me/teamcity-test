@@ -79,34 +79,24 @@ class ProjectsPage(BasePage):
         )
 
         def _action():
-            try:
-                btn = self.create_project_button.locator
-                btn.wait_for(state="visible", timeout=10_000)
-                btn.scroll_into_view_if_needed()
-                btn.click()
-            except Exception:
-                self.page.goto(
-                    f"{self.ui_base_url}/admin/createObjectMenu.html?projectId=_Root&showMode=createProjectMenu",
-                    wait_until="domcontentloaded",
-                )
+            self.page.goto(
+                f"{self.ui_base_url}/admin/createObjectMenu.html?projectId=_Root&showMode=createProjectMenu#createManually",
+                wait_until="domcontentloaded",
+            )
 
-            project_id_input = self.project_id_input.locator
-            project_id_input.wait_for(state="visible", timeout=10_000)
-            project_id_input.scroll_into_view_if_needed()
-            project_id_input.fill(project_id)
-
-            project_name_input = self.project_name_input.locator
+            project_name_input = self.page.locator("#name").first
             project_name_input.wait_for(state="visible", timeout=10_000)
-            project_name_input.scroll_into_view_if_needed()
             project_name_input.fill(project_name)
 
-            submit_btn = self.submit_button.locator
+            project_id_input = self.page.locator("#externalId").first
+            project_id_input.wait_for(state="visible", timeout=10_000)
+            project_id_input.fill(project_id)
+
+            submit_btn = self.page.locator("#createProject").first
             submit_btn.wait_for(state="visible", timeout=10_000)
-            submit_btn.scroll_into_view_if_needed()
             submit_btn.click()
 
-            combined = f"{PROJECTS_LIST}, {ALERT_SELECTOR}"
-            self.page.wait_for_selector(combined, timeout=10_000)
+            self.page.wait_for_load_state("domcontentloaded")
             return self
 
         return self._step(
@@ -124,6 +114,7 @@ class ProjectsPage(BasePage):
             self.page.locator(selector).first,
             name=f"Project {project_id}"
         )
+
 
     def should_have_project(self, api_manager, project_id: str):
         def _action():
@@ -158,23 +149,13 @@ class ProjectsPage(BasePage):
             action=_action
         )
         
-    def click_new_build_configuration(self, project_name: str):
-        project_selector = f'[data-project-name="{project_name}"]'
-        project_element = self.page.locator(project_selector).first
-        project_element.wait_for(state="visible", timeout=10_000)
-        project_element.scroll_into_view_if_needed()
-        project_element.click()
-
-        new_build_config_button = self.page.get_by_role("button", name="New build configuration")
-        new_build_config_button.wait_for(state="visible", timeout=10_000)
-        new_build_config_button.scroll_into_view_if_needed()
-        new_build_config_button.click()
-
+    def click_new_build_configuration(self, project_id: str):
         from src.main.ui.pages.create_build_config_page import CreateBuildConfigurationPage
-        return CreateBuildConfigurationPage(self.page)
+
+        return CreateBuildConfigurationPage(self.page).open(project_id=project_id)
 
     def should_have_build_configuration(self, build_config_name: str):
-        build_config_selector = f'[data-build-config-name="{build_config_name}"]'
+        build_config_selector = f'text="{build_config_name}"'
         try:
             self.page.wait_for_selector(build_config_selector, timeout=5000)
         except Exception:
@@ -183,10 +164,9 @@ class ProjectsPage(BasePage):
         return self
 
     def should_not_have_build_configuration(self, build_config_name: str):
-        build_config_selector = f'[data-build-config-name="{build_config_name}"]'
-        try:
-            self.page.wait_for_selector(build_config_selector, timeout=5000)
-            raise AssertionError(f"Build configuration '{build_config_name}' was found on Projects page but should not be there")
-        except Exception:
-            pass
+        build_config_selector = self.page.locator(f'text="{build_config_name}"')
+        if build_config_selector.count() > 0:
+            raise AssertionError(
+                f"Build configuration '{build_config_name}' was found on Projects page but should not be there"
+            )
         return self
