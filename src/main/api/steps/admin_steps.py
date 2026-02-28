@@ -483,6 +483,12 @@ class AdminSteps(BaseSteps):
                 params=params,
                 timeout=10,
             )
+            if response.status_code == 404:
+                logging.info(
+                    "User '%s' not found yet (404), retrying...",
+                    username,
+                )
+                return []
             ResponseSpecs.request_returns_ok()(response)
 
             payload = response.json()

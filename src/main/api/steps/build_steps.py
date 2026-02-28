@@ -153,26 +153,32 @@ class BuildSteps(BaseSteps):
 
     def get_latest_build_and_wait(self, build_type_id: str, timeout: int = DEFAULT_TIMEOUT) -> BuildResponse:
         """
-        Find the latest build for a build type (in queue or recent) and wait for completion.
+        Find the latest build for a build type and wait for completion.
 
-        This handles the race condition where a build may complete between triggering
-        and checking, making it not appear in the queue.
+        This method tolerates eventual consistency after clicking "Run" in UI:
+        for a short period the build can be absent from both queue and recent list.
         """
-        # First check queue
-        queue = self.get_build_queue()
-        our_builds_in_queue = [b for b in queue if b.buildTypeId == build_type_id]
+        start = time.time()
+        while (time.time() - start) < timeout:
+            # Prefer queue first, then fallback to recent list.
+            queue = self.get_build_queue()
+            queued_builds = [b for b in queue if b.buildTypeId == build_type_id]
+            if queued_builds:
+                latest_queued = max(queued_builds, key=lambda b: b.id)
+                remaining = max(1, int(timeout - (time.time() - start)))
+                return self.wait_for_build_completion(latest_queued.id, remaining)
 
-        if our_builds_in_queue:
-            build_id = our_builds_in_queue[0].id
-        else:
-            # Not in queue, check recent builds (may have completed already)
             recent_builds = self.get_builds_by_buildtype(build_type_id)
-            if not recent_builds:
-                raise ValueError(f"No builds found for build type '{build_type_id}'")
-            build_id = recent_builds[0].id
+            if recent_builds:
+                latest_recent = max(recent_builds, key=lambda b: b.id)
+                remaining = max(1, int(timeout - (time.time() - start)))
+                return self.wait_for_build_completion(latest_recent.id, remaining)
 
-        # Wait for completion (returns immediately if already finished)
-        return self.wait_for_build_completion(build_id, timeout)
+            time.sleep(self.POLL_INTERVAL)
+
+        raise TimeoutError(
+            f"No builds found for build type '{build_type_id}' within {timeout} seconds"
+        )
 
     @staticmethod
     def delete_build(build_id: int) -> None:
