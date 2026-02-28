@@ -1,6 +1,7 @@
 import pytest
 from playwright.sync_api import Page
 
+from src.main.ui.pages.conditions import Condition
 from src.main.ui.pages.projects_page import ProjectsPage
 
 
@@ -9,13 +10,13 @@ from src.main.ui.pages.projects_page import ProjectsPage
 class TestMainPage:
 
     def test_load_main_page(self, page: Page):
-        projects_page = ProjectsPage(page).open()
-        projects_page.welcome_text.to_be_visible()
-        assert projects_page.projects_list.is_visible(), \
-            "Projects list should be visible on ProjectsPage"
+        ProjectsPage(page) \
+            .open() \
+            .should_be(Condition.visible, ProjectsPage(page).welcome_text) \
+            .should_be(Condition.visible, ProjectsPage(page).projects_list)
 
     def test_navigation_menu_sections(self, page: Page):
-        projects_page = ProjectsPage(page).open()
-        projects_page.welcome_text.to_be_visible()
-        assert projects_page.navigation_menu.is_visible(), \
-            "Navigation menu should be visible on ProjectsPage"
+        ProjectsPage(page) \
+            .open() \
+            .should_be(Condition.visible, ProjectsPage(page).welcome_text) \
+            .should_be(Condition.visible, ProjectsPage(page).navigation_menu)

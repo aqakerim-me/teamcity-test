@@ -10,8 +10,10 @@ class GenerateData:
 
     @staticmethod
     def get_project_name() -> str:
+        # Add timestamp to ensure uniqueness
         words = faker.words(nb=random.randint(1, 3))
-        return " ".join(words).title()
+        timestamp = str(int(time.time() * 1000))[-6:]
+        return " ".join(words).title() + f" {timestamp}"
 
     @staticmethod
     def get_project_id() -> str:
@@ -81,6 +83,21 @@ class GenerateData:
         return "step_" + "".join(random.choices(string.ascii_letters + string.digits, k=8))
     
     @staticmethod
+    def get_step_name() -> str:
+        words = faker.words(nb=random.randint(2, 4))
+        return " ".join(words).title()
+    
+    @staticmethod
+    def get_step_script() -> str:
+        # Generate a simple script with random echo statements
+        lines = []
+        for _ in range(random.randint(1, 5)):
+            words = faker.words(nb=random.randint(2, 5))
+            line = "echo " + " ".join(words)
+            lines.append(line)
+        return "\n".join(lines)
+    
+    @staticmethod
     def get_build_type_id() -> str:
         return "buildType_" + "".join(random.choices(string.ascii_letters + string.digits, k=8))
 
@@ -102,3 +119,8 @@ class GenerateData:
         length = random.randint(5, 50)
         allowed_chars = string.ascii_letters + string.digits + "_-."
         return "".join(random.choices(allowed_chars, k=length))
+
+    @staticmethod
+    def get_build_configuration_name() -> str:
+        words = faker.words(nb=random.randint(1, 3))
+        return " ".join(words).title()

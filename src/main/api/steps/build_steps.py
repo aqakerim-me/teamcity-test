@@ -19,26 +19,6 @@ class BuildSteps(BaseSteps):
     POLL_INTERVAL = 0.5
     DEFAULT_TIMEOUT = 300
 
-    @staticmethod
-    def _endpoint_for_url(
-        url: str,
-        response_model=None,
-        request_model=None,
-    ) -> EndpointConfig:
-        return EndpointConfig(
-            url=url,
-            request_model=request_model,
-            response_model=response_model,
-        )
-
-    @staticmethod
-    def _merge_required_fields(fields: Optional[str], required: List[str]) -> Optional[str]:
-        if not fields:
-            return None
-        requested = {field.strip() for field in fields.split(",") if field.strip()}
-        merged = requested.union(required)
-        return ",".join(sorted(merged))
-
     def trigger_build(self, build_type_id: str, properties: Optional[dict] = None) -> BuildResponse:
         build_request = StartBuildRequest(
             buildType=BuildTypeRef(id=build_type_id),
@@ -64,17 +44,20 @@ class BuildSteps(BaseSteps):
         return build_response
 
     def get_build_by_id(self, build_id: int, fields: Optional[str] = None) -> BuildResponse:
-        required = ["id", "buildTypeId", "state"]
-        fields = self._merge_required_fields(fields, required)
+        # Build URL manually to avoid URL-encoding commas in fields parameter
+        url = f"{Endpoint.BUILDS.value.url}/id:{build_id}"
         if fields:
-            url = f"{Endpoint.BUILDS.value.url}/id:{build_id}?fields={fields}"
-        else:
-            url = f"{Endpoint.BUILDS.value.url}/id:{build_id}"
+            # Merge and sort fields like the original _merge_required_fields did
+            requested = {field.strip() for field in fields.split(",") if field.strip()}
+            required = {"id", "buildTypeId", "state"}
+            merged = requested.union(required)
+            all_fields = ",".join(sorted(merged))
+            url += f"?fields={all_fields}"
 
-        endpoint = self._endpoint_for_url(url, response_model=BuildResponse)
+        endpoint_config = EndpointConfig(url=url, response_model=BuildResponse, request_model=None)
         build_response = ValidatedCrudRequester(
             RequestSpecs.admin_auth_spec(),
-            endpoint,
+            endpoint_config,
             ResponseSpecs.request_returns_ok(),
         ).get()
 
@@ -82,14 +65,12 @@ class BuildSteps(BaseSteps):
         return build_response
 
     def get_builds_by_buildtype(self, build_type_id: str) -> List[BuildResponse]:
-        url = f"{Endpoint.BUILDS_LIST.value.url}?locator=buildType:id:{build_type_id},state:any"
-        endpoint = self._endpoint_for_url(url, response_model=BuildListResponse)
-
         builds_list = ValidatedCrudRequester(
             RequestSpecs.admin_auth_spec(),
-            endpoint,
+            Endpoint.BUILDS_LIST,
             ResponseSpecs.request_returns_ok(),
-        ).get()
+        ).get(query_params={"locator": f"buildType:id:{build_type_id},state:any"})
+
         builds = builds_list.build
 
         for build in builds:
@@ -110,39 +91,35 @@ class BuildSteps(BaseSteps):
         logging.info(f"Retrieved build queue: {len(queue_response.build)} builds")
         return queue_response.build
 
-    def cancel_queued_build(self, build_id: int, comment: str = "Test cancellation") -> None:
+    def cancel_queued_build(self, build_id: int, comment: str = "Test cancellation") -> BuildResponse:
         cancel_request = BuildCancelRequest(
             comment=comment,
             readdIntoQueue=False,
         )
 
-        url = f"{Endpoint.BUILD_QUEUE.value.url}/id:{build_id}"
-        endpoint = self._endpoint_for_url(url)
-
-        CrudRequester(
+        build_response = ValidatedCrudRequester(
             RequestSpecs.admin_auth_spec(),
-            endpoint,
+            Endpoint.BUILD_QUEUE_CANCEL_BY_ID,
             ResponseSpecs.request_returns_ok(),
-        ).post(cancel_request)
+        ).post(cancel_request, path_params={"buildId": build_id})
 
         logging.info(f"Cancelled queued build: ID {build_id}")
+        return build_response
 
-    def cancel_running_build(self, build_id: int, comment: str = "Test cancellation") -> None:
+    def cancel_running_build(self, build_id: int, comment: str = "Test cancellation") -> BuildResponse:
         cancel_request = BuildCancelRequest(
             comment=comment,
             readdIntoQueue=False,
         )
 
-        url = f"{Endpoint.BUILDS.value.url}/id:{build_id}"
-        endpoint = self._endpoint_for_url(url)
-
-        CrudRequester(
+        build_response = ValidatedCrudRequester(
             RequestSpecs.admin_auth_spec(),
-            endpoint,
+            Endpoint.BUILD_CANCEL_BY_ID,
             ResponseSpecs.request_returns_ok(),
-        ).post(cancel_request)
+        ).post(cancel_request, path_params={"buildId": build_id})
 
         logging.info(f"Cancelled running build: ID {build_id}")
+        return build_response
 
     def wait_for_build_completion(self, build_id: int, timeout: int = DEFAULT_TIMEOUT) -> BuildResponse:
         elapsed = 0
@@ -161,12 +138,13 @@ class BuildSteps(BaseSteps):
         raise TimeoutError(f"Build {build_id} did not complete within {timeout} seconds")
 
     def get_build_status(self, build_id: int) -> BuildStatusResponse:
+        # Build URL manually to avoid URL-encoding commas in fields parameter
         url = f"{Endpoint.BUILDS.value.url}/id:{build_id}?fields=status,statusText"
-        endpoint = self._endpoint_for_url(url, response_model=BuildStatusResponse)
+        endpoint_config = EndpointConfig(url=url, response_model=BuildStatusResponse, request_model=None)
 
         status_response = ValidatedCrudRequester(
             RequestSpecs.admin_auth_spec(),
-            endpoint,
+            endpoint_config,
             ResponseSpecs.request_returns_ok(),
         ).get()
 
@@ -225,14 +203,12 @@ class BuildSteps(BaseSteps):
     def cancel_invalid_build(build_id: int, comment: str, error_value: str):
         """Attempt to cancel non-existent build with error validation"""
         cancel_request = BuildCancelRequest(comment=comment, readdIntoQueue=False)
-        url = f"{Endpoint.BUILD_QUEUE.value.url}/id:{build_id}"
-        endpoint = EndpointConfig(url=url, request_model=None, response_model=None)
 
         response = CrudRequester(
             RequestSpecs.admin_auth_spec(),
-            endpoint,
+            Endpoint.BUILD_QUEUE_CANCEL_BY_ID,
             ResponseSpecs.request_returns_not_found(),
-        ).post(cancel_request)
+        ).post(cancel_request, path_params={"buildId": build_id})
 
         # Additional assertion to verify error was returned
         errors = response.json().get("errors", [])
