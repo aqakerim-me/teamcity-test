@@ -3,6 +3,9 @@ from playwright.sync_api import Page
 
 from src.main.api.classes.api_manager import ApiManager
 from src.main.ui.pages.build_configuration_page import BuildConfigurationPage
+from src.main.ui.pages.teamcity_alerts import TeamCityAlert
+
+BuildTypeTuple = tuple[str, str]
 
 
 @pytest.mark.ui
@@ -13,13 +16,12 @@ class TestRunBuild:
         self,
         api_manager: ApiManager,
         page: Page,
-        build_type: tuple,
+        build_type: BuildTypeTuple,
     ):
         build_type_id, project_id = build_type
-
         (BuildConfigurationPage(page, build_type_id, project_id)
             .open()
             .run_build()
             .should_have_build_completed_successfully(build_type_id, api_manager)
-            .should_show_status("Success"))
+            .should_show_status(TeamCityAlert.BUILD_STATUS_SUCCESS.value))
 

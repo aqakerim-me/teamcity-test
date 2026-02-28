@@ -27,3 +27,4 @@ class TeamCityAlert(str, Enum):
     BUILD_STARTED_SUCCESSFULLY = "Build run"
     BUILD_QUEUE_CONFIRMATION = "queued"
     BUILD_RUNNING = "running"
+    BUILD_STATUS_SUCCESS = "Success"
