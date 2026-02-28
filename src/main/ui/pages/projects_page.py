@@ -1,9 +1,7 @@
 from src.main.api.generators.generate_data import GenerateData
-from src.main.api.models.comparison.model_assertions import ModelAssertions
-from src.main.api.models.create_project_request import CreateProjectRequest
-from src.main.ui.classes.session_storage import SessionStorage
 from src.main.ui.pages.base_page import BasePage
 from src.main.ui.pages.selectors import (
+    ALERT_SELECTOR,
     CREATE_PROJECT_BUTTON,
     PROJECT_ID_INPUT,
     PROJECT_NAME_INPUT,
@@ -11,182 +9,188 @@ from src.main.ui.pages.selectors import (
     PROJECT_SUBMIT_BUTTON,
     PROJECT_WELCOME_TEXT,
     PROJECTS_LIST,
-    ALERT_SELECTOR,
 )
 from src.main.ui.pages.ui_element import UIElement
 
 
 class ProjectsPage(BasePage):
+
     def url(self) -> str:
         return "/favorite/projects"
 
     @property
     def projects_list(self) -> UIElement:
-        return UIElement(
-            self.page.locator(PROJECTS_LIST).first,
-            name="Projects list"
-        )
+        return UIElement(self.page.locator(PROJECTS_LIST).first, name="Projects list")
 
     @property
     def create_project_button(self) -> UIElement:
         return UIElement(
             self.page.locator(CREATE_PROJECT_BUTTON).first,
-            name="Create project button"
+            name="Create project button",
         )
 
     @property
     def project_id_input(self) -> UIElement:
         return UIElement(
-            self.page.locator(PROJECT_ID_INPUT).first,
-            name="Project ID input"
+            self.page.locator(PROJECT_ID_INPUT).first, name="Project ID input"
         )
 
     @property
     def project_name_input(self) -> UIElement:
         return UIElement(
-            self.page.locator(PROJECT_NAME_INPUT).first,
-            name="Project name input"
+            self.page.locator(PROJECT_NAME_INPUT).first, name="Project name input"
         )
 
     @property
     def submit_button(self) -> UIElement:
         return UIElement(
-            self.page.locator(PROJECT_SUBMIT_BUTTON).first,
-            name="Submit button"
+            self.page.locator(PROJECT_SUBMIT_BUTTON).first, name="Submit button"
         )
 
     @property
     def welcome_text(self) -> UIElement:
         return UIElement(
-            self.page.locator(PROJECT_WELCOME_TEXT).first,
-            name="Welcome text"
+            self.page.locator(PROJECT_WELCOME_TEXT).first, name="Welcome text"
         )
 
     @property
     def navigation_menu(self) -> UIElement:
         return UIElement(
-            self.page.locator(PROJECT_NAVIGATION_MENU).first,
-            name="Navigation menu"
+            self.page.locator(PROJECT_NAVIGATION_MENU).first, name="Navigation menu"
+        )
+    
+    @property
+    def new_build_configuration_button(self) -> UIElement:
+        return UIElement(
+            self.page.locator('[id$="new-build-configuration"]').first,
+            name="New build configuration",
+        )
+        
+    @property
+    def add_button(self):
+        return self.page.locator('[data-test="overview-header"]').get_by_role("button", name="Create")
+
+    def click_new_build_configuration(
+        self,
+        project_name: str,
+        project_id: str | None = None,
+    ):
+        from src.main.ui.pages.create_build_config_page import CreateBuildConfigurationPage
+
+        self._click_project_in_list(project_name, project_id)
+        
+        self.add_button.wait_for(state="visible", timeout=5_000)
+        self.add_button.click()
+        
+        self.new_build_configuration_button.locator.wait_for(state="visible", timeout=5_000)
+        self.new_build_configuration_button.click()
+
+        return self.get_page(CreateBuildConfigurationPage)
+
+    def project_by_id(self, project_id: str) -> UIElement:
+        return UIElement(
+            self.page.locator(f'[data-project-id="{project_id}"]').first,
+            name=f"Project {project_id}",
+        )
+    
+    def build_config_link(self, build_config_name: str) -> UIElement:
+        return UIElement(
+            self.page.locator(
+                f'[data-build-config-name="{build_config_name}"],'
+                f'a:has-text("{build_config_name}")'
+            ).first,
+            name=f"Build config {build_config_name}",
         )
 
-    def create_new_project(self, project_id: str = None, project_name: str = None):
-        if project_id is None:
-            project_id = GenerateData.get_project_id()
-        if project_name is None:
-            project_name = GenerateData.get_project_name()
-        SessionStorage.add_projects(
-            [CreateProjectRequest(id=project_id, name=project_name)]
+    def open_create_project_form(self) -> "ProjectsPage":
+        """Clicks the 'Create project' button, falling back to direct URL navigation."""
+        try:
+            btn = self.create_project_button.locator
+            btn.wait_for(state="visible", timeout=10_000)
+            btn.scroll_into_view_if_needed()
+            btn.click()
+        except Exception:
+            self.page.goto(
+                f"{self.ui_base_url}/admin/createObjectMenu.html"
+                "?projectId=_Root&showMode=createProjectMenu",
+                wait_until="domcontentloaded",
+            )
+        return self
+
+    def fill_project_id(self, project_id: str) -> "ProjectsPage":
+        locator = self.project_id_input.locator
+        locator.wait_for(state="visible", timeout=10_000)
+        locator.scroll_into_view_if_needed()
+        locator.fill(project_id)
+        return self
+
+    def fill_project_name(self, project_name: str) -> "ProjectsPage":
+        locator = self.project_name_input.locator
+        locator.wait_for(state="visible", timeout=10_000)
+        locator.scroll_into_view_if_needed()
+        locator.fill(project_name)
+        return self
+
+    def submit_project_form(self) -> "ProjectsPage":
+        locator = self.submit_button.locator
+        locator.wait_for(state="visible", timeout=10_000)
+        locator.scroll_into_view_if_needed()
+        locator.click()
+        self.page.wait_for_selector(
+            f"{PROJECTS_LIST}, {ALERT_SELECTOR}", timeout=10_000
         )
+        return self
+
+    def create_new_project(
+        self,
+        project_id: str | None = None,
+        project_name: str | None = None,
+    ) -> "ProjectsPage":
+        """High-level action: opens the form, fills fields, and submits."""
+        project_id = project_id or GenerateData.get_project_id()
+        project_name = project_name or GenerateData.get_project_name()
 
         def _action():
-            try:
-                btn = self.create_project_button.locator
-                btn.wait_for(state="visible", timeout=10_000)
-                btn.scroll_into_view_if_needed()
-                btn.click()
-            except Exception:
-                self.page.goto(
-                    f"{self.ui_base_url}/admin/createObjectMenu.html?projectId=_Root&showMode=createProjectMenu",
-                    wait_until="domcontentloaded",
-                )
-
-            project_id_input = self.project_id_input.locator
-            project_id_input.wait_for(state="visible", timeout=10_000)
-            project_id_input.scroll_into_view_if_needed()
-            project_id_input.fill(project_id)
-
-            project_name_input = self.project_name_input.locator
-            project_name_input.wait_for(state="visible", timeout=10_000)
-            project_name_input.scroll_into_view_if_needed()
-            project_name_input.fill(project_name)
-
-            submit_btn = self.submit_button.locator
-            submit_btn.wait_for(state="visible", timeout=10_000)
-            submit_btn.scroll_into_view_if_needed()
-            submit_btn.click()
-
-            combined = f"{PROJECTS_LIST}, {ALERT_SELECTOR}"
-            self.page.wait_for_selector(combined, timeout=10_000)
+            (
+                self.open_create_project_form()
+                    .fill_project_id(project_id)
+                    .fill_project_name(project_name)
+                    .submit_project_form()
+            )
             return self
 
         return self._step(
             title=f"Create project: {project_id} ({project_name})",
-            action=_action
+            action=_action,
         )
-
-    def get_project_by_id(self, project_id: str) -> UIElement:
-        selector = f'[data-project-id="{project_id}"]'
-        try:
-            self.page.wait_for_selector(selector, timeout=5000)
-        except Exception:
-            pass
-        return UIElement(
-            self.page.locator(selector).first,
-            name=f"Project {project_id}"
-        )
-
-    def should_have_project(self, api_manager, project_id: str):
-        def _action():
-            projects = api_manager.admin_steps.get_all_projects()
-            project_ids = [p.id for p in projects]
-            assert project_id in project_ids, (
-                f"Project '{project_id}' should be in projects list"
-            )
-            return self
-
-        return self._step(
-            title=f"Check project exists: {project_id}",
-            action=_action
-        )
-
-    def should_match_project(
-        self, api_manager, project_id: str, project_name: str
-    ):
-        def _action():
-            project = api_manager.admin_steps.wait_project_appears(
-                project_id=project_id,
-                page=self.page,
-            )
-            ModelAssertions(
-                CreateProjectRequest(id=project_id, name=project_name),
-                project
-            ).match()
-            return self
-
-        return self._step(
-            title=f"Check project matches: {project_id}",
-            action=_action
-        )
-        
-    def click_new_build_configuration(self, project_name: str):
-        project_selector = f'[data-project-name="{project_name}"]'
-        project_element = self.page.locator(project_selector).first
-        project_element.wait_for(state="visible", timeout=10_000)
-        project_element.scroll_into_view_if_needed()
-        project_element.click()
-
-        new_build_config_button = self.page.get_by_role("button", name="New build configuration")
-        new_build_config_button.wait_for(state="visible", timeout=10_000)
-        new_build_config_button.scroll_into_view_if_needed()
-        new_build_config_button.click()
-
-        from src.main.ui.pages.create_build_config_page import CreateBuildConfigurationPage
-        return CreateBuildConfigurationPage(self.page)
 
     def should_have_build_configuration(self, build_config_name: str):
-        build_config_selector = f'[data-build-config-name="{build_config_name}"]'
-        try:
-            self.page.wait_for_selector(build_config_selector, timeout=5000)
-        except Exception:
-            raise AssertionError(f"Build configuration '{build_config_name}' not found on Projects page")
+        return self.build_config_link(build_config_name).to_be_visible()
 
-        return self
+    def should_not_have_build_configuration(self, build_config_name: str) -> "ProjectsPage":
+        return self.build_config_link(build_config_name).to_be_hidden()
 
-    def should_not_have_build_configuration(self, build_config_name: str):
-        build_config_selector = f'[data-build-config-name="{build_config_name}"]'
-        try:
-            self.page.wait_for_selector(build_config_selector, timeout=5000)
-            raise AssertionError(f"Build configuration '{build_config_name}' was found on Projects page but should not be there")
-        except Exception:
-            pass
-        return self
+    def _click_project_in_list(
+        self, project_name: str, project_id: str | None
+    ) -> None:
+        candidates = [
+            self.page.locator(f'[data-project-name="{project_name}"]').first,
+            self.page.locator(f'[title="{project_name}"]').first,
+            self.page.get_by_role("link", name=project_name).first,
+            self.page.get_by_text(project_name, exact=True).first,
+        ]
+        for candidate in candidates:
+            try:
+                candidate.wait_for(state="visible", timeout=3_000)
+                candidate.scroll_into_view_if_needed()
+                candidate.click()
+                return
+            except Exception:
+                continue
+
+        if project_id:
+            self.page.goto(
+                f"{self.ui_base_url}/admin/createObjectMenu.html"
+                f"?projectId={project_id}&showMode=createBuildTypeMenu",
+                wait_until="domcontentloaded",
+            )
