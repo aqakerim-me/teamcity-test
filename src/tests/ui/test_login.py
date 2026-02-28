@@ -28,6 +28,7 @@ class TestLoginPositive:
     def test_login_user_with_valid_credentials(
         self, page: Page, api_manager, user_request: CreateUserRequest
     ):
+        api_manager.admin_steps.create_user(user_request)
         (
             LoginPage(page)
             .open()

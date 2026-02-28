@@ -4,7 +4,6 @@ from playwright.sync_api import Page
 from src.main.api.classes.api_manager import ApiManager
 from src.main.api.generators.generate_data import GenerateData
 from src.main.api.models.create_project_request import CreateProjectRequest
-from src.main.api.models.comparison.model_assertions import ModelAssertions
 from src.main.ui.pages.conditions import Condition
 from src.main.ui.pages.projects_page import ProjectsPage
 
@@ -25,7 +24,6 @@ class TestCreateProject:
         #Create project
         ProjectsPage(page) \
             .open() \
-            .should_be(Condition.visible, ProjectsPage(page).create_project_button) \
             .create_new_project(project_id, project_name) \
             .should_match_project(api_manager, project_id, project_name)
 
@@ -35,5 +33,5 @@ class TestCreateProject:
         #Try to get projects
         ProjectsPage(page) \
             .open() \
-            .welcome_text.to_be_visible() \
+            .should_be(Condition.visible, ProjectsPage(page).welcome_text) \
             .should_have_project(api_manager, create_project.id)
