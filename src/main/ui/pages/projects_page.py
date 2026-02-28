@@ -170,6 +170,19 @@ class ProjectsPage(BasePage):
     def should_not_have_build_configuration(self, build_config_name: str) -> "ProjectsPage":
         return self.build_config_link(build_config_name).to_be_hidden()
 
+    def should_have_project(self, api_manager, project_id: str) -> "ProjectsPage":
+        """Verify the project exists via API."""
+        def _action():
+            all_projects = api_manager.admin_steps.get_all_projects()
+            project_ids = [p.id for p in all_projects]
+            assert project_id in project_ids, f"Project {project_id} not found in {project_ids}"
+            return self
+
+        return self._step(
+            title=f"Verify project {project_id} exists",
+            action=_action,
+        )
+
     def _click_project_in_list(
         self, project_name: str, project_id: str | None
     ) -> None:
