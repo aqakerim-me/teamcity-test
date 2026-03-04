@@ -22,3 +22,9 @@ class TeamCityAlert(str, Enum):
     INVALID_CREDENTIALS = "Incorrect username or password"
     USERNAME_REQUIRED = "Username is required"
     PASSWORD_REQUIRED = "Password is required"
+
+    # Build related alerts
+    BUILD_STARTED_SUCCESSFULLY = "Build run"
+    BUILD_QUEUE_CONFIRMATION = "queued"
+    BUILD_RUNNING = "running"
+    BUILD_STATUS_SUCCESS = "Success"
