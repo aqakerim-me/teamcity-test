@@ -1,0 +1,193 @@
+name: Python Tests CI
+
+on:
+  push:
+  pull_request:
+#  schedule:
+#    - cron: '0 6 * * *'    # Daily at 06:00 UTC
+  workflow_dispatch:
+    inputs:
+      suite:
+        description: 'Test suite to run'
+        required: true
+        default: 'all'
+        type: choice
+        options: [all, api, ui]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHON_VERSION: '3.12'
+  COMPOSE_FILE: infra/docker_compose/docker-compose.yml
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Install lint tools
+        run: pip install flake8 black isort
+
+      - name: black
+        run: black --check .
+
+      - name: isort
+        run: isort --check-only .
+
+      - name: flake8
+        run: flake8 . --max-line-length=120 --extend-ignore=E203
+
+  api-tests:
+    name: API Tests
+    runs-on: ubuntu-latest
+    needs: lint
+    if: |
+      github.event.inputs.suite == '' ||
+      github.event.inputs.suite == 'all' ||
+      github.event.inputs.suite == 'api'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Install dependencies
+        run: bash scripts/install_deps.sh
+
+      - name: Start TeamCity infrastructure
+        run: bash scripts/start_infra.sh "${{ env.COMPOSE_FILE }}"
+
+      - name: Run API tests
+        env:
+          TC_ADMIN_BEARERTOKEN: ${{ secrets.TC_ADMIN_BEARERTOKEN }}
+        run: bash scripts/run_api_tests.sh
+
+      - name: Stop infrastructure
+        if: always()
+        run: bash scripts/stop_infra.sh "${{ env.COMPOSE_FILE }}"
+
+      - name: Upload API report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-report-${{ github.run_number }}
+          path: reports/api/
+          retention-days: 14
+
+  ui-tests:
+    name: UI Tests
+    runs-on: ubuntu-latest
+    needs: lint
+    if: |
+      github.event.inputs.suite == '' ||
+      github.event.inputs.suite == 'all' ||
+      github.event.inputs.suite == 'ui'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Install dependencies
+        run: bash scripts/install_deps.sh
+
+      - name: Start TeamCity infrastructure
+        run: bash scripts/start_infra.sh "${{ env.COMPOSE_FILE }}"
+
+      - name: Run UI tests
+        env:
+          TC_ADMIN_BEARERTOKEN: ${{ secrets.TC_ADMIN_BEARERTOKEN }}
+        run: bash scripts/run_ui_tests.sh
+
+      - name: Stop infrastructure
+        if: always()
+        run: bash scripts/stop_infra.sh "${{ env.COMPOSE_FILE }}"
+
+      - name: Upload UI report + screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-report-${{ github.run_number }}
+          path: |
+            reports/ui/
+            screenshots/
+          retention-days: 14
+
+  test-summary:
+    name: Test Summary
+    runs-on: ubuntu-latest
+    needs: [ api-tests, ui-tests ]
+    if: always()
+    steps:
+      - name: Download all reports
+        uses: actions/download-artifact@v4
+        with:
+          pattern: '*-report-*'
+          merge-multiple: true
+          path: all-reports/
+
+      - name: Publish results to GitHub checks
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        with:
+          files: 'all-reports/**/*.xml'
+          comment_title: '🧪 Test Results'
+          check_name: 'Test Results'
+        
+
+#  notify:
+#      name: Notify
+#      runs-on: ubuntu-latest
+#      needs: [api-tests, ui-tests]
+#      if: always()
+#      steps:
+#        - name: Resolve status
+#          id: status
+#          run: |
+#            API="${{ needs.api-tests.result }}"
+#            UI="${{ needs.ui-tests.result }}"
+#
+#            if [[ "$API" == "failure" || "$UI" == "failure" ]]; then
+#              echo "emoji=🔴" >> "$GITHUB_OUTPUT"
+#              echo "text=FAILED" >> "$GITHUB_OUTPUT"
+#            elif [[ "$API" == "cancelled" || "$UI" == "cancelled" ]]; then
+#              echo "emoji=⚪" >> "$GITHUB_OUTPUT"
+#              echo "text=CANCELLED" >> "$GITHUB_OUTPUT"
+#            else
+#              echo "emoji=🟢" >> "$GITHUB_OUTPUT"
+#              echo "text=PASSED" >> "$GITHUB_OUTPUT"
+#            fi
+#
+#        - name: Send Telegram notification
+#          run: |
+#            MESSAGE="${{ steps.status.outputs.emoji }} *${{ github.repository }}* — tests *${{ steps.status.outputs.text }}*
+#
+#            🌿 Branch: \`${{ github.ref_name }}\`
+#            👤 Triggered by: ${{ github.actor }}
+#            🔁 Event: ${{ github.event_name }}
+#
+#            📋 *Results:*
+#            • API Tests: ${{ needs.api-tests.result }}
+#            • UI Tests:  ${{ needs.ui-tests.result }}
+#
+#            🔗 [View run \#${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
+#
+#            curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
+#              --data-urlencode "chat_id=${{ secrets.TELEGRAM_CHAT_ID }}" \
+#              --data-urlencode "text=${MESSAGE}" \
+#              --data-urlencode "parse_mode=Markdown" \
+#              --data-urlencode "disable_web_page_preview=true"
