@@ -1,8 +1,8 @@
 import pytest
 
 from src.main.api.models.create_user_request import CreateUserRequest
-from src.main.ui.pages.login_page import LoginPage
 from src.main.ui.classes.session_storage import SessionStorage
+from src.main.ui.pages.login_page import LoginPage
 
 
 @pytest.fixture(autouse=True)

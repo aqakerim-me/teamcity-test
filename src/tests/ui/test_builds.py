@@ -69,11 +69,7 @@ class TestBuilds:
         build_tracker.append(build.id)
         wait_for_build_state(api_manager, build.id, {"running"}, timeout=120)
 
-        (
-            BuildResultsPage(page, build.id)
-            .open()
-            .stop_running_build()
-        )
+        (BuildResultsPage(page, build.id).open().stop_running_build())
 
         canceled = wait_for_canceled_build(api_manager, [build.id], timeout=120)
         assert canceled.state == "finished", f"Expected finished state, got {canceled.state}"
@@ -90,12 +86,7 @@ class TestBuilds:
         completed = api_manager.build_steps.wait_for_build_completion(build.id, timeout=240)
         assert completed.state == "finished", f"Expected finished state, got {completed.state}"
 
-        results_page = (
-            BuildResultsPage(page, build.id)
-            .open()
-            .open_artifacts_tab()
-            .should_have_artifacts()
-        )
+        results_page = BuildResultsPage(page, build.id).open().open_artifacts_tab().should_have_artifacts()
         artifact_path = results_page.download_first_artifact(tmp_path)
         assert artifact_path.exists(), f"Artifact file was not downloaded: {artifact_path}"
         assert artifact_path.stat().st_size > 0, f"Downloaded artifact is empty: {artifact_path}"

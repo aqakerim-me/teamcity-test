@@ -1,21 +1,21 @@
-from abc import ABC, abstractmethod
 import logging
 import time
+from abc import ABC, abstractmethod
 from typing import Callable, List, Type, TypeVar
 
 from playwright.sync_api import Dialog, Locator, Page
 
+from src.main.api.configs.config import Config
 from src.main.api.models.create_user_request import CreateUserRequest
 from src.main.api.specs.request_specs import RequestSpecs
 from src.main.api.utils.step_logger import StepLogger
 from src.main.ui.pages.conditions import Condition
 from src.main.ui.pages.selectors import ALERT_SELECTOR
 from src.main.ui.pages.ui_element import UIElement
-from src.main.api.configs.config import Config
-
 
 T = TypeVar("T", bound="BasePage")
 logger = logging.getLogger(__name__)
+
 
 class BasePage(ABC):
     def __init__(self, page: Page):
@@ -27,9 +27,9 @@ class BasePage(ABC):
         return server.rstrip("/")
 
     def _step(
-            self,
-            title: str,
-            action: Callable[[], T] | None = None,
+        self,
+        title: str,
+        action: Callable[[], T] | None = None,
     ) -> T | None:
         return StepLogger.ui_log(
             title=title,
@@ -94,7 +94,7 @@ class BasePage(ABC):
 
         return self._step(
             title=f"Check alert message and accept (expected: {expected_text})",
-            action=_action
+            action=_action,
         )
 
     def should_be(self: T, condition: Condition, element: UIElement, timeout: int = 5000) -> T:
@@ -113,20 +113,14 @@ class BasePage(ABC):
                 raise ValueError(f"Unsupported condition: {condition}")
             return self
 
-        return self._step(
-            title=f"Check {element.name} is {condition.name}",
-            action=_action
-        )
+        return self._step(title=f"Check {element.name} is {condition.name}", action=_action)
 
     def should_have_url_part(self: T, part: str, timeout: int = 5000) -> T:
         def _action():
             self.page.wait_for_url(f"**{part}**", timeout=timeout)
             return self
 
-        return self._step(
-            title=f"Check URL contains: {part}",
-            action=_action
-        )
+        return self._step(title=f"Check URL contains: {part}", action=_action)
 
     def should_not_have_url_part(self: T, part: str, timeout: int = 5000) -> T:
         def _action():
@@ -137,10 +131,7 @@ class BasePage(ABC):
                 time.sleep(0.1)
             raise AssertionError(f"URL still contains '{part}': {self.page.url}")
 
-        return self._step(
-            title=f"Check URL does not contain: {part}",
-            action=_action
-        )
+        return self._step(title=f"Check URL does not contain: {part}", action=_action)
 
     def should_have_text(
         self: T,
@@ -157,20 +148,13 @@ class BasePage(ABC):
                 expected = expected_text
                 actual_cmp = actual or ""
             if expected not in actual_cmp:
-                raise AssertionError(
-                    f"Expected '{expected_text}' in '{actual}', element: {element.name}"
-                )
+                raise AssertionError(f"Expected '{expected_text}' in '{actual}', element: {element.name}")
             return self
 
-        return self._step(
-            title=f"Check {element.name} contains text: {expected_text}",
-            action=_action
-        )
+        return self._step(title=f"Check {element.name} contains text: {expected_text}", action=_action)
 
     def auth_as_user(self: T, user_request: CreateUserRequest) -> None:
-        auth_headers = RequestSpecs.user_auth_spec(
-            user_request.username, user_request.password
-        )
+        auth_headers = RequestSpecs.user_auth_spec(user_request.username, user_request.password)
         auth_token = auth_headers.get("Authorization", "")
 
         # Set up localStorage before navigating to the page
@@ -183,9 +167,7 @@ class BasePage(ABC):
         # Now navigate to the base URL
         self.page.goto(self.ui_base_url, wait_until="domcontentloaded")
 
-    def _generate_page_elements(
-        self, elements: Locator, constructor: Callable[[Locator], T]
-    ) -> List[T]:
+    def _generate_page_elements(self, elements: Locator, constructor: Callable[[Locator], T]) -> List[T]:
         elements.first.wait_for(state="attached", timeout=10_000)
         count = elements.count()
         return [constructor(elements.nth(i)) for i in range(count)]

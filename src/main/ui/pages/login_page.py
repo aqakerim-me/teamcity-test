@@ -1,10 +1,5 @@
 from src.main.ui.pages.base_page import BasePage
-from src.main.ui.pages.selectors import (
-    LOGIN_BUTTON,
-    LOGIN_ERROR_MESSAGE,
-    LOGIN_PASSWORD_INPUT,
-    LOGIN_USERNAME_INPUT,
-)
+from src.main.ui.pages.selectors import LOGIN_BUTTON, LOGIN_ERROR_MESSAGE, LOGIN_PASSWORD_INPUT, LOGIN_USERNAME_INPUT
 from src.main.ui.pages.ui_element import UIElement
 
 
@@ -14,31 +9,19 @@ class LoginPage(BasePage):
 
     @property
     def username_input(self) -> UIElement:
-        return UIElement(
-            self.page.locator(LOGIN_USERNAME_INPUT).first,
-            name="Username input"
-        )
+        return UIElement(self.page.locator(LOGIN_USERNAME_INPUT).first, name="Username input")
 
     @property
     def password_input(self) -> UIElement:
-        return UIElement(
-            self.page.locator(LOGIN_PASSWORD_INPUT).first,
-            name="Password input"
-        )
+        return UIElement(self.page.locator(LOGIN_PASSWORD_INPUT).first, name="Password input")
 
     @property
     def login_button(self) -> UIElement:
-        return UIElement(
-            self.page.locator(LOGIN_BUTTON).first,
-            name="Login button"
-        )
+        return UIElement(self.page.locator(LOGIN_BUTTON).first, name="Login button")
 
     @property
     def error_message(self) -> UIElement:
-        return UIElement(
-            self.page.locator(LOGIN_ERROR_MESSAGE).first,
-            name="Error message"
-        )
+        return UIElement(self.page.locator(LOGIN_ERROR_MESSAGE).first, name="Error message")
 
     def login(self, username: str, password: str):
         def _action():
@@ -64,7 +47,4 @@ class LoginPage(BasePage):
                         pass
             return self
 
-        return self._step(
-            title=f"Login as {username}",
-            action=_action
-        )
+        return self._step(title=f"Login as {username}", action=_action)

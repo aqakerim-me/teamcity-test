@@ -12,9 +12,7 @@ from src.main.ui.pages.teamcity_alerts import TeamCityAlert
 @pytest.mark.ui
 class TestLoginPositive:
 
-    def test_login_admin_with_valid_credentials(
-        self, page: Page, admin_user_request: CreateUserRequest
-    ):
+    def test_login_admin_with_valid_credentials(self, page: Page, admin_user_request: CreateUserRequest):
         (
             LoginPage(page)
             .open()
@@ -25,9 +23,7 @@ class TestLoginPositive:
             .should_be(Condition.visible, ProjectsPage(page).welcome_text)
         )
 
-    def test_login_user_with_valid_credentials(
-        self, page: Page, api_manager, user_request: CreateUserRequest
-    ):
+    def test_login_user_with_valid_credentials(self, page: Page, api_manager, user_request: CreateUserRequest):
         api_manager.admin_steps.create_user(user_request)
         (
             LoginPage(page)
@@ -39,6 +35,7 @@ class TestLoginPositive:
             .should_be(Condition.visible, ProjectsPage(page).welcome_text)
         )
 
+
 @pytest.mark.ui
 class TestLoginNegative:
 
@@ -46,7 +43,7 @@ class TestLoginNegative:
         "username, expected_error",
         [
             (GenerateData.get_username(), TeamCityAlert.INVALID_CREDENTIALS),
-            ("", TeamCityAlert.INVALID_CREDENTIALS)
+            ("", TeamCityAlert.INVALID_CREDENTIALS),
         ],
     )
     def test_login_with_invalid_username(
@@ -69,15 +66,15 @@ class TestLoginNegative:
         "password, expected_error",
         [
             (GenerateData.get_password(), TeamCityAlert.INVALID_CREDENTIALS),
-            ("", TeamCityAlert.INVALID_CREDENTIALS)
+            ("", TeamCityAlert.INVALID_CREDENTIALS),
         ],
     )
     def test_login_with_invalid_password(
-            self,
-            page: Page,
-            admin_user_request: CreateUserRequest,
-            password: str,
-            expected_error: TeamCityAlert,
+        self,
+        page: Page,
+        admin_user_request: CreateUserRequest,
+        password: str,
+        expected_error: TeamCityAlert,
     ):
         (
             LoginPage(page)
@@ -87,4 +84,3 @@ class TestLoginNegative:
             .should_be(Condition.visible, LoginPage(page).error_message)
             .should_have_text(LoginPage(page).error_message, expected_error.value)
         )
-

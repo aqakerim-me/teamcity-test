@@ -142,9 +142,7 @@ class BuildResultsPage(BasePage):
                     return self
                 current_max = max(current_max, current_count)
 
-            raise AssertionError(
-                f"Build log did not update in realtime: initial={initial_count}, final={current_max}"
-            )
+            raise AssertionError(f"Build log did not update in realtime: initial={initial_count}, final={current_max}")
 
         return self._step(
             title=f"Check realtime log updates for build {self.build_id}",
@@ -155,9 +153,9 @@ class BuildResultsPage(BasePage):
         def _action():
             timestamps = self.page.locator(BUILD_LOG_TIMESTAMP)
             count = timestamps.count()
-            assert count >= min_timestamped_lines, (
-                f"Expected at least {min_timestamped_lines} log timestamps, got {count}"
-            )
+            assert (
+                count >= min_timestamped_lines
+            ), f"Expected at least {min_timestamped_lines} log timestamps, got {count}"
             return self
 
         return self._step(
@@ -202,7 +200,7 @@ class BuildResultsPage(BasePage):
                 [
                     BUILD_STOP_CONFIRM_BUTTON,
                     '#stopBuildFormDialog input[value="Stop"]',
-                    '#stopBuildFormDialog .submitButton',
+                    "#stopBuildFormDialog .submitButton",
                 ]
             )
 
@@ -224,9 +222,7 @@ class BuildResultsPage(BasePage):
                     return self
                 self.page.wait_for_timeout(500)
 
-            raise AssertionError(
-                f"Expected one of statuses {list(allowed_statuses)} in UI"
-            )
+            raise AssertionError(f"Expected one of statuses {list(allowed_statuses)} in UI")
 
         return self._step(
             title=f"Check build status is one of {list(allowed_statuses)}",

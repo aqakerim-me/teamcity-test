@@ -32,12 +32,13 @@ class BuildSteps(BaseSteps):
         ).post(build_request)
 
         assert build_response.id > 0, "Build ID should be positive"
-        assert build_response.buildTypeId == build_type_id, (
-            f"BuildTypeId mismatch: expected {build_type_id}, got {build_response.buildTypeId}"
-        )
-        assert build_response.state in ["queued", "running"], (
-            f"Unexpected initial state: {build_response.state}"
-        )
+        assert (
+            build_response.buildTypeId == build_type_id
+        ), f"BuildTypeId mismatch: expected {build_type_id}, got {build_response.buildTypeId}"
+        assert build_response.state in [
+            "queued",
+            "running",
+        ], f"Unexpected initial state: {build_response.state}"
 
         self.created_objects.append(build_response)
         logging.info(f"Build triggered: ID {build_response.id}, Type: {build_type_id}")
@@ -74,9 +75,9 @@ class BuildSteps(BaseSteps):
         builds = builds_list.build
 
         for build in builds:
-            assert build.buildTypeId == build_type_id, (
-                f"Build {build.id} belongs to {build.buildTypeId}, expected {build_type_id}"
-            )
+            assert (
+                build.buildTypeId == build_type_id
+            ), f"Build {build.id} belongs to {build.buildTypeId}, expected {build_type_id}"
 
         logging.info(f"Retrieved {len(builds)} builds for type {build_type_id}")
         return builds
@@ -130,7 +131,10 @@ class BuildSteps(BaseSteps):
                 logging.info(f"Build {build_id} completed with status: {build.status}")
                 return build
 
-            assert build.state in ["queued", "running"], f"Unexpected build state: {build.state}"
+            assert build.state in [
+                "queued",
+                "running",
+            ], f"Unexpected build state: {build.state}"
 
             time.sleep(self.POLL_INTERVAL)
             elapsed += self.POLL_INTERVAL
@@ -176,9 +180,7 @@ class BuildSteps(BaseSteps):
 
             time.sleep(self.POLL_INTERVAL)
 
-        raise TimeoutError(
-            f"No builds found for build type '{build_type_id}' within {timeout} seconds"
-        )
+        raise TimeoutError(f"No builds found for build type '{build_type_id}' within {timeout} seconds")
 
     @staticmethod
     def delete_build(build_id: int) -> None:

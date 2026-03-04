@@ -66,7 +66,11 @@ class AgentSteps(BaseSteps):
         logging.info(f"Agent id:{agent_id} disabled")
 
         # Return info for test verification
-        return {"original_enabled": original_state, "new_enabled": False, "agent_id": agent_id}
+        return {
+            "original_enabled": original_state,
+            "new_enabled": False,
+            "agent_id": agent_id,
+        }
 
     def enable_agent(self, agent_id: int):
         """Enable agent"""
@@ -79,7 +83,11 @@ class AgentSteps(BaseSteps):
         logging.info(f"Agent id:{agent_id} enabled")
 
         # Return info for test verification
-        return {"original_enabled": original_state, "new_enabled": True, "agent_id": agent_id}
+        return {
+            "original_enabled": original_state,
+            "new_enabled": True,
+            "agent_id": agent_id,
+        }
 
     def _get_agent_enabled_state(self, agent_id: int) -> bool:
         """Get current enabled state of agent"""

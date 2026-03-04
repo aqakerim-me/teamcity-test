@@ -8,8 +8,8 @@ from src.main.ui.pages.selectors import (
     BUILD_QUEUE_BUILD_TYPE_CELL,
     BUILD_QUEUE_CANCEL_BUTTON,
     BUILD_QUEUE_ROWS,
-    BUILD_QUEUE_TITLE,
     BUILD_QUEUE_TIME_CELL,
+    BUILD_QUEUE_TITLE,
 )
 
 
@@ -50,9 +50,9 @@ class BuildQueuePage(BasePage):
                 title = self.page.locator(BUILD_QUEUE_TITLE).first
                 title.wait_for(state="visible", timeout=10_000)
                 title_text = (title.inner_text() or "").strip().lower()
-                assert "build in queue" in title_text or "builds in queue" in title_text, (
-                    f"Unexpected queue title: {title_text}"
-                )
+                assert (
+                    "build in queue" in title_text or "builds in queue" in title_text
+                ), f"Unexpected queue title: {title_text}"
                 pytest.skip("Queue items are not visible for current user permissions")
 
             first = rows.first

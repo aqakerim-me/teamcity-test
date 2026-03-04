@@ -1,7 +1,7 @@
 import pytest
 
 from src.main.api.classes.api_manager import ApiManager
-from src.main.api.models.allert_messages import AlertMessages
+from src.main.api.models.alert_messages import AlertMessages
 from src.main.api.models.build_response import BuildResponse
 from src.main.api.models.start_build_request import BuildTypeRef, StartBuildRequest
 
@@ -11,14 +11,13 @@ class TestTriggerBuildPositive:
     def test_trigger_build_success(self, api_manager: ApiManager, build_type: str):
         build = api_manager.build_steps.trigger_build(build_type)
 
-        assert build.state in ["queued", "running"], (
-            f"Expected build to be queued or running, got: {build.state}"
-        )
+        assert build.state in [
+            "queued",
+            "running",
+        ], f"Expected build to be queued or running, got: {build.state}"
 
         completed_build = api_manager.build_steps.wait_for_build_completion(build.id)
-        assert completed_build.state == "finished", (
-            f"Build should be finished, got: {completed_build.state}"
-        )
+        assert completed_build.state == "finished", f"Build should be finished, got: {completed_build.state}"
 
     def test_trigger_build_with_parameters_success(self, api_manager: ApiManager, build_type: str):
         properties = {
@@ -45,9 +44,11 @@ class TestGetBuildPositive:
 
         assert retrieved_build.id == build.id, "Build ID mismatch"
         assert retrieved_build.buildTypeId == build_type, "BuildTypeId mismatch"
-        assert retrieved_build.state in ["queued", "running", "finished"], (
-            f"Invalid state: {retrieved_build.state}"
-        )
+        assert retrieved_build.state in [
+            "queued",
+            "running",
+            "finished",
+        ], f"Invalid state: {retrieved_build.state}"
         assert retrieved_build.status is not None, "Status should not be None"
 
     def test_get_builds_by_buildtype_success(
@@ -70,9 +71,11 @@ class TestGetBuildPositive:
 
         status = api_manager.build_steps.get_build_status(build.id)
 
-        assert status.status in ["SUCCESS", "FAILURE", "UNKNOWN"], (
-            f"Invalid status: {status.status}"
-        )
+        assert status.status in [
+            "SUCCESS",
+            "FAILURE",
+            "UNKNOWN",
+        ], f"Invalid status: {status.status}"
         assert status.status == completed_build.status, "Status mismatch"
 
 
@@ -88,9 +91,10 @@ class TestBuildQueuePositive:
         queue_ids = [b.id for b in updated_queue]
         if build.id not in queue_ids:
             current = api_manager.build_steps.get_build_by_id(build.id, fields="id,buildTypeId,state")
-            assert current.state in ["running", "finished"], (
-                f"Build {build.id} not in queue and not running/finished"
-            )
+            assert current.state in [
+                "running",
+                "finished",
+            ], f"Build {build.id} not in queue and not running/finished"
 
     def test_cancel_queued_build_success(self, api_manager: ApiManager, queued_build: BuildResponse):
         api_manager.build_steps.cancel_queued_build(queued_build.id, comment="Test cancellation")
@@ -100,9 +104,7 @@ class TestBuildQueuePositive:
             fields="id,buildTypeId,state,status",
         )
 
-        assert build_status.state == "finished", (
-            f"Cancelled build should be finished, got: {build_status.state}"
-        )
+        assert build_status.state == "finished", f"Cancelled build should be finished, got: {build_status.state}"
 
     def test_wait_for_build_completion_success(self, api_manager: ApiManager, build_type: str):
         build = api_manager.build_steps.trigger_build(build_type)
@@ -112,52 +114,41 @@ class TestBuildQueuePositive:
             timeout=180,
         )
 
-        assert completed_build.state == "finished", (
-            f"Build should be finished, got: {completed_build.state}"
-        )
+        assert completed_build.state == "finished", f"Build should be finished, got: {completed_build.state}"
         assert completed_build.status is not None, "Status should be set"
 
 
 @pytest.mark.api
 class TestTriggerBuildNegative:
     def test_trigger_nonexistent_buildtype(self, api_manager: ApiManager):
-        build_request = StartBuildRequest(
-            buildType=BuildTypeRef(id="NonExistent_BuildType_12345")
-        )
+        build_request = StartBuildRequest(buildType=BuildTypeRef(id="NonExistent_BuildType_12345"))
 
-        response = api_manager.build_steps.trigger_invalid_build(
-            build_request,
-            AlertMessages.BUILD_TYPE_NOT_FOUND
-        )
+        response = api_manager.build_steps.trigger_invalid_build(build_request, AlertMessages.BUILD_TYPE_NOT_FOUND)
 
-        assert response.status_code == 404, (
-            f"Expected 404 Not Found for non-existent build type, got: {response.status_code}"
-        )
+        assert (
+            response.status_code == 404
+        ), f"Expected 404 Not Found for non-existent build type, got: {response.status_code}"
 
         errors = response.json().get("errors", [])
         assert len(errors) > 0, "Expected errors in response"
 
         error_text = errors[0].get("message", "")
-        assert "found" in error_text.lower(), (
-            f"Expected 'found' in error message, got: {error_text}"
-        )
+        assert "found" in error_text.lower(), f"Expected 'found' in error message, got: {error_text}"
 
     def test_cancel_nonexistent_build(self, api_manager: ApiManager):
         non_existent_id = 999999999
         response = api_manager.build_steps.cancel_invalid_build(
             non_existent_id,
             comment="Test cancellation",
-            error_value=AlertMessages.BUILD_NOT_FOUND
+            error_value=AlertMessages.BUILD_NOT_FOUND,
         )
 
-        assert response.status_code == 404, (
-            f"Expected 404 Not Found for non-existent build, got: {response.status_code}"
-        )
+        assert (
+            response.status_code == 404
+        ), f"Expected 404 Not Found for non-existent build, got: {response.status_code}"
 
         errors = response.json().get("errors", [])
         assert len(errors) > 0, "Expected errors in response"
 
         error_text = errors[0].get("message", "")
-        assert "found" in error_text.lower(), (
-            f"Expected 'found' in error message, got: {error_text}"
-        )
+        assert "found" in error_text.lower(), f"Expected 'found' in error message, got: {error_text}"

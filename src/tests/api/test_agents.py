@@ -43,9 +43,7 @@ class TestAgentsPositive:
         api_manager.agent_steps.disable_agent(agent_id)
         upd_agent = api_manager.agent_steps.get_agent_by_id(agent_id)
 
-        assert upd_agent.enabled is False, (
-            f"Agent {agent_id} should be disabled, got: {upd_agent.enabled}"
-        )
+        assert upd_agent.enabled is False, f"Agent {agent_id} should be disabled, got: {upd_agent.enabled}"
         assert upd_agent.id == agent_id, "Agent ID should match"
 
     def test_enable_agent_success(self, api_manager: ApiManager, agent_with_state):
@@ -54,7 +52,5 @@ class TestAgentsPositive:
         api_manager.agent_steps.enable_agent(agent_id)
         upd_agent = api_manager.agent_steps.get_agent_by_id(agent_id)
 
-        assert upd_agent.enabled is True, (
-            f"Agent {agent_id} should be enabled, got: {upd_agent.enabled}"
-        )
+        assert upd_agent.enabled is True, f"Agent {agent_id} should be enabled, got: {upd_agent.enabled}"
         assert upd_agent.id == agent_id, "Agent ID should match"

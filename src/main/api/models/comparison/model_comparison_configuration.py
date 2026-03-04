@@ -1,6 +1,6 @@
+import configparser
 import os
 from pathlib import Path
-import configparser
 from typing import Dict, List, Optional, Type
 
 
@@ -11,7 +11,7 @@ class ComparisonRule:
         self._field_mapping: Dict[str, str] = {}
 
         for pair in field_pairs:
-            parts = pair.split('=')
+            parts = pair.split("=")
             if len(parts) == 2:
                 self.field_mapping[parts[0].strip()] = parts[1].strip()
             else:
@@ -20,11 +20,11 @@ class ComparisonRule:
     @property
     def response_class_name(self) -> str:
         return self._response_class_name
-    
+
     @property
     def field_mapping(self) -> Dict[str, str]:
         return self._field_mapping
-        
+
 
 class ModelComparisonConfigLoader:
     def __init__(self, config_file: str):
@@ -32,23 +32,23 @@ class ModelComparisonConfigLoader:
         self._load_config(config_file)
 
     def _load_config(self, config_file: str):
-        path = Path(__file__).parents[5] / 'resources' / f'{config_file}'
+        path = Path(__file__).parents[5] / "resources" / f"{config_file}"
 
         if not os.path.exists(path):
-            raise FileNotFoundError(f'Config file not found: {config_file}')
-        
+            raise FileNotFoundError(f"Config file not found: {config_file}")
+
         config = configparser.ConfigParser()
         config.optionxform = str
         config.read(path)
 
         for key in config.defaults():
             value = config.defaults()[key]
-            target = value.split(':')
+            target = value.split(":")
             if len(target) != 2:
                 continue
 
             response_class = target[0].strip()
-            field_list = [field.strip() for field in target[1].split(',')]
+            field_list = [field.strip() for field in target[1].split(",")]
 
             self.rules[key.strip()] = ComparisonRule(response_class, field_list)
 

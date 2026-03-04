@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional, List
+from typing import Any, Dict, List, Optional
 
 from src.main.api.models.base_model import BaseModel
 
@@ -20,6 +20,7 @@ class CreateProjectResponse(BaseModel):
     vcsRoots: Optional[Dict[str, Any]] = None
     projectFeatures: Optional[Dict[str, Any]] = None
     projects: Optional[Dict[str, Any]] = None
+
 
 class ProjectsListResponse(BaseModel):
     count: int

@@ -110,11 +110,7 @@ class TestBuildTypesPositive:
         build_type = api_manager.admin_steps.get_all_buildtypes().buildType[0]
         assert build_type.id is not None, MSG_VALID_BUILD_TYPE_ID
 
-        update_request = {
-            PROP_PROPERTY: [
-                {PROP_NAME: PROP_BUILD_NUMBER_PATTERN, PROP_VALUE: BUILD_NUMBER_PATTERN}
-            ]
-        }
+        update_request = {PROP_PROPERTY: [{PROP_NAME: PROP_BUILD_NUMBER_PATTERN, PROP_VALUE: BUILD_NUMBER_PATTERN}]}
 
         # Update settings succeeds (API returns different format, so we don't check return value)
         api_manager.admin_steps.update_buildtype_settings(build_type.id, update_request)
@@ -126,11 +122,7 @@ class TestBuildTypesPositive:
         build_type = api_manager.admin_steps.get_all_buildtypes().buildType[0]
         assert build_type.id is not None, MSG_VALID_BUILD_TYPE_ID
 
-        update_request = {
-            PROP_PROPERTY: [
-                {PROP_NAME: PROP_ARTIFACT_RULES, PROP_VALUE: ARTIFACT_RULES}
-            ]
-        }
+        update_request = {PROP_PROPERTY: [{PROP_NAME: PROP_ARTIFACT_RULES, PROP_VALUE: ARTIFACT_RULES}]}
 
         # Update settings succeeds even if response format differs
         api_manager.admin_steps.update_buildtype_settings(build_type.id, update_request)
@@ -177,11 +169,7 @@ class TestBuildTypesNegative:
         build_types = api_manager.admin_steps.get_all_buildtypes()
         build_type = build_types.buildType[0]  # Get first build type
 
-        update_request = {
-            PROP_PROPERTY: [
-                {PROP_NAME: PROP_BUILD_NUMBER_PATTERN, PROP_VALUE: NEW_PATTERN}
-            ]
-        }
+        update_request = {PROP_PROPERTY: [{PROP_NAME: PROP_BUILD_NUMBER_PATTERN, PROP_VALUE: NEW_PATTERN}]}
 
         try:
             api_manager.admin_steps.update_buildtype_settings(build_type.id, update_request)
@@ -204,7 +192,9 @@ class TestBuildTypesNegative:
         new_count = len(build_types_after.buildType)
 
         assert new_count == original_count - 1, MSG_BUILD_TYPE_COUNT_DECREASE
-        assert original_id not in [bt.id for bt in build_types_after.buildType], MSG_DELETED_BUILD_TYPE_ID_SHOULD_NOT_EXIST
+        assert original_id not in [
+            bt.id for bt in build_types_after.buildType
+        ], MSG_DELETED_BUILD_TYPE_ID_SHOULD_NOT_EXIST
 
     def test_delete_nonexistent_buildtype_success(self, api_manager: ApiManager):
         build_types = api_manager.admin_steps.get_all_buildtypes()
@@ -266,7 +256,6 @@ class TestBuildTypesSettings:
         assert isinstance(first_prop.name, str), MSG_PROPERTY_NAME_SHOULD_BE_STRING
         assert isinstance(first_prop.value, str), MSG_PROPERTY_VALUE_SHOULD_BE_STRING
 
-
     def test_get_buildtype_settings_has_count(self, api_manager: ApiManager):
         build_types = api_manager.admin_steps.get_all_buildtypes()
         build_type = build_types.buildType[0]
@@ -276,7 +265,6 @@ class TestBuildTypesSettings:
         # Verify count field matches property count
         assert settings.count is not None, MSG_SETTINGS_SHOULD_HAVE_COUNT
         assert settings.count == len(settings.property), MSG_COUNT_MATCH_NUMBER_OF_PROPERTIES
-
 
     def test_get_buildtype_settings_find_property_by_name(self, api_manager: ApiManager):
         build_types = api_manager.admin_steps.get_all_buildtypes()
@@ -294,16 +282,11 @@ class TestBuildTypesSettings:
         assert found_prop is not None, f"Should find property with name {first_prop_name}"
         assert isinstance(found_prop.value, str), MSG_PROPERTY_VALUE_SHOULD_BE_STRING
 
-
     def test_update_buildtype_artifact_rules_success(self, api_manager: ApiManager):
         build_types = api_manager.admin_steps.get_all_buildtypes()
         build_type = build_types.buildType[0]
 
-        update_request = {
-            PROP_PROPERTY: [
-                {PROP_NAME: PROP_ARTIFACT_RULES, PROP_VALUE: ARTIFACT_RULES}
-            ]
-        }
+        update_request = {PROP_PROPERTY: [{PROP_NAME: PROP_ARTIFACT_RULES, PROP_VALUE: ARTIFACT_RULES}]}
 
         # Update settings returns typed response
         updated_settings = api_manager.admin_steps.update_buildtype_settings(build_type.id, update_request)
@@ -313,7 +296,10 @@ class TestBuildTypesSettings:
         assert len(updated_settings.property) > 0, MSG_HAVE_PROPERTIES_AFTER_UPDATE
 
         # Verify the update was applied
-        artifact_rules = next((p for p in updated_settings.property if p.name == PROP_ARTIFACT_RULES), None)
+        artifact_rules = next(
+            (p for p in updated_settings.property if p.name == PROP_ARTIFACT_RULES),
+            None,
+        )
         assert artifact_rules is not None, MSG_HAVE_ARTIFACT_RULES_AFTER_UPDATE
         assert ARTIFACT_RULES in artifact_rules.value, f"artifactRules should contain {ARTIFACT_RULES}"
 
@@ -329,7 +315,6 @@ class TestBuildTypesGetByProject:
         assert build_types is not None, MSG_RETURN_BUILD_TYPES
         assert hasattr(build_types, "buildType"), MSG_HAVE_BUILDTYPE_ATTRIBUTE
         assert len(build_types.buildType) > 0, MSG_AT_LEAST_ONE_BUILD_TYPE_FOR_PROJECT
-
 
     def test_get_buildtype_by_name_success(self, api_manager: ApiManager):
         # Get all build types and verify we can access them

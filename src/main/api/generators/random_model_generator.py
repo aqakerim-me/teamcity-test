@@ -1,8 +1,9 @@
-from datetime import datetime, timedelta
-import uuid
-import rstr
 import random
-from typing import Any, Annotated, get_type_hints, get_origin, get_args
+import uuid
+from datetime import datetime, timedelta
+from typing import Annotated, Any, get_args, get_origin, get_type_hints
+
+import rstr
 
 from src.main.api.generators.generating_rule import GeneratingRule
 
@@ -28,7 +29,7 @@ class RandomModelGenerator:
                 value = RandomModelGenerator._generate_value(actual_type)
 
             init_data[field_name] = value
-        
+
         return cls(**init_data)
 
     @staticmethod
@@ -39,7 +40,7 @@ class RandomModelGenerator:
         if field_type is float:
             return float(generated)
         return generated
-    
+
     @staticmethod
     def _generate_value(field_type: type) -> Any:
         if field_type is str:

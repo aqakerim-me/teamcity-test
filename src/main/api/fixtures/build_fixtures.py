@@ -4,12 +4,14 @@ import time
 import traceback
 
 import pytest
-from src.main.api.generators.random_model_generator import RandomModelGenerator
-from src.main.api.models.create_build_step_request import CreateBuildStepRequest
-from src.main.api.models.create_buildtype_request import CreateBuildTypeRequest
+import requests
+
 from src.main.api.classes.api_manager import ApiManager
 from src.main.api.configs.config import Config
 from src.main.api.generators.generate_data import GenerateData
+from src.main.api.generators.random_model_generator import RandomModelGenerator
+from src.main.api.models.create_build_step_request import CreateBuildStepRequest
+from src.main.api.models.create_buildtype_request import CreateBuildTypeRequest
 from src.main.api.models.create_project_request import CreateProjectRequest
 from src.main.api.specs.request_specs import RequestSpecs
 from src.main.api.specs.response_specs import ResponseSpecs
@@ -54,8 +56,7 @@ def _create_custom_build_type(
     # TeamCity may ignore artifactRules in create payload; set it explicitly.
     if artifact_rules:
         artifact_url = (
-            f"{Config.get('server')}{Config.get('apiVersion')}"
-            f"/buildTypes/id:{build_type_id}/settings/artifactRules"
+            f"{Config.get('server')}{Config.get('apiVersion')}" f"/buildTypes/id:{build_type_id}/settings/artifactRules"
         )
         artifact_response = requests.put(
             artifact_url,
@@ -80,9 +81,7 @@ def build_type(api_manager: ApiManager):
     """
     try:
         # Create a test project
-        project_request = CreateProjectRequest(
-            id=GenerateData.get_project_id(), name=GenerateData.get_project_name()
-        )
+        project_request = CreateProjectRequest(id=GenerateData.get_project_id(), name=GenerateData.get_project_name())
         project = api_manager.admin_steps.create_project(project_request)
 
         # Create a simple build type
@@ -100,7 +99,7 @@ def build_type(api_manager: ApiManager):
         except Exception as e:
             logging.warning(f"Could not delete build type {build_type_id}: {e}")
     except Exception as e:
-        exc_info = ''.join(traceback.format_exception(type(e), e, e.__traceback__))
+        exc_info = "".join(traceback.format_exception(type(e), e, e.__traceback__))
         logging.error(f"Full error in build_type fixture:\n{exc_info}")
         pytest.skip(f"TeamCity server not ready (may be in maintenance mode): {e}")
 
@@ -120,9 +119,7 @@ def queued_build(api_manager: ApiManager, build_type: tuple):
     # Find a build that's still queued
     for attempt in range(10):
         for build in builds:
-            status = api_manager.build_steps.get_build_by_id(
-                build.id, fields="id,buildTypeId,state"
-            )
+            status = api_manager.build_steps.get_build_by_id(build.id, fields="id,buildTypeId,state")
             if status.state == "queued":
                 # Remove this build from created_objects so it doesn't get auto-cleaned
                 # Test will handle cleanup (cancelling the build)
@@ -142,9 +139,7 @@ def running_build(api_manager: ApiManager, build_type: tuple):
 
     build = api_manager.build_steps.trigger_build(build_type_id)
     for _ in range(10):
-        build_status = api_manager.build_steps.get_build_by_id(
-            build.id, fields="id,buildTypeId,state"
-        )
+        build_status = api_manager.build_steps.get_build_by_id(build.id, fields="id,buildTypeId,state")
         if build_status.state == "running":
             yield build
             return
@@ -156,9 +151,7 @@ def running_build(api_manager: ApiManager, build_type: tuple):
 def completed_build(api_manager: ApiManager, build_type: tuple):
     """Trigger a build and wait for it to complete"""
     build = api_manager.build_steps.trigger_build(build_type)
-    completed_build_response = api_manager.build_steps.wait_for_build_completion(
-        build.id
-    )
+    completed_build_response = api_manager.build_steps.wait_for_build_completion(build.id)
     yield completed_build_response
 
 
@@ -194,9 +187,11 @@ def build_config(api_manager: ApiManager, created_project):
             project={"id": created_project.id},
         )
     )
+
+
 @pytest.fixture
 def created_step(api_manager: ApiManager, build_config):
     return api_manager.admin_steps.create_build_step(
-        RandomModelGenerator.generate(CreateBuildStepRequest), 
-        build_type_id=build_config.id
+        RandomModelGenerator.generate(CreateBuildStepRequest),
+        build_type_id=build_config.id,
     )

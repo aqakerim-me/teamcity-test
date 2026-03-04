@@ -52,4 +52,5 @@ def cleanup_objects(objects: List[Any]):
                 logging.warning(f"Object type: {type(obj)} is not handled in cleanup")
         except Exception as e:
             import traceback
+
             logging.error(f"Failed to cleanup {type(obj)}: {e}")
