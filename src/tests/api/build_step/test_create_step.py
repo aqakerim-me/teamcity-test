@@ -11,7 +11,9 @@ from src.main.api.models.create_build_step_request import CreateBuildStepRequest
 class TestCreateStep:
     def test_create_step(self, api_manager: ApiManager, build_config):
         create_step_request = RandomModelGenerator.generate(CreateBuildStepRequest)
-        created_step = api_manager.admin_steps.create_build_step(create_step_request, build_type_id=build_config.id)
+        created_step = api_manager.admin_steps.create_build_step(
+            create_step_request, build_type_id=build_config.id
+        )
 
         ModelAssertions(create_step_request, created_step).match()
 

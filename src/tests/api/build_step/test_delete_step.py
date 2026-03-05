@@ -15,4 +15,6 @@ class TestDeleteStep:
         )
 
         # удаляем шаг сборки по id
-        api_manager.admin_steps.delete_build_step_by_id(build_config.id, created_step.id)
+        api_manager.admin_steps.delete_build_step_by_id(
+            build_config.id, created_step.id
+        )

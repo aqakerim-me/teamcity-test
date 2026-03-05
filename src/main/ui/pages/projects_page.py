@@ -31,23 +31,33 @@ class ProjectsPage(BasePage):
 
     @property
     def project_id_input(self) -> UIElement:
-        return UIElement(self.page.locator(PROJECT_ID_INPUT).first, name="Project ID input")
+        return UIElement(
+            self.page.locator(PROJECT_ID_INPUT).first, name="Project ID input"
+        )
 
     @property
     def project_name_input(self) -> UIElement:
-        return UIElement(self.page.locator(PROJECT_NAME_INPUT).first, name="Project name input")
+        return UIElement(
+            self.page.locator(PROJECT_NAME_INPUT).first, name="Project name input"
+        )
 
     @property
     def submit_button(self) -> UIElement:
-        return UIElement(self.page.locator(PROJECT_SUBMIT_BUTTON).first, name="Submit button")
+        return UIElement(
+            self.page.locator(PROJECT_SUBMIT_BUTTON).first, name="Submit button"
+        )
 
     @property
     def welcome_text(self) -> UIElement:
-        return UIElement(self.page.locator(PROJECT_WELCOME_TEXT).first, name="Welcome text")
+        return UIElement(
+            self.page.locator(PROJECT_WELCOME_TEXT).first, name="Welcome text"
+        )
 
     @property
     def navigation_menu(self) -> UIElement:
-        return UIElement(self.page.locator(PROJECT_NAVIGATION_MENU).first, name="Navigation menu")
+        return UIElement(
+            self.page.locator(PROJECT_NAVIGATION_MENU).first, name="Navigation menu"
+        )
 
     @property
     def new_build_configuration_button(self) -> UIElement:
@@ -58,21 +68,27 @@ class ProjectsPage(BasePage):
 
     @property
     def add_button(self):
-        return self.page.locator('[data-test="overview-header"]').get_by_role("button", name="Create")
+        return self.page.locator('[data-test="overview-header"]').get_by_role(
+            "button", name="Create"
+        )
 
     def click_new_build_configuration(
         self,
         project_name: str,
         project_id: str | None = None,
     ):
-        from src.main.ui.pages.create_build_config_page import CreateBuildConfigurationPage
+        from src.main.ui.pages.create_build_config_page import (
+            CreateBuildConfigurationPage,
+        )
 
         self._click_project_in_list(project_name, project_id)
 
         self.add_button.wait_for(state="visible", timeout=5_000)
         self.add_button.click()
 
-        self.new_build_configuration_button.locator.wait_for(state="visible", timeout=5_000)
+        self.new_build_configuration_button.locator.wait_for(
+            state="visible", timeout=5_000
+        )
         self.new_build_configuration_button.click()
 
         return self.get_page(CreateBuildConfigurationPage)
@@ -86,7 +102,8 @@ class ProjectsPage(BasePage):
     def build_config_link(self, build_config_name: str) -> UIElement:
         return UIElement(
             self.page.locator(
-                f'[data-build-config-name="{build_config_name}"],' f'a:has-text("{build_config_name}")'
+                f'[data-build-config-name="{build_config_name}"],'
+                f'a:has-text("{build_config_name}")'
             ).first,
             name=f"Build config {build_config_name}",
         )
@@ -100,7 +117,8 @@ class ProjectsPage(BasePage):
             btn.click()
         except Exception:
             self.page.goto(
-                f"{self.ui_base_url}/admin/createObjectMenu.html" "?projectId=_Root&showMode=createProjectMenu",
+                f"{self.ui_base_url}/admin/createObjectMenu.html"
+                "?projectId=_Root&showMode=createProjectMenu",
                 wait_until="domcontentloaded",
             )
         return self
@@ -124,7 +142,9 @@ class ProjectsPage(BasePage):
         locator.wait_for(state="visible", timeout=10_000)
         locator.scroll_into_view_if_needed()
         locator.click()
-        self.page.wait_for_selector(f"{PROJECTS_LIST}, {ALERT_SELECTOR}", timeout=10_000)
+        self.page.wait_for_selector(
+            f"{PROJECTS_LIST}, {ALERT_SELECTOR}", timeout=10_000
+        )
         return self
 
     def create_new_project(
@@ -153,7 +173,9 @@ class ProjectsPage(BasePage):
     def should_have_build_configuration(self, build_config_name: str):
         return self.build_config_link(build_config_name).to_be_visible()
 
-    def should_not_have_build_configuration(self, build_config_name: str) -> "ProjectsPage":
+    def should_not_have_build_configuration(
+        self, build_config_name: str
+    ) -> "ProjectsPage":
         return self.build_config_link(build_config_name).to_be_hidden()
 
     def _click_project_in_list(self, project_name: str, project_id: str | None) -> None:

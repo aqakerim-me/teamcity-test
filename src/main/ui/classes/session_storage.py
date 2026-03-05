@@ -21,13 +21,17 @@ class SessionStorage:
     @classmethod
     def get_user(cls, index: int = 0) -> CreateUserRequest:
         if index < 0 or index >= len(cls._users):
-            raise IndexError(f"User index (0-based) out of range: {index}; total={len(cls._users)}")
+            raise IndexError(
+                f"User index (0-based) out of range: {index}; total={len(cls._users)}"
+            )
         return cls._users[index]
 
     @classmethod
     def get_project(cls, index: int = 0) -> CreateProjectRequest:
         if index < 0 or index >= len(cls._projects):
-            raise IndexError(f"Project index (0-based) out of range: {index}; total={len(cls._projects)}")
+            raise IndexError(
+                f"Project index (0-based) out of range: {index}; total={len(cls._projects)}"
+            )
         return cls._projects[index]
 
     @classmethod

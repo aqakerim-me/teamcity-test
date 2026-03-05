@@ -9,11 +9,15 @@ class EditBuildRunnersPage(BasePage):
 
     @property
     def add_build_step_button(self):
-        return self.page.locator("span:has-text('Add build step')").locator("xpath=ancestor::a")
+        return self.page.locator("span:has-text('Add build step')").locator(
+            "xpath=ancestor::a"
+        )
 
     @property
     def command_line_step(self):
-        return self.page.locator("div[data-test='build-step-selector-item runner']:has-text('Command Line')")
+        return self.page.locator(
+            "div[data-test='build-step-selector-item runner']:has-text('Command Line')"
+        )
 
     @property
     def step_name_input(self):
@@ -26,7 +30,9 @@ class EditBuildRunnersPage(BasePage):
 
     @property
     def save_button(self):
-        return self.page.locator("div[id='saveButtons'] input[type='submit'][value='Save']")
+        return self.page.locator(
+            "div[id='saveButtons'] input[type='submit'][value='Save']"
+        )
 
     def add_command_line_step(self, step_name: str, script: str):
         """Add a Command Line build step"""

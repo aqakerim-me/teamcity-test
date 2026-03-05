@@ -108,9 +108,13 @@ class TestCreateProjectNegative:
             ),
         ],
     )
-    def test_invalid_project_id(self, api_manager: ApiManager, project_id, project_name, error_value):
+    def test_invalid_project_id(
+        self, api_manager: ApiManager, project_id, project_name, error_value
+    ):
         create_project_request = CreateProjectRequest(id=project_id, name=project_name)
-        api_manager.admin_steps.create_invalid_project(create_project_request, error_value)
+        api_manager.admin_steps.create_invalid_project(
+            create_project_request, error_value
+        )
 
         # Проверка, что проект НЕ был создан
         projects = api_manager.admin_steps.get_all_projects()
@@ -130,8 +134,12 @@ class TestCreateProjectNegative:
         create_project: CreateProjectRequest,
         error_value,
     ):
-        create_project_request = CreateProjectRequest(id=project_id, name=create_project.name)
-        api_manager.admin_steps.create_invalid_project(create_project_request, error_value)
+        create_project_request = CreateProjectRequest(
+            id=project_id, name=create_project.name
+        )
+        api_manager.admin_steps.create_invalid_project(
+            create_project_request, error_value
+        )
 
         # Проверка, что проект с дублирующимся именем НЕ был создан
         projects = api_manager.admin_steps.get_all_projects()
@@ -151,8 +159,12 @@ class TestCreateProjectNegative:
         create_project: CreateProjectRequest,
         error_value,
     ):
-        create_project_request = CreateProjectRequest(id=create_project.id, name=project_name)
-        api_manager.admin_steps.create_invalid_project(create_project_request, error_value)
+        create_project_request = CreateProjectRequest(
+            id=create_project.id, name=project_name
+        )
+        api_manager.admin_steps.create_invalid_project(
+            create_project_request, error_value
+        )
 
         # Проверка, что проект с дублирующимся ID НЕ был создан
         projects = api_manager.admin_steps.get_all_projects()

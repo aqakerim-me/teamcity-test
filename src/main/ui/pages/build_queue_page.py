@@ -33,7 +33,10 @@ class BuildQueuePage(BasePage):
                 title = self.page.locator(BUILD_QUEUE_TITLE)
                 if title.count() > 0:
                     title_text = (title.first.inner_text() or "").strip().lower()
-                    if "build in queue" in title_text or "builds in queue" in title_text:
+                    if (
+                        "build in queue" in title_text
+                        or "builds in queue" in title_text
+                    ):
                         return self
                 self.page.wait_for_timeout(500)
             raise AssertionError(f"Expected at least {min_rows} queue rows")
@@ -82,7 +85,9 @@ class BuildQueuePage(BasePage):
             if before == 0:
                 pytest.skip("No visible queue rows available for cancel action")
 
-            matching = self.page.locator(f"{BUILD_QUEUE_ROWS}:has-text('{build_type_id}')")
+            matching = self.page.locator(
+                f"{BUILD_QUEUE_ROWS}:has-text('{build_type_id}')"
+            )
             row = matching.first if matching.count() > 0 else self._rows().first
 
             cancel_btn = row.locator(BUILD_QUEUE_CANCEL_BUTTON).first
@@ -92,7 +97,9 @@ class BuildQueuePage(BasePage):
             with suppress(Exception):
                 cancel_btn.wait_for(state="visible", timeout=10_000)
             if not cancel_btn.is_visible():
-                pytest.skip("Queue cancel control is not visible for current user permissions")
+                pytest.skip(
+                    "Queue cancel control is not visible for current user permissions"
+                )
             self.page.once("dialog", lambda dialog: dialog.accept())
             cancel_btn.click()
 

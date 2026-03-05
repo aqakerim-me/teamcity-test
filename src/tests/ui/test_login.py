@@ -12,7 +12,9 @@ from src.main.ui.pages.teamcity_alerts import TeamCityAlert
 @pytest.mark.ui
 class TestLoginPositive:
 
-    def test_login_admin_with_valid_credentials(self, page: Page, admin_user_request: CreateUserRequest):
+    def test_login_admin_with_valid_credentials(
+        self, page: Page, admin_user_request: CreateUserRequest
+    ):
         (
             LoginPage(page)
             .open()
@@ -23,7 +25,9 @@ class TestLoginPositive:
             .should_be(Condition.visible, ProjectsPage(page).welcome_text)
         )
 
-    def test_login_user_with_valid_credentials(self, page: Page, api_manager, user_request: CreateUserRequest):
+    def test_login_user_with_valid_credentials(
+        self, page: Page, api_manager, user_request: CreateUserRequest
+    ):
         api_manager.admin_steps.create_user(user_request)
         (
             LoginPage(page)

@@ -16,7 +16,9 @@ class TestCreateUserPositive:
 
         users = api_manager.admin_steps.get_all_users()
         users_ids = [user.id for user in users]
-        assert created_user.id in users_ids, f"Created user ID '{created_user.id}' not found in users list"
+        assert (
+            created_user.id in users_ids
+        ), f"Created user ID '{created_user.id}' not found in users list"
 
         users_usernames = [user.username for user in users]
         assert (
@@ -32,7 +34,9 @@ class TestCreateUserPositive:
 
         users = api_manager.admin_steps.get_all_users()
         users_ids = [user.id for user in users]
-        assert created_user.id in users_ids, f"Created user ID '{created_user.id}' not found in users list"
+        assert (
+            created_user.id in users_ids
+        ), f"Created user ID '{created_user.id}' not found in users list"
 
         users_usernames = [user.username for user in users]
         assert (
@@ -48,7 +52,9 @@ class TestCreateUserPositive:
 
         users = api_manager.admin_steps.get_all_users()
         users_ids = [user.id for user in users]
-        assert created_user.id in users_ids, f"Created user ID '{created_user.id}' not found in users list"
+        assert (
+            created_user.id in users_ids
+        ), f"Created user ID '{created_user.id}' not found in users list"
 
         users_usernames = [user.username for user in users]
         assert (

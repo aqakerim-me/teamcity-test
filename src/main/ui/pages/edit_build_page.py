@@ -12,7 +12,9 @@ class EditBuildPage(BasePage):
 
     @property
     def actions_button(self):
-        return self.page.locator('[data-hint-container-id="build-configuration-admin-actions"] button').first
+        return self.page.locator(
+            '[data-hint-container-id="build-configuration-admin-actions"] button'
+        ).first
 
     def delete_build_configuration(self):
         self.actions_button.click()

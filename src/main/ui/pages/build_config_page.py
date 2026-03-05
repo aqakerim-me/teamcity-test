@@ -34,7 +34,9 @@ class BuildConfigPage(BasePage):
 
     @property
     def run_button(self) -> UIElement:
-        return UIElement(self.page.locator('[data-test="run-build"]'), name="Run button")
+        return UIElement(
+            self.page.locator('[data-test="run-build"]'), name="Run button"
+        )
 
     def pause_build_configuration(self):
         self.actions_button.click()

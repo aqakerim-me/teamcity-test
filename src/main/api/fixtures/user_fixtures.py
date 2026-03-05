@@ -19,7 +19,9 @@ def create_project(api_manager: ApiManager):
 # Создание пользователя
 @pytest.fixture(scope="function")
 def user_request():
-    return CreateUserRequest(username=GenerateData.get_username(), password=GenerateData.get_password())
+    return CreateUserRequest(
+        username=GenerateData.get_username(), password=GenerateData.get_password()
+    )
 
 
 # Данные админа для логина

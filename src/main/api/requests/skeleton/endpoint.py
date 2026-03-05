@@ -14,9 +14,15 @@ from src.main.api.models.create_build_step_response import CreateBuildStepRespon
 from src.main.api.models.create_buildtype_request import CreateBuildTypeRequest
 from src.main.api.models.create_buildtype_response import CreateBuildTypeResponse
 from src.main.api.models.create_project_request import CreateProjectRequest
-from src.main.api.models.create_project_response import CreateProjectResponse, ProjectsListResponse
+from src.main.api.models.create_project_response import (
+    CreateProjectResponse,
+    ProjectsListResponse,
+)
 from src.main.api.models.create_user_request import CreateUserRequest
-from src.main.api.models.create_user_response import CreateUserResponse, UsersListResponse
+from src.main.api.models.create_user_response import (
+    CreateUserResponse,
+    UsersListResponse,
+)
 from src.main.api.models.start_build_request import StartBuildRequest
 
 
@@ -28,11 +34,17 @@ class EndpointConfig:
 
 
 class Endpoint(Enum):
-    ADMIN_CREATE_USER = EndpointConfig(url="/users", request_model=CreateUserRequest, response_model=CreateUserResponse)
+    ADMIN_CREATE_USER = EndpointConfig(
+        url="/users", request_model=CreateUserRequest, response_model=CreateUserResponse
+    )
 
-    ADMIN_DELETE_USER = EndpointConfig(url="/users", request_model=None, response_model=None)
+    ADMIN_DELETE_USER = EndpointConfig(
+        url="/users", request_model=None, response_model=None
+    )
 
-    ADMIN_GET_ALL_USERS = EndpointConfig(url="/users", request_model=None, response_model=UsersListResponse)
+    ADMIN_GET_ALL_USERS = EndpointConfig(
+        url="/users", request_model=None, response_model=UsersListResponse
+    )
 
     ADMIN_CREATE_PROJECT = EndpointConfig(
         url="/projects",
@@ -40,9 +52,13 @@ class Endpoint(Enum):
         response_model=CreateProjectResponse,
     )
 
-    ADMIN_DELETE_PROJECT = EndpointConfig(url="/projects", request_model=None, response_model=None)
+    ADMIN_DELETE_PROJECT = EndpointConfig(
+        url="/projects", request_model=None, response_model=None
+    )
 
-    ADMIN_GET_ALL_PROJECTS = EndpointConfig(url="/projects", request_model=None, response_model=ProjectsListResponse)
+    ADMIN_GET_ALL_PROJECTS = EndpointConfig(
+        url="/projects", request_model=None, response_model=ProjectsListResponse
+    )
 
     ADMIN_CREATE_BUILDTYPE = EndpointConfig(
         url="/buildTypes",
@@ -56,18 +72,30 @@ class Endpoint(Enum):
         response_model=CreateBuildStepResponse,
     )
 
-    ADMIN_GET_PROJECT_BY_ID = EndpointConfig(url="/projects", request_model=None, response_model=CreateProjectResponse)
+    ADMIN_GET_PROJECT_BY_ID = EndpointConfig(
+        url="/projects", request_model=None, response_model=CreateProjectResponse
+    )
 
     # Agents API
-    AGENTS_LIST = EndpointConfig(url="/agents", request_model=None, response_model=AgentsListResponse)
+    AGENTS_LIST = EndpointConfig(
+        url="/agents", request_model=None, response_model=AgentsListResponse
+    )
 
-    AGENTS_BY_NAME = EndpointConfig(url="/agents/{name}", request_model=None, response_model=AgentResponse)
+    AGENTS_BY_NAME = EndpointConfig(
+        url="/agents/{name}", request_model=None, response_model=AgentResponse
+    )
 
-    AGENTS_AUTHORIZED = EndpointConfig(url="/agents/id:{id}/authorized", request_model=None, response_model=None)
+    AGENTS_AUTHORIZED = EndpointConfig(
+        url="/agents/id:{id}/authorized", request_model=None, response_model=None
+    )
 
-    AGENTS_ENABLED = EndpointConfig(url="/agents/id:{id}/enabled", request_model=None, response_model=None)
+    AGENTS_ENABLED = EndpointConfig(
+        url="/agents/id:{id}/enabled", request_model=None, response_model=None
+    )
 
-    AGENTS_BY_ID = EndpointConfig(url="/agents", request_model=None, response_model=AgentResponse)
+    AGENTS_BY_ID = EndpointConfig(
+        url="/agents", request_model=None, response_model=AgentResponse
+    )
 
     ADMIN_GET_BUILD_STEP_BY_ID = EndpointConfig(
         url="/buildTypes/id:{BuildTypeId}/steps/{stepId}",
@@ -87,13 +115,21 @@ class Endpoint(Enum):
         response_model=CreateBuildTypeResponse,
     )
 
-    BUILD_QUEUE = EndpointConfig(url="/buildQueue", request_model=StartBuildRequest, response_model=BuildResponse)
+    BUILD_QUEUE = EndpointConfig(
+        url="/buildQueue", request_model=StartBuildRequest, response_model=BuildResponse
+    )
 
-    BUILD_QUEUE_LIST = EndpointConfig(url="/buildQueue", request_model=None, response_model=BuildQueueResponse)
+    BUILD_QUEUE_LIST = EndpointConfig(
+        url="/buildQueue", request_model=None, response_model=BuildQueueResponse
+    )
 
-    BUILDS = EndpointConfig(url="/builds", request_model=None, response_model=BuildResponse)
+    BUILDS = EndpointConfig(
+        url="/builds", request_model=None, response_model=BuildResponse
+    )
 
-    BUILDS_LIST = EndpointConfig(url="/builds", request_model=None, response_model=BuildListResponse)
+    BUILDS_LIST = EndpointConfig(
+        url="/builds", request_model=None, response_model=BuildListResponse
+    )
 
     ADMIN_DELETE_BUILD_STEP = EndpointConfig(
         url="/buildTypes/id:{BuildTypeId}/steps/{stepId}",
@@ -107,7 +143,9 @@ class Endpoint(Enum):
         response_model=CreateBuildStepResponse,
     )
 
-    GET_ALL_BUILDTYPES = EndpointConfig(url="/buildTypes", request_model=None, response_model=BuildTypesListResponse)
+    GET_ALL_BUILDTYPES = EndpointConfig(
+        url="/buildTypes", request_model=None, response_model=BuildTypesListResponse
+    )
 
     GET_BUILDTYPE_PAUSED_STATUS = EndpointConfig(
         url="/buildTypes/id:{BuildTypeId}/paused",

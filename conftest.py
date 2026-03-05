@@ -5,7 +5,9 @@ from src.main.api.fixtures.setup_hook import *
 from src.main.api.fixtures.user_fixtures import *
 
 
-def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item]) -> None:
+def pytest_collection_modifyitems(
+    config: pytest.Config, items: list[pytest.Item]
+) -> None:
     preferred = "chromium"
 
     filtered: list[pytest.Item] = []

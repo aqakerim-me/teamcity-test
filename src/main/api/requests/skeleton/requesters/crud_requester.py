@@ -6,7 +6,9 @@ import requests
 from src.main.api.configs.config import Config
 from src.main.api.models.base_model import BaseModel
 from src.main.api.requests.skeleton.http_request import HttpRequest
-from src.main.api.requests.skeleton.interfaces.crud_end_interface import CrudEndpointInterface
+from src.main.api.requests.skeleton.interfaces.crud_end_interface import (
+    CrudEndpointInterface,
+)
 
 T = TypeVar("T", bound=BaseModel)
 
@@ -33,7 +35,9 @@ class CrudRequester(HttpRequest, CrudEndpointInterface):
             url += "?" + urlencode(query_params)
         return url
 
-    def post(self, model: Optional[T] = None, path_params: Optional[Dict[str, Any]] = None) -> requests.Response:
+    def post(
+        self, model: Optional[T] = None, path_params: Optional[Dict[str, Any]] = None
+    ) -> requests.Response:
         body = model.model_dump() if model is not None else ""
         response = requests.post(
             url=self._build_url(path_params=path_params),
@@ -110,7 +114,9 @@ class CrudRequester(HttpRequest, CrudEndpointInterface):
                 import json
 
                 # Last resort - try to convert to string and parse
-                response = requests.put(url, headers=headers, json=json.loads(str(data)))
+                response = requests.put(
+                    url, headers=headers, json=json.loads(str(data))
+                )
         else:
             # For text/plain, expect string data
             body = data if isinstance(data, str) else str(data)
@@ -126,7 +132,9 @@ class CrudRequester(HttpRequest, CrudEndpointInterface):
         content_type: Optional[str] = None,
     ) -> requests.Response:
         """Alias for update method - PUT request"""
-        return self.update(path_params=path_params, data=data, content_type=content_type)
+        return self.update(
+            path_params=path_params, data=data, content_type=content_type
+        )
 
     def delete(
         self,

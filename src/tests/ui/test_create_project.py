@@ -26,20 +26,28 @@ class TestCreateProject:
         # Asserts
         projects = api_manager.admin_steps.get_all_projects()
         project_ids = [project.id for project in projects]
-        assert project_id in project_ids, f"Created project ID '{project_id}' not found in projects list"
+        assert (
+            project_id in project_ids
+        ), f"Created project ID '{project_id}' not found in projects list"
 
         project_names = [project.name for project in projects]
-        assert project_name in project_names, f"Created project name '{project_name}' not found in projects list"
+        assert (
+            project_name in project_names
+        ), f"Created project name '{project_name}' not found in projects list"
 
     def test_projects_list_with_correct_data(
         self, api_manager: ApiManager, page: Page, create_project: CreateProjectRequest
     ):
         # Try to get projects
-        ProjectsPage(page).open().should_be(Condition.visible, ProjectsPage(page).welcome_text).should_be(
+        ProjectsPage(page).open().should_be(
+            Condition.visible, ProjectsPage(page).welcome_text
+        ).should_be(
             Condition.visible, ProjectsPage(page).project_by_id(create_project.id)
         )
 
         # Asserts
         projects = api_manager.admin_steps.get_all_projects()
         project_ids = [project.id for project in projects]
-        assert create_project.id in project_ids, f"Created project ID '{create_project.id}' not found in projects list"
+        assert (
+            create_project.id in project_ids
+        ), f"Created project ID '{create_project.id}' not found in projects list"

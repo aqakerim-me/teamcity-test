@@ -97,7 +97,9 @@ class BasePage(ABC):
             action=_action,
         )
 
-    def should_be(self: T, condition: Condition, element: UIElement, timeout: int = 5000) -> T:
+    def should_be(
+        self: T, condition: Condition, element: UIElement, timeout: int = 5000
+    ) -> T:
         def _action():
             if condition == Condition.visible:
                 element.to_be_visible(timeout=timeout)
@@ -113,7 +115,9 @@ class BasePage(ABC):
                 raise ValueError(f"Unsupported condition: {condition}")
             return self
 
-        return self._step(title=f"Check {element.name} is {condition.name}", action=_action)
+        return self._step(
+            title=f"Check {element.name} is {condition.name}", action=_action
+        )
 
     def should_have_url_part(self: T, part: str, timeout: int = 5000) -> T:
         def _action():
@@ -148,13 +152,19 @@ class BasePage(ABC):
                 expected = expected_text
                 actual_cmp = actual or ""
             if expected not in actual_cmp:
-                raise AssertionError(f"Expected '{expected_text}' in '{actual}', element: {element.name}")
+                raise AssertionError(
+                    f"Expected '{expected_text}' in '{actual}', element: {element.name}"
+                )
             return self
 
-        return self._step(title=f"Check {element.name} contains text: {expected_text}", action=_action)
+        return self._step(
+            title=f"Check {element.name} contains text: {expected_text}", action=_action
+        )
 
     def auth_as_user(self: T, user_request: CreateUserRequest) -> None:
-        auth_headers = RequestSpecs.user_auth_spec(user_request.username, user_request.password)
+        auth_headers = RequestSpecs.user_auth_spec(
+            user_request.username, user_request.password
+        )
         auth_token = auth_headers.get("Authorization", "")
 
         # Set up localStorage before navigating to the page
@@ -167,7 +177,9 @@ class BasePage(ABC):
         # Now navigate to the base URL
         self.page.goto(self.ui_base_url, wait_until="domcontentloaded")
 
-    def _generate_page_elements(self, elements: Locator, constructor: Callable[[Locator], T]) -> List[T]:
+    def _generate_page_elements(
+        self, elements: Locator, constructor: Callable[[Locator], T]
+    ) -> List[T]:
         elements.first.wait_for(state="attached", timeout=10_000)
         count = elements.count()
         return [constructor(elements.nth(i)) for i in range(count)]

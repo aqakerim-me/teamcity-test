@@ -10,11 +10,11 @@ from src.main.ui.pages.projects_page import ProjectsPage
 class TestMainPage:
 
     def test_load_main_page(self, page: Page):
-        ProjectsPage(page).open().should_be(Condition.visible, ProjectsPage(page).welcome_text).should_be(
-            Condition.visible, ProjectsPage(page).projects_list
-        )
+        ProjectsPage(page).open().should_be(
+            Condition.visible, ProjectsPage(page).welcome_text
+        ).should_be(Condition.visible, ProjectsPage(page).projects_list)
 
     def test_navigation_menu_sections(self, page: Page):
-        ProjectsPage(page).open().should_be(Condition.visible, ProjectsPage(page).welcome_text).should_be(
-            Condition.visible, ProjectsPage(page).navigation_menu
-        )
+        ProjectsPage(page).open().should_be(
+            Condition.visible, ProjectsPage(page).welcome_text
+        ).should_be(Condition.visible, ProjectsPage(page).navigation_menu)

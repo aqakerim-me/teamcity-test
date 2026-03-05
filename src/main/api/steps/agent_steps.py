@@ -5,7 +5,9 @@ from src.main.api.configs.config import Config
 from src.main.api.models.agent_response import AgentResponse, AgentsListResponse
 from src.main.api.requests.skeleton.endpoint import Endpoint
 from src.main.api.requests.skeleton.requesters.crud_requester import CrudRequester
-from src.main.api.requests.skeleton.requesters.validated_crud_requester import ValidatedCrudRequester
+from src.main.api.requests.skeleton.requesters.validated_crud_requester import (
+    ValidatedCrudRequester,
+)
 from src.main.api.specs.request_specs import RequestSpecs
 from src.main.api.specs.response_specs import ResponseSpecs
 from src.main.api.steps.base_steps import BaseSteps

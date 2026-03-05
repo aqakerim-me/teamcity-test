@@ -17,7 +17,9 @@ from src.main.api.models.create_user_request import CreateUserRequest
 from src.main.api.models.create_user_response import CreateUserResponse
 from src.main.api.requests.skeleton.endpoint import Endpoint
 from src.main.api.requests.skeleton.requesters.crud_requester import CrudRequester
-from src.main.api.requests.skeleton.requesters.validated_crud_requester import ValidatedCrudRequester
+from src.main.api.requests.skeleton.requesters.validated_crud_requester import (
+    ValidatedCrudRequester,
+)
 from src.main.api.specs.request_specs import RequestSpecs
 from src.main.api.specs.response_specs import ResponseSpecs
 from src.main.api.steps.base_steps import BaseSteps
@@ -55,7 +57,11 @@ class AdminSteps(BaseSteps):
             Endpoint.ADMIN_CREATE_USER,
             ResponseSpecs.request_returns_bad_request_or_server_error(error_value),
         ).post(user_request)
-        error_msg = error_value if isinstance(error_value, str) else f"{len(error_value)} errors"
+        error_msg = (
+            error_value
+            if isinstance(error_value, str)
+            else f"{len(error_value)} errors"
+        )
         logging.info(f"Invalid user creation blocked correctly: {error_msg}")
 
     @staticmethod
@@ -81,7 +87,9 @@ class AdminSteps(BaseSteps):
         logging.info(f"Retrieved {len(users)} users")
         return users
 
-    def create_project(self, project_request: CreateProjectRequest) -> CreateProjectResponse:
+    def create_project(
+        self, project_request: CreateProjectRequest
+    ) -> CreateProjectResponse:
         """Создание проекта через админа"""
         create_project_response = ValidatedCrudRequester(
             RequestSpecs.admin_auth_spec(),
@@ -99,7 +107,9 @@ class AdminSteps(BaseSteps):
         assert project_id_response.strip(), "Project ID must not be empty or whitespace"
 
         self.created_objects.append(create_project_response)
-        logging.info(f"Project created: {create_project_response.name}, ID: {project_id_response}")
+        logging.info(
+            f"Project created: {create_project_response.name}, ID: {project_id_response}"
+        )
         return create_project_response
 
     @staticmethod
@@ -148,7 +158,11 @@ class AdminSteps(BaseSteps):
             Endpoint.ADMIN_CREATE_PROJECT,
             ResponseSpecs.request_returns_bad_request_or_server_error(error_value),
         ).post(project_request)
-        error_msg = error_value if isinstance(error_value, str) else f"{len(error_value)} errors"
+        error_msg = (
+            error_value
+            if isinstance(error_value, str)
+            else f"{len(error_value)} errors"
+        )
         logging.info(f"Invalid project creation blocked correctly: {error_msg}")
 
     @staticmethod
@@ -185,7 +199,9 @@ class AdminSteps(BaseSteps):
         return response.strip().lower() == "true"
 
     @staticmethod
-    def create_build_step(request: CreateBuildStepRequest, build_type_id: str) -> CreateBuildStepResponse:
+    def create_build_step(
+        request: CreateBuildStepRequest, build_type_id: str
+    ) -> CreateBuildStepResponse:
         """Создание build step через админа"""
         response = ValidatedCrudRequester(
             RequestSpecs.admin_auth_spec(),
@@ -197,18 +213,24 @@ class AdminSteps(BaseSteps):
         return response
 
     @staticmethod
-    def create_invalid_build_step(request: CreateBuildStepRequest, build_type_id: str, error_value: str):
+    def create_invalid_build_step(
+        request: CreateBuildStepRequest, build_type_id: str, error_value: str
+    ):
         """Попытка создания невалидного build step с проверкой ошибки"""
         response = CrudRequester(
             RequestSpecs.admin_auth_spec(),
             Endpoint.ADMIN_CREATE_BUILD_STEP,
             ResponseSpecs.request_returns_bad_request_or_server_error(error_value),
         ).post(request, path_params={"BuildTypeId": build_type_id})
-        logging.info(f"Invalid build step creation blocked correctly with name {request.name} and error {error_value}")
+        logging.info(
+            f"Invalid build step creation blocked correctly with name {request.name} and error {error_value}"
+        )
         return response
 
     @staticmethod
-    def get_build_step_by_id(build_type_id: str, step_id: str) -> CreateBuildStepResponse:
+    def get_build_step_by_id(
+        build_type_id: str, step_id: str
+    ) -> CreateBuildStepResponse:
         """Получение build step по ID"""
         response = ValidatedCrudRequester(
             RequestSpecs.admin_auth_spec(),
@@ -228,7 +250,9 @@ class AdminSteps(BaseSteps):
         ).get(path_params={"BuildTypeId": build_type_id})
         steps = response.step
         assert len(steps) > 0, "build steps list should not be empty"
-        logging.info(f"Retrieved {len(steps)} build steps for build type ID {build_type_id}")
+        logging.info(
+            f"Retrieved {len(steps)} build steps for build type ID {build_type_id}"
+        )
         return steps
 
     @staticmethod
@@ -245,14 +269,18 @@ class AdminSteps(BaseSteps):
         return build_types
 
     @staticmethod
-    def get_invalid_build_step_by_id(build_type_id: str, step_id: str, error_value: str):
+    def get_invalid_build_step_by_id(
+        build_type_id: str, step_id: str, error_value: str
+    ):
         """Попытка получения невалидного build step с проверкой ошибки"""
         response = CrudRequester(
             RequestSpecs.admin_auth_spec(),
             Endpoint.ADMIN_GET_BUILD_STEP_BY_ID,
             ResponseSpecs.request_returns_not_found(error_value),
         ).get(path_params={"BuildTypeId": build_type_id, "stepId": step_id})
-        logging.info(f"Invalid get build step blocked correctly with ID {step_id} and error {error_value}")
+        logging.info(
+            f"Invalid get build step blocked correctly with ID {step_id} and error {error_value}"
+        )
         return response
 
     @staticmethod
@@ -266,7 +294,9 @@ class AdminSteps(BaseSteps):
         logging.info(f"Deleted build step with ID {step_id}")
 
     @staticmethod
-    def update_build_step(request: CreateBuildStepRequest, build_type_id: str, step_id: str) -> CreateBuildStepResponse:
+    def update_build_step(
+        request: CreateBuildStepRequest, build_type_id: str, step_id: str
+    ) -> CreateBuildStepResponse:
         """Обновление build step по ID"""
         response = ValidatedCrudRequester(
             RequestSpecs.admin_auth_spec(),
@@ -297,7 +327,9 @@ class AdminSteps(BaseSteps):
             path_params={"BuildTypeId": build_type_id, "stepId": step_id},
             content_type="application/json",
         )
-        logging.info(f"Invalid update build step blocked correctly with ID {step_id} and error {error_value}")
+        logging.info(
+            f"Invalid update build step blocked correctly with ID {step_id} and error {error_value}"
+        )
         return response
 
     @staticmethod
@@ -317,7 +349,9 @@ class AdminSteps(BaseSteps):
             path_params={"BuildTypeId": build_type_id, "stepId": step_id},
             content_type="application/json",
         )
-        logging.info(f"Invalid update build step blocked correctly with ID {step_id} and error {error_value}")
+        logging.info(
+            f"Invalid update build step blocked correctly with ID {step_id} and error {error_value}"
+        )
         return response
 
     def create_simple_build_type(project_id: str, build_type_name: str) -> str:
@@ -402,7 +436,8 @@ class AdminSteps(BaseSteps):
         def action():
             projects = self.get_all_projects()
             logging.info(
-                f"Attempt: looking for project_id='{project_id}', " f"found projects: {[p.id for p in projects]}"
+                f"Attempt: looking for project_id='{project_id}', "
+                f"found projects: {[p.id for p in projects]}"
             )
             return projects
 
@@ -455,7 +490,10 @@ class AdminSteps(BaseSteps):
             payload = response.json()
             users_raw = payload.get("user", []) if isinstance(payload, dict) else []
             users = [CreateUserResponse(**u) for u in users_raw]
-            logging.info(f"Attempt: looking for username='{username}', " f"found users: {[u.username for u in users]}")
+            logging.info(
+                f"Attempt: looking for username='{username}', "
+                f"found users: {[u.username for u in users]}"
+            )
             return users
 
         users = RetryUtils.retry(

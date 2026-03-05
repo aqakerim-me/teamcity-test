@@ -17,9 +17,13 @@ def admin_session_autologin(
     page = request.getfixturevalue("page")
     login_page = LoginPage(page)
     login_page.auth_as_user(admin_user_request)
-    page.goto(f"{login_page.ui_base_url}/favorite/projects", wait_until="domcontentloaded")
+    page.goto(
+        f"{login_page.ui_base_url}/favorite/projects", wait_until="domcontentloaded"
+    )
     if "login" in page.url.lower():
-        login_page.open().login(admin_user_request.username, admin_user_request.password)
+        login_page.open().login(
+            admin_user_request.username, admin_user_request.password
+        )
 
 
 @pytest.fixture(autouse=True)

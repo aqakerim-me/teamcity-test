@@ -24,7 +24,9 @@ class RandomModelGenerator:
                     if isinstance(ann, GeneratingRule):
                         rule = ann
             if rule:
-                value = RandomModelGenerator._generate_from_regex(rule.regex, actual_type)
+                value = RandomModelGenerator._generate_from_regex(
+                    rule.regex, actual_type
+                )
             else:
                 value = RandomModelGenerator._generate_value(actual_type)
 

@@ -12,12 +12,16 @@ from src.main.ui.pages.projects_page import ProjectsPage
 @pytest.mark.test
 class TestBuildConfiguration:
     @pytest.mark.admin_session
-    def test_admin_can_create_build_configuration(self, page: Page, api_manager: ApiManager, created_project):
+    def test_admin_can_create_build_configuration(
+        self, page: Page, api_manager: ApiManager, created_project
+    ):
         build_config_name = GenerateData.get_build_configuration_name()
 
         ProjectsPage(page).open().click_new_build_configuration(
             created_project.name, created_project.id
-        ).create_build_configuration(build_config_name).should_have_build_configuration(build_config_name)
+        ).create_build_configuration(build_config_name).should_have_build_configuration(
+            build_config_name
+        )
 
         build_types = api_manager.admin_steps.get_all_buildtypes()
         assert any(
@@ -25,8 +29,12 @@ class TestBuildConfiguration:
         ), "Build configuration was not created successfully"
 
     @pytest.mark.admin_session
-    def test_admin_can_delete_build_configuration(self, page: Page, api_manager: ApiManager, build_config):
-        EditBuildPage(page).open(build_config.id).delete_build_configuration().should_not_have_build_configuration(
+    def test_admin_can_delete_build_configuration(
+        self, page: Page, api_manager: ApiManager, build_config
+    ):
+        EditBuildPage(page).open(
+            build_config.id
+        ).delete_build_configuration().should_not_have_build_configuration(
             build_config.name
         )
 
@@ -36,7 +44,9 @@ class TestBuildConfiguration:
         ), f"Build configuration '{build_config.name}' was not deleted properly"
 
     @pytest.mark.admin_session
-    def test_cancel_build_configuration_creation(self, page: Page, api_manager: ApiManager, created_project):
+    def test_cancel_build_configuration_creation(
+        self, page: Page, api_manager: ApiManager, created_project
+    ):
         build_config_name = GenerateData.get_build_configuration_name()
 
         ProjectsPage(page).open().click_new_build_configuration(
@@ -49,7 +59,9 @@ class TestBuildConfiguration:
         ), "Build configuration was created when it should have been cancelled"
 
     @pytest.mark.admin_session
-    def test_pause_and_activate_build_configuration(self, page: Page, api_manager: ApiManager, build_config):
+    def test_pause_and_activate_build_configuration(
+        self, page: Page, api_manager: ApiManager, build_config
+    ):
         build_config_page = BuildConfigPage(page).open(build_config.id)
 
         build_config_page.pause_build_configuration().should_be_paused()
@@ -75,4 +87,6 @@ class TestBuildConfiguration:
 
         build_steps = api_manager.admin_steps.get_build_steps(build_config.id)
         step = next((step for step in build_steps if step.name == step_name), None)
-        assert step is not None, f"Step with name '{step_name}' not found in build steps list"
+        assert (
+            step is not None
+        ), f"Step with name '{step_name}' not found in build steps list"

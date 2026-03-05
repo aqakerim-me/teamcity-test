@@ -28,7 +28,10 @@ class ResponseSpecs:
             return error_message in msg or error_message in additional
 
         found = any(error_contains_phrase(e) for e in errors)
-        assert found, f"Expected error containing '{error_message}', " f"got: {[e.get('message') for e in errors]}"
+        assert found, (
+            f"Expected error containing '{error_message}', "
+            f"got: {[e.get('message') for e in errors]}"
+        )
 
     @staticmethod
     def _make_status_checker(
@@ -68,7 +71,9 @@ class ResponseSpecs:
 
     @staticmethod
     def entity_was_deleted() -> Callable[[Response], None]:
-        return ResponseSpecs._make_status_checker([HTTPStatus.OK, HTTPStatus.NO_CONTENT])
+        return ResponseSpecs._make_status_checker(
+            [HTTPStatus.OK, HTTPStatus.NO_CONTENT]
+        )
 
     @staticmethod
     def request_returns_bad_request_or_server_error(
@@ -91,7 +96,9 @@ class ResponseSpecs:
 
         def check(response: Response):
             if error_value:
-                ResponseSpecs._check_error_response(response, (HTTPStatus.NOT_FOUND,), error_value)
+                ResponseSpecs._check_error_response(
+                    response, (HTTPStatus.NOT_FOUND,), error_value
+                )
             else:
                 assert response.status_code == HTTPStatus.NOT_FOUND, (
                     f"Expected status {HTTPStatus.NOT_FOUND}, but got {response.status_code}. "

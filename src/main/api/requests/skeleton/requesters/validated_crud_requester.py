@@ -12,10 +12,16 @@ T = TypeVar("T", bound=BaseModel)
 class ValidatedCrudRequester(HttpRequest):
     def __init__(self, request_spec, endpoint, response_spec, **kwargs):
         super().__init__(request_spec, endpoint, response_spec)
-        self.crud_requester = CrudRequester(request_spec=request_spec, endpoint=endpoint, response_spec=response_spec)
-        endpoint_config = self.endpoint.value if hasattr(self.endpoint, "value") else self.endpoint
+        self.crud_requester = CrudRequester(
+            request_spec=request_spec, endpoint=endpoint, response_spec=response_spec
+        )
+        endpoint_config = (
+            self.endpoint.value if hasattr(self.endpoint, "value") else self.endpoint
+        )
         self._adapter = (
-            TypeAdapter(endpoint_config.response_model) if endpoint_config.response_model is not None else None
+            TypeAdapter(endpoint_config.response_model)
+            if endpoint_config.response_model is not None
+            else None
         )
 
     def post(self, model: Optional[T] = None, path_params: Optional[dict] = None):
@@ -30,7 +36,9 @@ class ValidatedCrudRequester(HttpRequest):
         path_params: Optional[dict] = None,
         query_params: Optional[dict] = None,
     ):
-        response = self.crud_requester.get(id=id, path_params=path_params, query_params=query_params)
+        response = self.crud_requester.get(
+            id=id, path_params=path_params, query_params=query_params
+        )
         if self._adapter is None:
             return response
         return self._adapter.validate_python(response.json())
@@ -41,7 +49,9 @@ class ValidatedCrudRequester(HttpRequest):
         path_params: Optional[dict] = None,
         query_params: Optional[dict] = None,
     ) -> str:
-        response = self.crud_requester.get(id=id, path_params=path_params, query_params=query_params)
+        response = self.crud_requester.get(
+            id=id, path_params=path_params, query_params=query_params
+        )
         return response.text
 
     def delete(self, id: int | str, path_params: Optional[dict] = None):
@@ -50,7 +60,9 @@ class ValidatedCrudRequester(HttpRequest):
     def update(self, model=None, path_params=None, data=None, content_type=None):
         """Alias so callers can use .update(model, path_params=...) or .put()"""
         actual_data = model if data is None else data
-        return self.put(path_params=path_params, data=actual_data, content_type=content_type)
+        return self.put(
+            path_params=path_params, data=actual_data, content_type=content_type
+        )
 
     def put(
         self,
@@ -60,7 +72,9 @@ class ValidatedCrudRequester(HttpRequest):
     ):
         """Handle PUT requests with optional data serialization"""
         # Pass data directly without pre-serializing
-        response = self.crud_requester.update(path_params=path_params, data=data, content_type=content_type)
+        response = self.crud_requester.update(
+            path_params=path_params, data=data, content_type=content_type
+        )
         if self._adapter is None:
             return response
         # Handle empty response bodies

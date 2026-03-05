@@ -11,7 +11,9 @@ class BuildResponse(BaseModel):
     id: int = Field(..., description="Build ID")
     buildTypeId: str = Field(..., description="Build type ID")
     state: str = Field(..., description="Build state (queued, running, finished)")
-    status: Optional[str] = Field(None, description="Build status (SUCCESS, FAILURE, UNKNOWN)")
+    status: Optional[str] = Field(
+        None, description="Build status (SUCCESS, FAILURE, UNKNOWN)"
+    )
     statusText: Optional[str] = Field(None, description="Status description")
     queuedDate: Optional[str] = Field(None, description="Queued timestamp")
     startDate: Optional[str] = Field(None, description="Start timestamp")

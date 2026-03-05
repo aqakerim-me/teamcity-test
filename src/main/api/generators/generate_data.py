@@ -72,7 +72,9 @@ class GenerateData:
 
     @staticmethod
     def get_step_id() -> str:
-        return "step_" + "".join(random.choices(string.ascii_letters + string.digits, k=8))
+        return "step_" + "".join(
+            random.choices(string.ascii_letters + string.digits, k=8)
+        )
 
     @staticmethod
     def get_step_name() -> str:
@@ -91,7 +93,9 @@ class GenerateData:
 
     @staticmethod
     def get_build_type_id() -> str:
-        return "buildType_" + "".join(random.choices(string.ascii_letters + string.digits, k=8))
+        return "buildType_" + "".join(
+            random.choices(string.ascii_letters + string.digits, k=8)
+        )
 
     @staticmethod
     def get_build_type_name() -> str:

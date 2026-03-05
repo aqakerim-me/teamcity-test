@@ -20,19 +20,27 @@ class AdminPage(BasePage):
 
     @property
     def admin_panel_text(self) -> UIElement:
-        return UIElement(self.page.locator(ADMIN_PANEL_TEXT).first, name="Admin panel text")
+        return UIElement(
+            self.page.locator(ADMIN_PANEL_TEXT).first, name="Admin panel text"
+        )
 
     @property
     def create_user_button(self) -> UIElement:
-        return UIElement(self.page.locator(ADMIN_CREATE_USER_BUTTON).first, name="Create user button")
+        return UIElement(
+            self.page.locator(ADMIN_CREATE_USER_BUTTON).first, name="Create user button"
+        )
 
     @property
     def username_input(self) -> UIElement:
-        return UIElement(self.page.locator(ADMIN_USERNAME_INPUT).first, name="Username input")
+        return UIElement(
+            self.page.locator(ADMIN_USERNAME_INPUT).first, name="Username input"
+        )
 
     @property
     def password_input(self) -> UIElement:
-        return UIElement(self.page.locator(ADMIN_PASSWORD_INPUT).first, name="Password input")
+        return UIElement(
+            self.page.locator(ADMIN_PASSWORD_INPUT).first, name="Password input"
+        )
 
     @property
     def confirm_password_input(self) -> UIElement:
@@ -43,14 +51,18 @@ class AdminPage(BasePage):
 
     @property
     def submit_button(self) -> UIElement:
-        return UIElement(self.page.locator(ADMIN_SUBMIT_BUTTON).first, name="Submit button")
+        return UIElement(
+            self.page.locator(ADMIN_SUBMIT_BUTTON).first, name="Submit button"
+        )
 
     @property
     def users_list(self) -> UIElement:
         return UIElement(self.page.locator(ADMIN_USERS_LIST).first, name="Users list")
 
     def create_user(self, username: str, password: str):
-        SessionStorage.add_users([CreateUserRequest(username=username, password=password)])
+        SessionStorage.add_users(
+            [CreateUserRequest(username=username, password=password)]
+        )
 
         def _action():
             try:
@@ -92,7 +104,9 @@ class AdminPage(BasePage):
 
     def should_have_user(self, api_manager, username: str):
         def _action():
-            user = api_manager.admin_steps.wait_user_appears(username=username, page=self.page)
+            user = api_manager.admin_steps.wait_user_appears(
+                username=username, page=self.page
+            )
             assert (
                 user.username == username
             ), f"User with username mismatch: expected '{username}', got '{user.username}'"

@@ -38,11 +38,15 @@ class BuildResultsPage(BasePage):
 
     @property
     def artifacts_tab(self) -> UIElement:
-        return UIElement(self.page.locator(BUILD_ARTIFACTS_TAB).first, name="Artifacts tab")
+        return UIElement(
+            self.page.locator(BUILD_ARTIFACTS_TAB).first, name="Artifacts tab"
+        )
 
     @property
     def status_text(self) -> UIElement:
-        return UIElement(self.page.locator(BUILD_RESULTS_STATUS_TEXT).first, name="Build status text")
+        return UIElement(
+            self.page.locator(BUILD_RESULTS_STATUS_TEXT).first, name="Build status text"
+        )
 
     def _click_first_visible(self, selectors: list[str]):
         for selector in selectors:
@@ -106,7 +110,9 @@ class BuildResultsPage(BasePage):
             parsed = urlparse(self.page.url)
             query = parse_qs(parsed.query)
             query["buildTab"] = ["artifacts"]
-            artifacts_url = urlunparse(parsed._replace(query=urlencode(query, doseq=True)))
+            artifacts_url = urlunparse(
+                parsed._replace(query=urlencode(query, doseq=True))
+            )
             self.page.goto(artifacts_url, wait_until="domcontentloaded")
             return self
 
@@ -130,7 +136,9 @@ class BuildResultsPage(BasePage):
             initial_count = lines.count()
 
             # Allow small warm-up for first lines to appear.
-            while initial_count == 0 and int((time.time() - start) * 1000) < timeout // 3:
+            while (
+                initial_count == 0 and int((time.time() - start) * 1000) < timeout // 3
+            ):
                 self.page.wait_for_timeout(300)
                 initial_count = lines.count()
 
@@ -142,7 +150,9 @@ class BuildResultsPage(BasePage):
                     return self
                 current_max = max(current_max, current_count)
 
-            raise AssertionError(f"Build log did not update in realtime: initial={initial_count}, final={current_max}")
+            raise AssertionError(
+                f"Build log did not update in realtime: initial={initial_count}, final={current_max}"
+            )
 
         return self._step(
             title=f"Check realtime log updates for build {self.build_id}",
@@ -192,7 +202,9 @@ class BuildResultsPage(BasePage):
                 )
 
             if not clicked:
-                raise AssertionError("Stop action is not visible/clickable on build page")
+                raise AssertionError(
+                    "Stop action is not visible/clickable on build page"
+                )
 
             # Some TeamCity skins use an in-page confirm control.
             self.page.wait_for_timeout(500)
@@ -211,18 +223,24 @@ class BuildResultsPage(BasePage):
             action=_action,
         )
 
-    def should_show_any_status(self, allowed_statuses: Iterable[str], timeout: int = 20_000):
+    def should_show_any_status(
+        self, allowed_statuses: Iterable[str], timeout: int = 20_000
+    ):
         allowed = [status.lower() for status in allowed_statuses]
 
         def _action():
             start = time.time()
             while int((time.time() - start) * 1000) < timeout:
-                page_text = (self.page.locator("#mainContent").inner_text() or "").lower()
+                page_text = (
+                    self.page.locator("#mainContent").inner_text() or ""
+                ).lower()
                 if any(status in page_text for status in allowed):
                     return self
                 self.page.wait_for_timeout(500)
 
-            raise AssertionError(f"Expected one of statuses {list(allowed_statuses)} in UI")
+            raise AssertionError(
+                f"Expected one of statuses {list(allowed_statuses)} in UI"
+            )
 
         return self._step(
             title=f"Check build status is one of {list(allowed_statuses)}",
@@ -232,7 +250,9 @@ class BuildResultsPage(BasePage):
     def should_have_artifacts(self):
         def _action():
             with suppress(Exception):
-                self.page.get_by_text("Show hidden artifacts").first.click(timeout=2_000)
+                self.page.get_by_text("Show hidden artifacts").first.click(
+                    timeout=2_000
+                )
 
             artifacts_list = self.page.locator(BUILD_ARTIFACTS_LIST)
             if artifacts_list.count() > 0:

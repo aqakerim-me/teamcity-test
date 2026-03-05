@@ -18,7 +18,9 @@ class TestGetStep:
         )
 
         # получаем шаг сборки по id
-        get_step_response = api_manager.admin_steps.get_build_step_by_id(build_config.id, created_step.id)
+        get_step_response = api_manager.admin_steps.get_build_step_by_id(
+            build_config.id, created_step.id
+        )
 
         ModelAssertions(created_step, get_step_response).match()
 

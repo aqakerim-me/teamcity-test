@@ -14,7 +14,9 @@ class CreateBuildConfigurationPage(BasePage):
 
     @property
     def create_button(self):
-        return self.page.locator('[data-test="ring-button-set"]').get_by_role("button", name="Create")
+        return self.page.locator('[data-test="ring-button-set"]').get_by_role(
+            "button", name="Create"
+        )
 
     @property
     def cancel_button(self):

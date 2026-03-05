@@ -2,7 +2,11 @@ import logging
 from typing import Optional
 
 from src.main.ui.pages.base_page import BasePage
-from src.main.ui.pages.selectors import BUILD_RUN_BUTTON, BUILD_STATE_TEXT, BUILD_STATUS_INDICATOR
+from src.main.ui.pages.selectors import (
+    BUILD_RUN_BUTTON,
+    BUILD_STATE_TEXT,
+    BUILD_STATUS_INDICATOR,
+)
 from src.main.ui.pages.ui_element import UIElement
 
 logger = logging.getLogger(__name__)
@@ -28,7 +32,9 @@ class BuildConfigurationPage(BasePage):
 
     @property
     def run_button(self) -> UIElement:
-        return UIElement(self.page.locator(BUILD_RUN_BUTTON).first, name="Run build button")
+        return UIElement(
+            self.page.locator(BUILD_RUN_BUTTON).first, name="Run build button"
+        )
 
     @property
     def status_indicator(self) -> UIElement:
@@ -39,7 +45,9 @@ class BuildConfigurationPage(BasePage):
 
     @property
     def build_state_text(self) -> UIElement:
-        return UIElement(self.page.locator(BUILD_STATE_TEXT).first, name="Build state text")
+        return UIElement(
+            self.page.locator(BUILD_STATE_TEXT).first, name="Build state text"
+        )
 
     def run_build(self):
         """Click the Run button to trigger a build."""
@@ -60,7 +68,9 @@ class BuildConfigurationPage(BasePage):
             logger.info(f"Build triggered for build type: {self.build_type_id}")
             return self
 
-        return self._step(title=f"Run build for build type: {self.build_type_id}", action=_action)
+        return self._step(
+            title=f"Run build for build type: {self.build_type_id}", action=_action
+        )
 
     def wait_for_build_state(self, expected_state: str, timeout: int = 30_000):
         """Wait for the build to reach a specific state (queued, running, finished)."""
@@ -85,14 +95,18 @@ class BuildConfigurationPage(BasePage):
                     time.sleep(poll_interval)
                     elapsed += poll_interval
 
-                logger.warning(f"Build state '{expected_state}' not reached within timeout")
+                logger.warning(
+                    f"Build state '{expected_state}' not reached within timeout"
+                )
 
             except Exception as e:
                 logger.warning(f"Could not verify build state via UI: {e}")
 
             return self
 
-        return self._step(title=f"Wait for build state: {expected_state}", action=_action)
+        return self._step(
+            title=f"Wait for build state: {expected_state}", action=_action
+        )
 
     def get_build_id_from_url(self) -> Optional[int]:
         """Extract build ID from the current URL if on build details page."""
@@ -130,14 +144,20 @@ class BuildConfigurationPage(BasePage):
                 # Wait before next poll
                 self.page.wait_for_timeout(poll_ms)
 
-        return self._step(title=f"Verify build status shows '{expected_status}'", action=_action)
+        return self._step(
+            title=f"Verify build status shows '{expected_status}'", action=_action
+        )
 
-    def should_have_build_completed_successfully(self, build_type_id: str, api_manager, timeout: int = 10):
+    def should_have_build_completed_successfully(
+        self, build_type_id: str, api_manager, timeout: int = 10
+    ):
         """Verify build completed successfully via API. Uses short timeout since UI already confirmed."""
 
         def _action():
             try:
-                completed_build = api_manager.build_steps.get_latest_build_and_wait(build_type_id, timeout)
+                completed_build = api_manager.build_steps.get_latest_build_and_wait(
+                    build_type_id, timeout
+                )
                 assert (
                     completed_build.state == "finished"
                 ), f"Expected build to be finished, got state: {completed_build.state}"
@@ -147,7 +167,9 @@ class BuildConfigurationPage(BasePage):
                 logger.info(f"Build completed successfully: {completed_build.id}")
             except TimeoutError:
                 # UI already showed Success, so API call is just verification
-                logger.info(f"API verification timed out after {timeout}s, but UI confirmed Success")
+                logger.info(
+                    f"API verification timed out after {timeout}s, but UI confirmed Success"
+                )
 
             return self
 

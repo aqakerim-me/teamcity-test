@@ -56,7 +56,8 @@ def _create_custom_build_type(
     # TeamCity may ignore artifactRules in create payload; set it explicitly.
     if artifact_rules:
         artifact_url = (
-            f"{Config.get('server')}{Config.get('apiVersion')}" f"/buildTypes/id:{build_type_id}/settings/artifactRules"
+            f"{Config.get('server')}{Config.get('apiVersion')}"
+            f"/buildTypes/id:{build_type_id}/settings/artifactRules"
         )
         artifact_response = requests.put(
             artifact_url,
@@ -81,7 +82,9 @@ def build_type(api_manager: ApiManager):
     """
     try:
         # Create a test project
-        project_request = CreateProjectRequest(id=GenerateData.get_project_id(), name=GenerateData.get_project_name())
+        project_request = CreateProjectRequest(
+            id=GenerateData.get_project_id(), name=GenerateData.get_project_name()
+        )
         project = api_manager.admin_steps.create_project(project_request)
 
         # Create a simple build type
@@ -119,7 +122,9 @@ def queued_build(api_manager: ApiManager, build_type: tuple):
     # Find a build that's still queued
     for attempt in range(10):
         for build in builds:
-            status = api_manager.build_steps.get_build_by_id(build.id, fields="id,buildTypeId,state")
+            status = api_manager.build_steps.get_build_by_id(
+                build.id, fields="id,buildTypeId,state"
+            )
             if status.state == "queued":
                 # Remove this build from created_objects so it doesn't get auto-cleaned
                 # Test will handle cleanup (cancelling the build)
@@ -139,7 +144,9 @@ def running_build(api_manager: ApiManager, build_type: tuple):
 
     build = api_manager.build_steps.trigger_build(build_type_id)
     for _ in range(10):
-        build_status = api_manager.build_steps.get_build_by_id(build.id, fields="id,buildTypeId,state")
+        build_status = api_manager.build_steps.get_build_by_id(
+            build.id, fields="id,buildTypeId,state"
+        )
         if build_status.state == "running":
             yield build
             return
@@ -151,7 +158,9 @@ def running_build(api_manager: ApiManager, build_type: tuple):
 def completed_build(api_manager: ApiManager, build_type: tuple):
     """Trigger a build and wait for it to complete"""
     build = api_manager.build_steps.trigger_build(build_type)
-    completed_build_response = api_manager.build_steps.wait_for_build_completion(build.id)
+    completed_build_response = api_manager.build_steps.wait_for_build_completion(
+        build.id
+    )
     yield completed_build_response
 
 
