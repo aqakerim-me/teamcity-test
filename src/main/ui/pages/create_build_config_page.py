@@ -1,5 +1,5 @@
-from src.main.ui.pages.projects_page import ProjectsPage
 from src.main.ui.pages.base_page import BasePage
+from src.main.ui.pages.projects_page import ProjectsPage
 from src.main.ui.pages.ui_element import UIElement
 
 
@@ -14,10 +14,16 @@ class CreateBuildConfigurationPage(BasePage):
 
     @property
     def create_button(self):
-        return self.page.locator('[data-test="ring-button-set"]').get_by_role("button", name="Create")
+        return self.page.locator('[data-test="ring-button-set"]').get_by_role(
+            "button", name="Create"
+        )
 
     @property
-    def create_button(self) -> UIElement:
+    def cancel_button(self):
+        return self.page.get_by_role("button", name="Cancel")
+
+    @property
+    def create_build_configuration_button(self) -> UIElement:
         return UIElement(
             self.page.locator('input[name="createBuildType"]').first,
             name="Create build configuration button",
@@ -36,11 +42,7 @@ class CreateBuildConfigurationPage(BasePage):
         from src.main.ui.pages.projects_page import ProjectsPage
 
         def _action():
-            (
-                self.fill_name(name)
-                    .create_button
-                    .click()
-            )
+            (self.fill_name(name).create_button.click())
             return self.get_page(ProjectsPage)
 
         return self._step(

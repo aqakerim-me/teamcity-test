@@ -9,7 +9,9 @@ from src.main.api.models.build_status_response import BuildStatusResponse
 from src.main.api.models.start_build_request import BuildTypeRef, StartBuildRequest
 from src.main.api.requests.skeleton.endpoint import Endpoint, EndpointConfig
 from src.main.api.requests.skeleton.requesters.crud_requester import CrudRequester
-from src.main.api.requests.skeleton.requesters.validated_crud_requester import ValidatedCrudRequester
+from src.main.api.requests.skeleton.requesters.validated_crud_requester import (
+    ValidatedCrudRequester,
+)
 from src.main.api.specs.request_specs import RequestSpecs
 from src.main.api.specs.response_specs import ResponseSpecs
 from src.main.api.steps.base_steps import BaseSteps
@@ -19,7 +21,9 @@ class BuildSteps(BaseSteps):
     POLL_INTERVAL = 0.5
     DEFAULT_TIMEOUT = 300
 
-    def trigger_build(self, build_type_id: str, properties: Optional[dict] = None) -> BuildResponse:
+    def trigger_build(
+        self, build_type_id: str, properties: Optional[dict] = None
+    ) -> BuildResponse:
         build_request = StartBuildRequest(
             buildType=BuildTypeRef(id=build_type_id),
             properties=properties,
@@ -32,18 +36,21 @@ class BuildSteps(BaseSteps):
         ).post(build_request)
 
         assert build_response.id > 0, "Build ID should be positive"
-        assert build_response.buildTypeId == build_type_id, (
-            f"BuildTypeId mismatch: expected {build_type_id}, got {build_response.buildTypeId}"
-        )
-        assert build_response.state in ["queued", "running"], (
-            f"Unexpected initial state: {build_response.state}"
-        )
+        assert (
+            build_response.buildTypeId == build_type_id
+        ), f"BuildTypeId mismatch: expected {build_type_id}, got {build_response.buildTypeId}"
+        assert build_response.state in [
+            "queued",
+            "running",
+        ], f"Unexpected initial state: {build_response.state}"
 
         self.created_objects.append(build_response)
         logging.info(f"Build triggered: ID {build_response.id}, Type: {build_type_id}")
         return build_response
 
-    def get_build_by_id(self, build_id: int, fields: Optional[str] = None) -> BuildResponse:
+    def get_build_by_id(
+        self, build_id: int, fields: Optional[str] = None
+    ) -> BuildResponse:
         # Build URL manually to avoid URL-encoding commas in fields parameter
         url = f"{Endpoint.BUILDS.value.url}/id:{build_id}"
         if fields:
@@ -54,7 +61,9 @@ class BuildSteps(BaseSteps):
             all_fields = ",".join(sorted(merged))
             url += f"?fields={all_fields}"
 
-        endpoint_config = EndpointConfig(url=url, response_model=BuildResponse, request_model=None)
+        endpoint_config = EndpointConfig(
+            url=url, response_model=BuildResponse, request_model=None
+        )
         build_response = ValidatedCrudRequester(
             RequestSpecs.admin_auth_spec(),
             endpoint_config,
@@ -74,9 +83,9 @@ class BuildSteps(BaseSteps):
         builds = builds_list.build
 
         for build in builds:
-            assert build.buildTypeId == build_type_id, (
-                f"Build {build.id} belongs to {build.buildTypeId}, expected {build_type_id}"
-            )
+            assert (
+                build.buildTypeId == build_type_id
+            ), f"Build {build.id} belongs to {build.buildTypeId}, expected {build_type_id}"
 
         logging.info(f"Retrieved {len(builds)} builds for type {build_type_id}")
         return builds
@@ -91,7 +100,9 @@ class BuildSteps(BaseSteps):
         logging.info(f"Retrieved build queue: {len(queue_response.build)} builds")
         return queue_response.build
 
-    def cancel_queued_build(self, build_id: int, comment: str = "Test cancellation") -> BuildResponse:
+    def cancel_queued_build(
+        self, build_id: int, comment: str = "Test cancellation"
+    ) -> BuildResponse:
         cancel_request = BuildCancelRequest(
             comment=comment,
             readdIntoQueue=False,
@@ -106,7 +117,9 @@ class BuildSteps(BaseSteps):
         logging.info(f"Cancelled queued build: ID {build_id}")
         return build_response
 
-    def cancel_running_build(self, build_id: int, comment: str = "Test cancellation") -> BuildResponse:
+    def cancel_running_build(
+        self, build_id: int, comment: str = "Test cancellation"
+    ) -> BuildResponse:
         cancel_request = BuildCancelRequest(
             comment=comment,
             readdIntoQueue=False,
@@ -121,7 +134,9 @@ class BuildSteps(BaseSteps):
         logging.info(f"Cancelled running build: ID {build_id}")
         return build_response
 
-    def wait_for_build_completion(self, build_id: int, timeout: int = DEFAULT_TIMEOUT) -> BuildResponse:
+    def wait_for_build_completion(
+        self, build_id: int, timeout: int = DEFAULT_TIMEOUT
+    ) -> BuildResponse:
         elapsed = 0
         while elapsed < timeout:
             build = self.get_build_by_id(build_id, fields="id,buildTypeId,state,status")
@@ -130,17 +145,24 @@ class BuildSteps(BaseSteps):
                 logging.info(f"Build {build_id} completed with status: {build.status}")
                 return build
 
-            assert build.state in ["queued", "running"], f"Unexpected build state: {build.state}"
+            assert build.state in [
+                "queued",
+                "running",
+            ], f"Unexpected build state: {build.state}"
 
             time.sleep(self.POLL_INTERVAL)
             elapsed += self.POLL_INTERVAL
 
-        raise TimeoutError(f"Build {build_id} did not complete within {timeout} seconds")
+        raise TimeoutError(
+            f"Build {build_id} did not complete within {timeout} seconds"
+        )
 
     def get_build_status(self, build_id: int) -> BuildStatusResponse:
         # Build URL manually to avoid URL-encoding commas in fields parameter
         url = f"{Endpoint.BUILDS.value.url}/id:{build_id}?fields=status,statusText"
-        endpoint_config = EndpointConfig(url=url, response_model=BuildStatusResponse, request_model=None)
+        endpoint_config = EndpointConfig(
+            url=url, response_model=BuildStatusResponse, request_model=None
+        )
 
         status_response = ValidatedCrudRequester(
             RequestSpecs.admin_auth_spec(),
@@ -151,7 +173,9 @@ class BuildSteps(BaseSteps):
         logging.info(f"Build {build_id} status: {status_response.status}")
         return status_response
 
-    def get_latest_build_and_wait(self, build_type_id: str, timeout: int = DEFAULT_TIMEOUT) -> BuildResponse:
+    def get_latest_build_and_wait(
+        self, build_type_id: str, timeout: int = DEFAULT_TIMEOUT
+    ) -> BuildResponse:
         """
         Find the latest build for a build type and wait for completion.
 

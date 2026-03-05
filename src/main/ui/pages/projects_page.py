@@ -58,31 +58,37 @@ class ProjectsPage(BasePage):
         return UIElement(
             self.page.locator(PROJECT_NAVIGATION_MENU).first, name="Navigation menu"
         )
-    
+
     @property
     def new_build_configuration_button(self) -> UIElement:
         return UIElement(
             self.page.locator('[id$="new-build-configuration"]').first,
             name="New build configuration",
         )
-        
+
     @property
     def add_button(self):
-        return self.page.locator('[data-test="overview-header"]').get_by_role("button", name="Create")
+        return self.page.locator('[data-test="overview-header"]').get_by_role(
+            "button", name="Create"
+        )
 
     def click_new_build_configuration(
         self,
         project_name: str,
         project_id: str | None = None,
     ):
-        from src.main.ui.pages.create_build_config_page import CreateBuildConfigurationPage
+        from src.main.ui.pages.create_build_config_page import (
+            CreateBuildConfigurationPage,
+        )
 
         self._click_project_in_list(project_name, project_id)
-        
+
         self.add_button.wait_for(state="visible", timeout=5_000)
         self.add_button.click()
-        
-        self.new_build_configuration_button.locator.wait_for(state="visible", timeout=5_000)
+
+        self.new_build_configuration_button.locator.wait_for(
+            state="visible", timeout=5_000
+        )
         self.new_build_configuration_button.click()
 
         return self.get_page(CreateBuildConfigurationPage)
@@ -92,7 +98,7 @@ class ProjectsPage(BasePage):
             self.page.locator(f'[data-project-id="{project_id}"]').first,
             name=f"Project {project_id}",
         )
-    
+
     def build_config_link(self, build_config_name: str) -> UIElement:
         return UIElement(
             self.page.locator(
@@ -153,9 +159,9 @@ class ProjectsPage(BasePage):
         def _action():
             (
                 self.open_create_project_form()
-                    .fill_project_id(project_id)
-                    .fill_project_name(project_name)
-                    .submit_project_form()
+                .fill_project_id(project_id)
+                .fill_project_name(project_name)
+                .submit_project_form()
             )
             return self
 
@@ -167,12 +173,12 @@ class ProjectsPage(BasePage):
     def should_have_build_configuration(self, build_config_name: str):
         return self.build_config_link(build_config_name).to_be_visible()
 
-    def should_not_have_build_configuration(self, build_config_name: str) -> "ProjectsPage":
+    def should_not_have_build_configuration(
+        self, build_config_name: str
+    ) -> "ProjectsPage":
         return self.build_config_link(build_config_name).to_be_hidden()
 
-    def _click_project_in_list(
-        self, project_name: str, project_id: str | None
-    ) -> None:
+    def _click_project_in_list(self, project_name: str, project_id: str | None) -> None:
         candidates = [
             self.page.locator(f'[data-project-name="{project_name}"]').first,
             self.page.locator(f'[title="{project_name}"]').first,

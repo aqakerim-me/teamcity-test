@@ -39,7 +39,9 @@ def wait_for_canceled_build(
                 fields="id,buildTypeId,state,status,statusText",
             )
             status_text = (build.statusText or "").lower()
-            if build.state == "finished" and ("cancel" in status_text or "stop" in status_text):
+            if build.state == "finished" and (
+                "cancel" in status_text or "stop" in status_text
+            ):
                 return build
         time.sleep(1)
     raise TimeoutError(f"No canceled/stopped build found for ids {build_ids}")
@@ -85,9 +87,13 @@ def cleanup_triggered_builds(api_manager: ApiManager, build_ids: list[int]) -> N
                 fields="id,buildTypeId,state,status,statusText",
             ).state
             if state == "queued":
-                api_manager.build_steps.cancel_queued_build(build_id, comment="Queue test cleanup")
+                api_manager.build_steps.cancel_queued_build(
+                    build_id, comment="Queue test cleanup"
+                )
             elif state == "running":
-                api_manager.build_steps.cancel_running_build(build_id, comment="Queue test cleanup")
+                api_manager.build_steps.cancel_running_build(
+                    build_id, comment="Queue test cleanup"
+                )
         except Exception:
             pass
 

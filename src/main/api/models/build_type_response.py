@@ -1,5 +1,6 @@
+from typing import Any, Dict, Optional
+
 from src.main.api.models.base_model import BaseModel
-from typing import Optional, Dict, Any
 
 
 class BuildTypeResponse(BaseModel):

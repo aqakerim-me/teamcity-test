@@ -1,16 +1,21 @@
 from http import HTTPStatus
 from typing import Callable
+
 from requests import Response
 
-from src.main.api.models.allert_messages import AlertMessages
+from src.main.api.models.alert_messages import AlertMessages
 
 
 class ResponseSpecs:
     @staticmethod
-    def _check_error_response(response: Response, expected_statuses: tuple[HTTPStatus, ...], error_value: AlertMessages):
-        assert response.status_code in expected_statuses, (
-            f"Expected {expected_statuses}, got {response.status_code}. Response: {response.text}"
-        )
+    def _check_error_response(
+        response: Response,
+        expected_statuses: tuple[HTTPStatus, ...],
+        error_value: AlertMessages,
+    ):
+        assert (
+            response.status_code in expected_statuses
+        ), f"Expected {expected_statuses}, got {response.status_code}. Response: {response.text}"
 
         errors = response.json().get("errors", [])
         assert errors, f"No errors found in response: {response.text}"
@@ -29,12 +34,15 @@ class ResponseSpecs:
         )
 
     @staticmethod
-    def _make_status_checker(expected_statuses: list[HTTPStatus]) -> Callable[[Response], None]:
+    def _make_status_checker(
+        expected_statuses: list[HTTPStatus],
+    ) -> Callable[[Response], None]:
         def check(response: Response):
             assert response.status_code in expected_statuses, (
                 f"Expected status {expected_statuses}, but got {response.status_code}. "
                 f"Response body: {response.text}"
             )
+
         return check
 
     @staticmethod
@@ -51,9 +59,9 @@ class ResponseSpecs:
 
         def check(response: Response):
             ResponseSpecs._make_status_checker([HTTPStatus.OK])(response)
-            assert response.text.strip().lower() == expected_body.strip().lower(), (
-                f"Expected body {expected_body!r}, got {response.text!r}"
-            )
+            assert (
+                response.text.strip().lower() == expected_body.strip().lower()
+            ), f"Expected body {expected_body!r}, got {response.text!r}"
 
         return check
 
@@ -63,33 +71,33 @@ class ResponseSpecs:
 
     @staticmethod
     def entity_was_deleted() -> Callable[[Response], None]:
-        return ResponseSpecs._make_status_checker([HTTPStatus.OK, HTTPStatus.NO_CONTENT])
+        return ResponseSpecs._make_status_checker(
+            [HTTPStatus.OK, HTTPStatus.NO_CONTENT]
+        )
 
     @staticmethod
     def request_returns_bad_request_or_server_error(
-        error_value: AlertMessages
+        error_value: AlertMessages,
     ) -> Callable[[Response], None]:
 
         def check(response: Response):
             ResponseSpecs._check_error_response(
                 response,
                 (HTTPStatus.BAD_REQUEST, HTTPStatus.INTERNAL_SERVER_ERROR),
-                error_value
+                error_value,
             )
 
         return check
 
     @staticmethod
     def request_returns_not_found(
-            error_value: AlertMessages | None = None
+        error_value: AlertMessages | None = None,
     ) -> Callable[[Response], None]:
 
         def check(response: Response):
             if error_value:
                 ResponseSpecs._check_error_response(
-                    response,
-                    (HTTPStatus.NOT_FOUND,),
-                    error_value
+                    response, (HTTPStatus.NOT_FOUND,), error_value
                 )
             else:
                 assert response.status_code == HTTPStatus.NOT_FOUND, (

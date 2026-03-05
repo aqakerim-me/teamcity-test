@@ -1,4 +1,5 @@
 from src.main.api.models.create_user_request import CreateUserRequest
+from src.main.ui.classes.session_storage import SessionStorage
 from src.main.ui.pages.base_page import BasePage
 from src.main.ui.pages.selectors import (
     ADMIN_CONFIRM_PASSWORD_INPUT,
@@ -11,7 +12,6 @@ from src.main.ui.pages.selectors import (
     ALERT_SELECTOR,
 )
 from src.main.ui.pages.ui_element import UIElement
-from src.main.ui.classes.session_storage import SessionStorage
 
 
 class AdminPage(BasePage):
@@ -21,54 +21,48 @@ class AdminPage(BasePage):
     @property
     def admin_panel_text(self) -> UIElement:
         return UIElement(
-            self.page.locator(ADMIN_PANEL_TEXT).first,
-            name="Admin panel text"
+            self.page.locator(ADMIN_PANEL_TEXT).first, name="Admin panel text"
         )
 
     @property
     def create_user_button(self) -> UIElement:
         return UIElement(
-            self.page.locator(ADMIN_CREATE_USER_BUTTON).first,
-            name="Create user button"
+            self.page.locator(ADMIN_CREATE_USER_BUTTON).first, name="Create user button"
         )
 
     @property
     def username_input(self) -> UIElement:
         return UIElement(
-            self.page.locator(ADMIN_USERNAME_INPUT).first,
-            name="Username input"
+            self.page.locator(ADMIN_USERNAME_INPUT).first, name="Username input"
         )
 
     @property
     def password_input(self) -> UIElement:
         return UIElement(
-            self.page.locator(ADMIN_PASSWORD_INPUT).first,
-            name="Password input"
+            self.page.locator(ADMIN_PASSWORD_INPUT).first, name="Password input"
         )
 
     @property
     def confirm_password_input(self) -> UIElement:
         return UIElement(
             self.page.locator(ADMIN_CONFIRM_PASSWORD_INPUT).first,
-            name="Confirm password input"
+            name="Confirm password input",
         )
 
     @property
     def submit_button(self) -> UIElement:
         return UIElement(
-            self.page.locator(ADMIN_SUBMIT_BUTTON).first,
-            name="Submit button"
+            self.page.locator(ADMIN_SUBMIT_BUTTON).first, name="Submit button"
         )
 
     @property
     def users_list(self) -> UIElement:
-        return UIElement(
-            self.page.locator(ADMIN_USERS_LIST).first,
-            name="Users list"
-        )
+        return UIElement(self.page.locator(ADMIN_USERS_LIST).first, name="Users list")
 
     def create_user(self, username: str, password: str):
-        SessionStorage.add_users([CreateUserRequest(username=username, password=password)])
+        SessionStorage.add_users(
+            [CreateUserRequest(username=username, password=password)]
+        )
 
         def _action():
             try:
@@ -106,37 +100,27 @@ class AdminPage(BasePage):
             self.page.wait_for_selector(combined, timeout=10_000)
             return self
 
-        return self._step(
-            title=f"Create user: {username}",
-            action=_action
-        )
+        return self._step(title=f"Create user: {username}", action=_action)
 
     def should_have_user(self, api_manager, username: str):
         def _action():
             user = api_manager.admin_steps.wait_user_appears(
-                username=username,
-                page=self.page
+                username=username, page=self.page
             )
-            assert user.username == username, (
-                f"User with username mismatch: expected '{username}', got '{user.username}'"
-            )
+            assert (
+                user.username == username
+            ), f"User with username mismatch: expected '{username}', got '{user.username}'"
             return self
 
-        return self._step(
-            title=f"Check user exists: {username}",
-            action=_action
-        )
+        return self._step(title=f"Check user exists: {username}", action=_action)
 
     def should_not_have_user(self, api_manager, username: str):
         def _action():
             users = api_manager.admin_steps.get_all_users()
             user_usernames = [u.username for u in users]
-            assert username not in user_usernames or username == "", (
-                f"User with username '{username}' should NOT be created"
-            )
+            assert (
+                username not in user_usernames or username == ""
+            ), f"User with username '{username}' should NOT be created"
             return self
 
-        return self._step(
-            title=f"Check user not created: {username}",
-            action=_action
-        )
+        return self._step(title=f"Check user not created: {username}", action=_action)

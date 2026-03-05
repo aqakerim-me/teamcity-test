@@ -2,11 +2,11 @@ import logging
 from typing import List, Optional
 
 import requests
-from src.main.api.models.build_steps_response import BuildStepsListResponse
 from playwright.sync_api import Page
 
 from src.main.api.configs.config import Config
-from src.main.api.models.allert_messages import AlertMessages
+from src.main.api.models.alert_messages import AlertMessages
+from src.main.api.models.build_steps_response import BuildStepsListResponse
 from src.main.api.models.create_build_step_request import CreateBuildStepRequest
 from src.main.api.models.create_build_step_response import CreateBuildStepResponse
 from src.main.api.models.create_buildtype_request import CreateBuildTypeRequest
@@ -37,9 +37,9 @@ class AdminSteps(BaseSteps):
 
         user.password = user_request.password
         # Assertions
-        assert user.username.lower() == user_request.username.lower(), (
-            f"Username mismatch: expected {user_request.username}, got {user.username}"
-        )
+        assert (
+            user.username.lower() == user_request.username.lower()
+        ), f"Username mismatch: expected {user_request.username}, got {user.username}"
         assert user.id > 0, "User ID should be positive"
 
         self.created_objects.append(user)
@@ -100,9 +100,9 @@ class AdminSteps(BaseSteps):
         project_id_response = create_project_response.id
 
         # Assertions
-        assert project_id_response == project_request.id, (
-            f"Project ID mismatch: expected {project_request.id}, got {project_id_response}"
-        )
+        assert (
+            project_id_response == project_request.id
+        ), f"Project ID mismatch: expected {project_request.id}, got {project_id_response}"
         assert isinstance(project_id_response, str), "Project ID must be a string"
         assert project_id_response.strip(), "Project ID must not be empty or whitespace"
 
@@ -186,7 +186,7 @@ class AdminSteps(BaseSteps):
         ).get(path_params={"BuildTypeId": build_type_id})
         logging.info(f"Get buildType with ID {build_type_id}")
         return response
-    
+
     @staticmethod
     def get_buildtype_paused_status(build_type_id: str) -> bool:
         """Получение статуса паузы buildType по ID"""
@@ -239,7 +239,7 @@ class AdminSteps(BaseSteps):
         ).get(path_params={"BuildTypeId": build_type_id, "stepId": step_id})
         logging.info(f"Get build step with ID {step_id}")
         return response
-    
+
     @staticmethod
     def get_build_steps(build_type_id: str) -> BuildStepsListResponse:
         """Получение всех build steps для build type"""
@@ -250,9 +250,11 @@ class AdminSteps(BaseSteps):
         ).get(path_params={"BuildTypeId": build_type_id})
         steps = response.step
         assert len(steps) > 0, "build steps list should not be empty"
-        logging.info(f"Retrieved {len(steps)} build steps for build type ID {build_type_id}")
+        logging.info(
+            f"Retrieved {len(steps)} build steps for build type ID {build_type_id}"
+        )
         return steps
-    
+
     @staticmethod
     def get_all_buildtypes() -> List[CreateBuildTypeResponse]:
         """Получение всех build types"""
@@ -300,7 +302,11 @@ class AdminSteps(BaseSteps):
             RequestSpecs.admin_auth_spec(),
             Endpoint.ADMIN_UPDATE_BUILD_STEP,
             ResponseSpecs.request_returns_ok(),
-        ).update(request, path_params={"BuildTypeId": build_type_id, "stepId": step_id})
+        ).update(
+            request,
+            path_params={"BuildTypeId": build_type_id, "stepId": step_id},
+            content_type="application/json",
+        )
         logging.info(f"Updated build step with ID {step_id}")
         return response
 
@@ -316,12 +322,16 @@ class AdminSteps(BaseSteps):
             RequestSpecs.admin_auth_spec(),
             Endpoint.ADMIN_UPDATE_BUILD_STEP,
             ResponseSpecs.request_returns_not_found(error_value),
-        ).update(request, path_params={"BuildTypeId": build_type_id, "stepId": step_id})
+        ).update(
+            request,
+            path_params={"BuildTypeId": build_type_id, "stepId": step_id},
+            content_type="application/json",
+        )
         logging.info(
             f"Invalid update build step blocked correctly with ID {step_id} and error {error_value}"
         )
         return response
-    
+
     @staticmethod
     def update_step_with_empty_type(
         request: CreateBuildStepRequest,
@@ -334,11 +344,16 @@ class AdminSteps(BaseSteps):
             RequestSpecs.admin_auth_spec(),
             Endpoint.ADMIN_UPDATE_BUILD_STEP,
             ResponseSpecs.request_returns_bad_request_or_server_error(error_value),
-        ).update(request, path_params={"BuildTypeId": build_type_id, "stepId": step_id})
+        ).update(
+            request,
+            path_params={"BuildTypeId": build_type_id, "stepId": step_id},
+            content_type="application/json",
+        )
         logging.info(
             f"Invalid update build step blocked correctly with ID {step_id} and error {error_value}"
         )
         return response
+
     def create_simple_build_type(project_id: str, build_type_name: str) -> str:
         """
         Create a simple build type with a basic command line runner.
@@ -362,18 +377,25 @@ class AdminSteps(BaseSteps):
                         "type": "simpleRunner",
                         "properties": {
                             "property": [
-                                {"name": "script.content", "value": "echo 'Test build executed successfully'"},
+                                {
+                                    "name": "script.content",
+                                    "value": "echo 'Test build executed successfully'",
+                                },
                                 {"name": "teamcity.step.mode", "value": "default"},
-                                {"name": "use.custom.script", "value": "true"}
+                                {"name": "use.custom.script", "value": "true"},
                             ]
-                        }
+                        },
                     }
                 ]
-            }
+            },
         }
 
         url = f"{Config.get('server')}{Config.get('apiVersion')}/buildTypes"
-        headers = {**RequestSpecs.admin_auth_spec(), "Content-Type": "application/json", "Accept": "application/json"}
+        headers = {
+            **RequestSpecs.admin_auth_spec(),
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+        }
 
         response = requests.post(url, headers=headers, json=build_type_data)
         ResponseSpecs.request_returns_ok()(response)
@@ -384,7 +406,7 @@ class AdminSteps(BaseSteps):
 
         logging.info(f"Created build type: {build_type_id}")
         return build_type_id
-    
+
     @staticmethod
     def delete_build_type(build_type_id: str):
         """
@@ -410,6 +432,7 @@ class AdminSteps(BaseSteps):
         delay_seconds: float = 1.0,
     ) -> CreateProjectResponse:
         """Ожидает появления проекта в списке проектов"""
+
         def action():
             projects = self.get_all_projects()
             logging.info(
@@ -443,6 +466,7 @@ class AdminSteps(BaseSteps):
         delay_seconds: float = 1.0,
     ) -> CreateUserResponse:
         """Ожидает появления пользователя в списке пользователей"""
+
         def action():
             url = f"{Config.get('server')}{Config.get('apiVersion')}/users"
             params = {
@@ -488,4 +512,3 @@ class AdminSteps(BaseSteps):
                 return user
 
         raise ValueError(f"User '{username}' not found in users list")
-

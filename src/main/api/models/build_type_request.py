@@ -1,6 +1,7 @@
-from src.main.api.models.base_model import BaseModel
-from typing import Annotated, Optional, Dict, Any
+from typing import Annotated, Any, Dict, Optional
+
 from src.main.api.generators.generating_rule import GeneratingRule
+from src.main.api.models.base_model import BaseModel
 
 
 class BuildTypeRequest(BaseModel):
@@ -26,8 +27,9 @@ class BuildTypeRequest(BaseModel):
         Returns:
             BuildTypeRequest: A randomly generated build type request
         """
-        from src.main.api.generators.random_model_generator import RandomModelGenerator
         import time
+
+        from src.main.api.generators.random_model_generator import RandomModelGenerator
 
         # Generate base model
         build_type = RandomModelGenerator.generate(BuildTypeRequest)

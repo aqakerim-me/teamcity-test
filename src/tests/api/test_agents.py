@@ -29,7 +29,9 @@ class TestAgentsPositive:
         assert hasattr(agents, "agent"), "Should have agent attribute"
         assert len(agents.agent) > 0, "Should have at least one agent"
 
-    def test_get_agent_information_by_id_success(self, api_manager: ApiManager, agent_with_state):
+    def test_get_agent_information_by_id_success(
+        self, api_manager: ApiManager, agent_with_state
+    ):
         agent_id, original_enabled = agent_with_state
 
         agent = api_manager.agent_steps.get_agent_by_id(agent_id)
@@ -43,9 +45,9 @@ class TestAgentsPositive:
         api_manager.agent_steps.disable_agent(agent_id)
         upd_agent = api_manager.agent_steps.get_agent_by_id(agent_id)
 
-        assert upd_agent.enabled is False, (
-            f"Agent {agent_id} should be disabled, got: {upd_agent.enabled}"
-        )
+        assert (
+            upd_agent.enabled is False
+        ), f"Agent {agent_id} should be disabled, got: {upd_agent.enabled}"
         assert upd_agent.id == agent_id, "Agent ID should match"
 
     def test_enable_agent_success(self, api_manager: ApiManager, agent_with_state):
@@ -54,7 +56,7 @@ class TestAgentsPositive:
         api_manager.agent_steps.enable_agent(agent_id)
         upd_agent = api_manager.agent_steps.get_agent_by_id(agent_id)
 
-        assert upd_agent.enabled is True, (
-            f"Agent {agent_id} should be enabled, got: {upd_agent.enabled}"
-        )
+        assert (
+            upd_agent.enabled is True
+        ), f"Agent {agent_id} should be enabled, got: {upd_agent.enabled}"
         assert upd_agent.id == agent_id, "Agent ID should match"

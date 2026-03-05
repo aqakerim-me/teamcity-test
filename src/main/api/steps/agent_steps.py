@@ -5,7 +5,9 @@ from src.main.api.configs.config import Config
 from src.main.api.models.agent_response import AgentResponse, AgentsListResponse
 from src.main.api.requests.skeleton.endpoint import Endpoint
 from src.main.api.requests.skeleton.requesters.crud_requester import CrudRequester
-from src.main.api.requests.skeleton.requesters.validated_crud_requester import ValidatedCrudRequester
+from src.main.api.requests.skeleton.requesters.validated_crud_requester import (
+    ValidatedCrudRequester,
+)
 from src.main.api.specs.request_specs import RequestSpecs
 from src.main.api.specs.response_specs import ResponseSpecs
 from src.main.api.steps.base_steps import BaseSteps
@@ -66,7 +68,11 @@ class AgentSteps(BaseSteps):
         logging.info(f"Agent id:{agent_id} disabled")
 
         # Return info for test verification
-        return {"original_enabled": original_state, "new_enabled": False, "agent_id": agent_id}
+        return {
+            "original_enabled": original_state,
+            "new_enabled": False,
+            "agent_id": agent_id,
+        }
 
     def enable_agent(self, agent_id: int):
         """Enable agent"""
@@ -79,7 +85,11 @@ class AgentSteps(BaseSteps):
         logging.info(f"Agent id:{agent_id} enabled")
 
         # Return info for test verification
-        return {"original_enabled": original_state, "new_enabled": True, "agent_id": agent_id}
+        return {
+            "original_enabled": original_state,
+            "new_enabled": True,
+            "agent_id": agent_id,
+        }
 
     def _get_agent_enabled_state(self, agent_id: int) -> bool:
         """Get current enabled state of agent"""

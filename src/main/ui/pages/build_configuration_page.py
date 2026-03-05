@@ -4,9 +4,8 @@ from typing import Optional
 from src.main.ui.pages.base_page import BasePage
 from src.main.ui.pages.selectors import (
     BUILD_RUN_BUTTON,
-    BUILD_STATUS_INDICATOR,
-    BUILD_CONFIGURATION_PAGE,
     BUILD_STATE_TEXT,
+    BUILD_STATUS_INDICATOR,
 )
 from src.main.ui.pages.ui_element import UIElement
 
@@ -34,26 +33,25 @@ class BuildConfigurationPage(BasePage):
     @property
     def run_button(self) -> UIElement:
         return UIElement(
-            self.page.locator(BUILD_RUN_BUTTON).first,
-            name="Run build button"
+            self.page.locator(BUILD_RUN_BUTTON).first, name="Run build button"
         )
 
     @property
     def status_indicator(self) -> UIElement:
         return UIElement(
             self.page.locator(BUILD_STATUS_INDICATOR).first,
-            name="Build status indicator"
+            name="Build status indicator",
         )
 
     @property
     def build_state_text(self) -> UIElement:
         return UIElement(
-            self.page.locator(BUILD_STATE_TEXT).first,
-            name="Build state text"
+            self.page.locator(BUILD_STATE_TEXT).first, name="Build state text"
         )
 
     def run_build(self):
         """Click the Run button to trigger a build."""
+
         def _action():
             # Wait for the run button to be visible and clickable
             run_btn = self.run_button.locator
@@ -71,12 +69,12 @@ class BuildConfigurationPage(BasePage):
             return self
 
         return self._step(
-            title=f"Run build for build type: {self.build_type_id}",
-            action=_action
+            title=f"Run build for build type: {self.build_type_id}", action=_action
         )
 
     def wait_for_build_state(self, expected_state: str, timeout: int = 30_000):
         """Wait for the build to reach a specific state (queued, running, finished)."""
+
         def _action():
             try:
                 # Try to find state text element
@@ -85,6 +83,7 @@ class BuildConfigurationPage(BasePage):
 
                 # Poll for expected state
                 import time
+
                 elapsed = 0
                 poll_interval = 1
                 while elapsed < timeout / 1000:
@@ -96,7 +95,9 @@ class BuildConfigurationPage(BasePage):
                     time.sleep(poll_interval)
                     elapsed += poll_interval
 
-                logger.warning(f"Build state '{expected_state}' not reached within timeout")
+                logger.warning(
+                    f"Build state '{expected_state}' not reached within timeout"
+                )
 
             except Exception as e:
                 logger.warning(f"Could not verify build state via UI: {e}")
@@ -104,8 +105,7 @@ class BuildConfigurationPage(BasePage):
             return self
 
         return self._step(
-            title=f"Wait for build state: {expected_state}",
-            action=_action
+            title=f"Wait for build state: {expected_state}", action=_action
         )
 
     def get_build_id_from_url(self) -> Optional[int]:
@@ -121,8 +121,10 @@ class BuildConfigurationPage(BasePage):
 
     def should_show_status(self, expected_status: str, timeout: int = 5_000):
         """Verify build status shows expected text in UI using explicit polling."""
+
         def _action():
             import time
+
             start = time.time()
             poll_ms = 500  # Poll every 500ms
 
@@ -143,27 +145,35 @@ class BuildConfigurationPage(BasePage):
                 self.page.wait_for_timeout(poll_ms)
 
         return self._step(
-            title=f"Verify build status shows '{expected_status}'",
-            action=_action
+            title=f"Verify build status shows '{expected_status}'", action=_action
         )
 
-    def should_have_build_completed_successfully(self, build_type_id: str, api_manager, timeout: int = 10):
+    def should_have_build_completed_successfully(
+        self, build_type_id: str, api_manager, timeout: int = 10
+    ):
         """Verify build completed successfully via API. Uses short timeout since UI already confirmed."""
+
         def _action():
             try:
-                completed_build = api_manager.build_steps.get_latest_build_and_wait(build_type_id, timeout)
-                assert completed_build.state == "finished", \
-                    f"Expected build to be finished, got state: {completed_build.state}"
-                assert completed_build.status == "SUCCESS", \
-                    f"Expected build status SUCCESS, got: {completed_build.status}"
+                completed_build = api_manager.build_steps.get_latest_build_and_wait(
+                    build_type_id, timeout
+                )
+                assert (
+                    completed_build.state == "finished"
+                ), f"Expected build to be finished, got state: {completed_build.state}"
+                assert (
+                    completed_build.status == "SUCCESS"
+                ), f"Expected build status SUCCESS, got: {completed_build.status}"
                 logger.info(f"Build completed successfully: {completed_build.id}")
             except TimeoutError:
                 # UI already showed Success, so API call is just verification
-                logger.info(f"API verification timed out after {timeout}s, but UI confirmed Success")
+                logger.info(
+                    f"API verification timed out after {timeout}s, but UI confirmed Success"
+                )
 
             return self
 
         return self._step(
             title=f"Verify build completed successfully for: {build_type_id}",
-            action=_action
+            action=_action,
         )

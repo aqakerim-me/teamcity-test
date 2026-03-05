@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional, List
+from typing import Any, Dict, List, Optional
 
 from src.main.api.models.base_model import BaseModel
 
@@ -11,7 +11,8 @@ class CreateUserResponse(BaseModel):
     properties: Optional[Dict[str, Any]] = None
     roles: Optional[Dict[str, Any]] = None
     groups: Optional[Dict[str, Any]] = None
-    password: Optional[str] = None 
+    password: Optional[str] = None
+
 
 class UsersListResponse(BaseModel):
     count: int

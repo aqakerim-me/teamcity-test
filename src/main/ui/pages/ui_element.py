@@ -3,7 +3,6 @@ import time
 
 from playwright.sync_api import Locator
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -64,11 +63,13 @@ class UIElement:
     def should_have_text(self, expected: str, timeout: int = 5000) -> "UIElement":
         self.locator.wait_for(state="visible", timeout=timeout)
         actual = self.get_text().strip()
-        assert expected in actual, \
-            f"Expected '{self.name}' to contain text '{expected}', got '{actual}'"
+        assert (
+            expected in actual
+        ), f"Expected '{self.name}' to contain text '{expected}', got '{actual}'"
         return self
-    
+
     def should_not_be_visible(self, timeout: int = 5000) -> "UIElement":
         self.locator.wait_for(state="hidden", timeout=timeout)
-        assert not self.is_visible(), \
-            f"Expected '{self.name}' to be hidden, but it is visible"
+        assert (
+            not self.is_visible()
+        ), f"Expected '{self.name}' to be hidden, but it is visible"

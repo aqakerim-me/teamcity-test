@@ -13,7 +13,7 @@ class AlertMessages(str, Enum):
     ERROR_REPLACING_ITEMS = "Error replacing items"
     NO_STEP_WITH_ID = "No step with id"
     NO_BUILD_TYPE_FOUND = "No build type nor template is found by id"
-    CREATED_STEP_CANNOT_HAVE_EMPTY_TYPE = "Created step cannot have empty 'type'."
+    CREATED_STEP_CANNOT_HAVE_EMPTY_TYPE = 'stepDescription" is null'
     BUILD_TYPE_NOT_FOUND = "Build type not found"
     BUILD_NOT_FOUND = "Build not found"
     BUILD_ALREADY_FINISHED = "Build already finished"

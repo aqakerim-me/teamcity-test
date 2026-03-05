@@ -4,12 +4,14 @@ import time
 import traceback
 
 import pytest
-from src.main.api.generators.random_model_generator import RandomModelGenerator
-from src.main.api.models.create_build_step_request import CreateBuildStepRequest
-from src.main.api.models.create_buildtype_request import CreateBuildTypeRequest
+import requests
+
 from src.main.api.classes.api_manager import ApiManager
 from src.main.api.configs.config import Config
 from src.main.api.generators.generate_data import GenerateData
+from src.main.api.generators.random_model_generator import RandomModelGenerator
+from src.main.api.models.create_build_step_request import CreateBuildStepRequest
+from src.main.api.models.create_buildtype_request import CreateBuildTypeRequest
 from src.main.api.models.create_project_request import CreateProjectRequest
 from src.main.api.specs.request_specs import RequestSpecs
 from src.main.api.specs.response_specs import ResponseSpecs
@@ -100,7 +102,7 @@ def build_type(api_manager: ApiManager):
         except Exception as e:
             logging.warning(f"Could not delete build type {build_type_id}: {e}")
     except Exception as e:
-        exc_info = ''.join(traceback.format_exception(type(e), e, e.__traceback__))
+        exc_info = "".join(traceback.format_exception(type(e), e, e.__traceback__))
         logging.error(f"Full error in build_type fixture:\n{exc_info}")
         pytest.skip(f"TeamCity server not ready (may be in maintenance mode): {e}")
 
@@ -194,9 +196,11 @@ def build_config(api_manager: ApiManager, created_project):
             project={"id": created_project.id},
         )
     )
+
+
 @pytest.fixture
 def created_step(api_manager: ApiManager, build_config):
     return api_manager.admin_steps.create_build_step(
-        RandomModelGenerator.generate(CreateBuildStepRequest), 
-        build_type_id=build_config.id
+        RandomModelGenerator.generate(CreateBuildStepRequest),
+        build_type_id=build_config.id,
     )

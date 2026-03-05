@@ -1,5 +1,5 @@
-from typing import Dict, Any, List
 from dataclasses import dataclass
+from typing import Any, Dict, List
 
 
 @dataclass
@@ -15,11 +15,11 @@ class ComparisonResult:
 
     def is_success(self) -> bool:
         return not self.mismatches
-    
+
     @property
     def mismatches(self) -> List[Mismatch]:
-        return self._mismatches 
-    
+        return self._mismatches
+
 
 class ModelComparator:
     @staticmethod
@@ -31,8 +31,14 @@ class ModelComparator:
             response_value = ModelComparator._get_field_value(response, response_field)
 
             if str(request_value) != str(response_value):
-                mismatches.append(Mismatch(f'{request_field} -> {response_field}', request_value, response_value))
-        
+                mismatches.append(
+                    Mismatch(
+                        f"{request_field} -> {response_field}",
+                        request_value,
+                        response_value,
+                    )
+                )
+
         return ComparisonResult(mismatches)
 
     def _get_field_value(obj: Any, field_name: str):
@@ -43,4 +49,6 @@ class ModelComparator:
                 return getattr(obj, field_name)
             current_class = current_class.__base__
 
-        raise AttributeError(f'Field {field_name} not found in class {obj.__class__.__name__}')
+        raise AttributeError(
+            f"Field {field_name} not found in class {obj.__class__.__name__}"
+        )

@@ -6,8 +6,9 @@ import requests
 from src.main.api.configs.config import Config
 from src.main.api.models.base_model import BaseModel
 from src.main.api.requests.skeleton.http_request import HttpRequest
-from src.main.api.requests.skeleton.interfaces.crud_end_interface import CrudEndpointInterface
-
+from src.main.api.requests.skeleton.interfaces.crud_end_interface import (
+    CrudEndpointInterface,
+)
 
 T = TypeVar("T", bound=BaseModel)
 
@@ -34,12 +35,14 @@ class CrudRequester(HttpRequest, CrudEndpointInterface):
             url += "?" + urlencode(query_params)
         return url
 
-    def post(self, model: Optional[T] = None, path_params: Optional[Dict[str, Any]] = None) -> requests.Response:
-        body = model.model_dump() if model is not None else ''
+    def post(
+        self, model: Optional[T] = None, path_params: Optional[Dict[str, Any]] = None
+    ) -> requests.Response:
+        body = model.model_dump() if model is not None else ""
         response = requests.post(
             url=self._build_url(path_params=path_params),
             headers=self.request_spec,
-            json=body
+            json=body,
         )
         self.response_spec(response)
         return response
@@ -52,9 +55,9 @@ class CrudRequester(HttpRequest, CrudEndpointInterface):
         merged_headers = {**self.request_spec, **headers}
 
         response = requests.post(
-            url=f'{self.base_url}{endpoint_config.url}',
+            url=f"{self.base_url}{endpoint_config.url}",
             headers=merged_headers,
-            data=body
+            data=body,
         )
         self.response_spec(response)
         return response
@@ -80,6 +83,7 @@ class CrudRequester(HttpRequest, CrudEndpointInterface):
 
     def update(
         self,
+        model=None,
         path_params: Optional[Dict[str, Any]] = None,
         data: Optional[Any] = None,
         content_type: Optional[str] = None,
@@ -95,7 +99,7 @@ class CrudRequester(HttpRequest, CrudEndpointInterface):
 
         # Handle different data types
         if data is None:
-            response = requests.put(url, headers=headers, data='')
+            response = requests.put(url, headers=headers, data="")
         elif content_type == "application/json":
             # For JSON, check for model_dump first (pydantic models)
             if isinstance(data, BaseModel):
@@ -104,11 +108,15 @@ class CrudRequester(HttpRequest, CrudEndpointInterface):
                 response = requests.put(url, headers=headers, json=data)
             elif isinstance(data, str):
                 import json
+
                 response = requests.put(url, headers=headers, json=json.loads(data))
             else:
                 import json
+
                 # Last resort - try to convert to string and parse
-                response = requests.put(url, headers=headers, json=json.loads(str(data)))
+                response = requests.put(
+                    url, headers=headers, json=json.loads(str(data))
+                )
         else:
             # For text/plain, expect string data
             body = data if isinstance(data, str) else str(data)
@@ -124,7 +132,9 @@ class CrudRequester(HttpRequest, CrudEndpointInterface):
         content_type: Optional[str] = None,
     ) -> requests.Response:
         """Alias for update method - PUT request"""
-        return self.update(path_params=path_params, data=data, content_type=content_type)
+        return self.update(
+            path_params=path_params, data=data, content_type=content_type
+        )
 
     def delete(
         self,
