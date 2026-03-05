@@ -145,47 +145,46 @@ jobs:
           files: 'all-reports/**/*.xml'
           comment_title: '🧪 Test Results'
           check_name: 'Test Results'
-        
 
-#  notify:
-#      name: Notify
-#      runs-on: ubuntu-latest
-#      needs: [api-tests, ui-tests]
-#      if: always()
-#      steps:
-#        - name: Resolve status
-#          id: status
-#          run: |
-#            API="${{ needs.api-tests.result }}"
-#            UI="${{ needs.ui-tests.result }}"
-#
-#            if [[ "$API" == "failure" || "$UI" == "failure" ]]; then
-#              echo "emoji=🔴" >> "$GITHUB_OUTPUT"
-#              echo "text=FAILED" >> "$GITHUB_OUTPUT"
-#            elif [[ "$API" == "cancelled" || "$UI" == "cancelled" ]]; then
-#              echo "emoji=⚪" >> "$GITHUB_OUTPUT"
-#              echo "text=CANCELLED" >> "$GITHUB_OUTPUT"
-#            else
-#              echo "emoji=🟢" >> "$GITHUB_OUTPUT"
-#              echo "text=PASSED" >> "$GITHUB_OUTPUT"
-#            fi
-#
-#        - name: Send Telegram notification
-#          run: |
-#            MESSAGE="${{ steps.status.outputs.emoji }} *${{ github.repository }}* — tests *${{ steps.status.outputs.text }}*
-#
-#            🌿 Branch: \`${{ github.ref_name }}\`
-#            👤 Triggered by: ${{ github.actor }}
-#            🔁 Event: ${{ github.event_name }}
-#
-#            📋 *Results:*
-#            • API Tests: ${{ needs.api-tests.result }}
-#            • UI Tests:  ${{ needs.ui-tests.result }}
-#
-#            🔗 [View run \#${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
-#
-#            curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
-#              --data-urlencode "chat_id=${{ secrets.TELEGRAM_CHAT_ID }}" \
-#              --data-urlencode "text=${MESSAGE}" \
-#              --data-urlencode "parse_mode=Markdown" \
-#              --data-urlencode "disable_web_page_preview=true"
+  notify:
+      name: Notify
+      runs-on: ubuntu-latest
+      needs: [api-tests, ui-tests]
+      if: always()
+      steps:
+        - name: Resolve status
+          id: status
+          run: |
+            API="${{ needs.api-tests.result }}"
+            UI="${{ needs.ui-tests.result }}"
+
+            if [[ "$API" == "failure" || "$UI" == "failure" ]]; then
+              echo "emoji=🔴" >> "$GITHUB_OUTPUT"
+              echo "text=FAILED" >> "$GITHUB_OUTPUT"
+            elif [[ "$API" == "cancelled" || "$UI" == "cancelled" ]]; then
+              echo "emoji=⚪" >> "$GITHUB_OUTPUT"
+              echo "text=CANCELLED" >> "$GITHUB_OUTPUT"
+            else
+              echo "emoji=🟢" >> "$GITHUB_OUTPUT"
+              echo "text=PASSED" >> "$GITHUB_OUTPUT"
+            fi
+
+        - name: Send Telegram notification
+          run: |
+            MESSAGE="${{ steps.status.outputs.emoji }} *${{ github.repository }}* — tests *${{ steps.status.outputs.text }}*
+
+            🌿 Branch: \`${{ github.ref_name }}\`
+            👤 Triggered by: ${{ github.actor }}
+            🔁 Event: ${{ github.event_name }}
+
+            📋 *Results:*
+            • API Tests: ${{ needs.api-tests.result }}
+            • UI Tests:  ${{ needs.ui-tests.result }}
+
+            🔗 [View run \#${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
+
+            curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
+              --data-urlencode "chat_id=${{ secrets.TELEGRAM_CHAT_ID }}" \
+              --data-urlencode "text=${MESSAGE}" \
+              --data-urlencode "parse_mode=Markdown" \
+              --data-urlencode "disable_web_page_preview=true"
