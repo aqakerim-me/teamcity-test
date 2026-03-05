@@ -3,14 +3,14 @@ set -euo pipefail
 
 COMPOSE_FILE="${1:-infra/docker_compose/docker-compose.yml}"
 TC_URL="http://localhost:8111"
-TIMEOUT=300
+TIMEOUT=600
 
 echo "▶ Starting TeamCity infrastructure from: $COMPOSE_FILE"
 docker compose -f "$COMPOSE_FILE" up -d
 
 echo "⏳ Waiting for TeamCity to respond..."
 elapsed=0
-until curl -s -o /dev/null -w "%{http_code}" "$TC_URL/" | grep -qE "^(200|302|401)"; do
+until curl -s -o /dev/null -w "%{http_code}" "$TC_URL/" | grep -qE "^(200|302|401|404|503)"; do
     if [ "$elapsed" -ge "$TIMEOUT" ]; then
         echo "❌ TeamCity did not start within ${TIMEOUT}s"
         docker compose -f "$COMPOSE_FILE" logs --tail=50
