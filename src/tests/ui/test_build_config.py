@@ -9,7 +9,7 @@ from src.main.ui.pages.edit_build_runners_page import EditBuildRunnersPage
 from src.main.ui.pages.projects_page import ProjectsPage
 
 
-@pytest.mark.test
+@pytest.mark.ui
 class TestBuildConfiguration:
     @pytest.mark.admin_session
     def test_admin_can_create_build_configuration(

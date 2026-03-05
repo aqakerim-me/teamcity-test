@@ -6,18 +6,14 @@ from typing import Iterable
 from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
 from src.main.ui.pages.base_page import BasePage
-from src.main.ui.pages.selectors import (
-    BUILD_ARTIFACT_DOWNLOAD_LINK,
-    BUILD_ARTIFACTS_LIST,
-    BUILD_ARTIFACTS_TAB,
-    BUILD_LOG_CONTAINER,
-    BUILD_LOG_LINE,
-    BUILD_LOG_TAB,
-    BUILD_LOG_TIMESTAMP,
-    BUILD_RESULTS_STATUS_TEXT,
-    BUILD_STOP_BUTTON,
-    BUILD_STOP_CONFIRM_BUTTON,
-)
+from src.main.ui.pages.selectors import (BUILD_ARTIFACT_DOWNLOAD_LINK,
+                                         BUILD_ARTIFACTS_LIST,
+                                         BUILD_ARTIFACTS_TAB,
+                                         BUILD_LOG_CONTAINER, BUILD_LOG_LINE,
+                                         BUILD_LOG_TAB, BUILD_LOG_TIMESTAMP,
+                                         BUILD_RESULTS_STATUS_TEXT,
+                                         BUILD_STOP_BUTTON,
+                                         BUILD_STOP_CONFIRM_BUTTON)
 from src.main.ui.pages.ui_element import UIElement
 
 logger = logging.getLogger(__name__)

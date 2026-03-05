@@ -3,7 +3,8 @@ import pytest
 from src.main.api.classes.api_manager import ApiManager
 from src.main.api.models.alert_messages import AlertMessages
 from src.main.api.models.build_response import BuildResponse
-from src.main.api.models.start_build_request import BuildTypeRef, StartBuildRequest
+from src.main.api.models.start_build_request import (BuildTypeRef,
+                                                     StartBuildRequest)
 
 
 @pytest.mark.api

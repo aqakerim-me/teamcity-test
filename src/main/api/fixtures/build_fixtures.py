@@ -10,7 +10,8 @@ from src.main.api.classes.api_manager import ApiManager
 from src.main.api.configs.config import Config
 from src.main.api.generators.generate_data import GenerateData
 from src.main.api.generators.random_model_generator import RandomModelGenerator
-from src.main.api.models.create_build_step_request import CreateBuildStepRequest
+from src.main.api.models.create_build_step_request import \
+    CreateBuildStepRequest
 from src.main.api.models.create_buildtype_request import CreateBuildTypeRequest
 from src.main.api.models.create_project_request import CreateProjectRequest
 from src.main.api.specs.request_specs import RequestSpecs

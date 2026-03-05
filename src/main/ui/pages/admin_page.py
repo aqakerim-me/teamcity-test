@@ -1,16 +1,13 @@
 from src.main.api.models.create_user_request import CreateUserRequest
 from src.main.ui.classes.session_storage import SessionStorage
 from src.main.ui.pages.base_page import BasePage
-from src.main.ui.pages.selectors import (
-    ADMIN_CONFIRM_PASSWORD_INPUT,
-    ADMIN_CREATE_USER_BUTTON,
-    ADMIN_PANEL_TEXT,
-    ADMIN_PASSWORD_INPUT,
-    ADMIN_SUBMIT_BUTTON,
-    ADMIN_USERNAME_INPUT,
-    ADMIN_USERS_LIST,
-    ALERT_SELECTOR,
-)
+from src.main.ui.pages.selectors import (ADMIN_CONFIRM_PASSWORD_INPUT,
+                                         ADMIN_CREATE_USER_BUTTON,
+                                         ADMIN_PANEL_TEXT,
+                                         ADMIN_PASSWORD_INPUT,
+                                         ADMIN_SUBMIT_BUTTON,
+                                         ADMIN_USERNAME_INPUT,
+                                         ADMIN_USERS_LIST, ALERT_SELECTOR)
 from src.main.ui.pages.ui_element import UIElement
 
 

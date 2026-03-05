@@ -1,15 +1,10 @@
 from src.main.api.generators.generate_data import GenerateData
 from src.main.ui.pages.base_page import BasePage
-from src.main.ui.pages.selectors import (
-    ALERT_SELECTOR,
-    CREATE_PROJECT_BUTTON,
-    PROJECT_ID_INPUT,
-    PROJECT_NAME_INPUT,
-    PROJECT_NAVIGATION_MENU,
-    PROJECT_SUBMIT_BUTTON,
-    PROJECT_WELCOME_TEXT,
-    PROJECTS_LIST,
-)
+from src.main.ui.pages.selectors import (ALERT_SELECTOR, CREATE_PROJECT_BUTTON,
+                                         PROJECT_ID_INPUT, PROJECT_NAME_INPUT,
+                                         PROJECT_NAVIGATION_MENU,
+                                         PROJECT_SUBMIT_BUTTON,
+                                         PROJECT_WELCOME_TEXT, PROJECTS_LIST)
 from src.main.ui.pages.ui_element import UIElement
 
 
@@ -77,9 +72,8 @@ class ProjectsPage(BasePage):
         project_name: str,
         project_id: str | None = None,
     ):
-        from src.main.ui.pages.create_build_config_page import (
-            CreateBuildConfigurationPage,
-        )
+        from src.main.ui.pages.create_build_config_page import \
+            CreateBuildConfigurationPage
 
         self._click_project_in_list(project_name, project_id)
 

@@ -29,7 +29,8 @@ class BuildTypeRequest(BaseModel):
         """
         import time
 
-        from src.main.api.generators.random_model_generator import RandomModelGenerator
+        from src.main.api.generators.random_model_generator import \
+            RandomModelGenerator
 
         # Generate base model
         build_type = RandomModelGenerator.generate(BuildTypeRequest)

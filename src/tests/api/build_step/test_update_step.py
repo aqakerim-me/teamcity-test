@@ -5,10 +5,11 @@ from src.main.api.generators.generate_data import GenerateData
 from src.main.api.generators.random_model_generator import RandomModelGenerator
 from src.main.api.models.alert_messages import AlertMessages
 from src.main.api.models.comparison.model_assertions import ModelAssertions
-from src.main.api.models.create_build_step_request import CreateBuildStepRequest
+from src.main.api.models.create_build_step_request import \
+    CreateBuildStepRequest
 
 
-@pytest.mark.test
+@pytest.mark.api
 class TestUpdateStep:
     def test_update_step(self, api_manager: ApiManager, build_config):
         # создаём шаг сборки
@@ -25,7 +26,7 @@ class TestUpdateStep:
         ModelAssertions(create_step_request, updated_step).match()
 
 
-@pytest.mark.test
+@pytest.mark.api
 class TestUpdateStepNegative:
     def test_update_step_with_empty_type(self, api_manager: ApiManager, build_config):
         create_step_request = RandomModelGenerator.generate(CreateBuildStepRequest)

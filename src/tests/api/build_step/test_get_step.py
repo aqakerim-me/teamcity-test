@@ -5,10 +5,11 @@ from src.main.api.generators.generate_data import GenerateData
 from src.main.api.generators.random_model_generator import RandomModelGenerator
 from src.main.api.models.alert_messages import AlertMessages
 from src.main.api.models.comparison.model_assertions import ModelAssertions
-from src.main.api.models.create_build_step_request import CreateBuildStepRequest
+from src.main.api.models.create_build_step_request import \
+    CreateBuildStepRequest
 
 
-@pytest.mark.test
+@pytest.mark.api
 class TestGetStep:
     def test_get_step_by_id(self, api_manager: ApiManager, build_config):
         # создаём шаг сборки
@@ -25,7 +26,7 @@ class TestGetStep:
         ModelAssertions(created_step, get_step_response).match()
 
 
-@pytest.mark.test
+@pytest.mark.api
 class TestGetStepNegative:
     def test_get_step_with_invalid_id(self, api_manager: ApiManager, build_config):
         INVALID_STEP_ID = GenerateData.get_step_id()
