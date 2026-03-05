@@ -5,8 +5,7 @@ from src.main.api.generators.generate_data import GenerateData
 from src.main.api.generators.random_model_generator import RandomModelGenerator
 from src.main.api.models.alert_messages import AlertMessages
 from src.main.api.models.comparison.model_assertions import ModelAssertions
-from src.main.api.models.create_build_step_request import \
-    CreateBuildStepRequest
+from src.main.api.models.create_build_step_request import CreateBuildStepRequest
 
 
 @pytest.mark.api

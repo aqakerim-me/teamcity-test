@@ -2,8 +2,11 @@ import logging
 from typing import Optional
 
 from src.main.ui.pages.base_page import BasePage
-from src.main.ui.pages.selectors import (BUILD_RUN_BUTTON, BUILD_STATE_TEXT,
-                                         BUILD_STATUS_INDICATOR)
+from src.main.ui.pages.selectors import (
+    BUILD_RUN_BUTTON,
+    BUILD_STATE_TEXT,
+    BUILD_STATUS_INDICATOR,
+)
 from src.main.ui.pages.ui_element import UIElement
 
 logger = logging.getLogger(__name__)

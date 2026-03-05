@@ -7,22 +7,19 @@ from playwright.sync_api import Page
 from src.main.api.configs.config import Config
 from src.main.api.models.alert_messages import AlertMessages
 from src.main.api.models.build_steps_response import BuildStepsListResponse
-from src.main.api.models.create_build_step_request import \
-    CreateBuildStepRequest
-from src.main.api.models.create_build_step_response import \
-    CreateBuildStepResponse
+from src.main.api.models.create_build_step_request import CreateBuildStepRequest
+from src.main.api.models.create_build_step_response import CreateBuildStepResponse
 from src.main.api.models.create_buildtype_request import CreateBuildTypeRequest
-from src.main.api.models.create_buildtype_response import \
-    CreateBuildTypeResponse
+from src.main.api.models.create_buildtype_response import CreateBuildTypeResponse
 from src.main.api.models.create_project_request import CreateProjectRequest
 from src.main.api.models.create_project_response import CreateProjectResponse
 from src.main.api.models.create_user_request import CreateUserRequest
 from src.main.api.models.create_user_response import CreateUserResponse
 from src.main.api.requests.skeleton.endpoint import Endpoint
-from src.main.api.requests.skeleton.requesters.crud_requester import \
-    CrudRequester
-from src.main.api.requests.skeleton.requesters.validated_crud_requester import \
-    ValidatedCrudRequester
+from src.main.api.requests.skeleton.requesters.crud_requester import CrudRequester
+from src.main.api.requests.skeleton.requesters.validated_crud_requester import (
+    ValidatedCrudRequester,
+)
 from src.main.api.specs.request_specs import RequestSpecs
 from src.main.api.specs.response_specs import ResponseSpecs
 from src.main.api.steps.base_steps import BaseSteps

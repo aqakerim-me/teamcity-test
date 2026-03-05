@@ -8,10 +8,12 @@ from src.main.ui.pages.build_configuration_page import BuildConfigurationPage
 from src.main.ui.pages.build_queue_page import BuildQueuePage
 from src.main.ui.pages.build_results_page import BuildResultsPage
 from src.main.ui.pages.teamcity_alerts import TeamCityAlert
-from src.tests.ui.builds_helpers import (ensure_any_queued_or_skip,
-                                         trigger_build_ids,
-                                         wait_for_build_state,
-                                         wait_for_canceled_build)
+from src.tests.ui.builds_helpers import (
+    ensure_any_queued_or_skip,
+    trigger_build_ids,
+    wait_for_build_state,
+    wait_for_canceled_build,
+)
 
 
 @pytest.mark.ui

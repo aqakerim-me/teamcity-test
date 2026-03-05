@@ -4,11 +4,13 @@ from contextlib import suppress
 import pytest
 
 from src.main.ui.pages.base_page import BasePage
-from src.main.ui.pages.selectors import (BUILD_QUEUE_BUILD_TYPE_CELL,
-                                         BUILD_QUEUE_CANCEL_BUTTON,
-                                         BUILD_QUEUE_ROWS,
-                                         BUILD_QUEUE_TIME_CELL,
-                                         BUILD_QUEUE_TITLE)
+from src.main.ui.pages.selectors import (
+    BUILD_QUEUE_BUILD_TYPE_CELL,
+    BUILD_QUEUE_CANCEL_BUTTON,
+    BUILD_QUEUE_ROWS,
+    BUILD_QUEUE_TIME_CELL,
+    BUILD_QUEUE_TITLE,
+)
 
 
 class BuildQueuePage(BasePage):

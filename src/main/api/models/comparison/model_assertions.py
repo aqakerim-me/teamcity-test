@@ -1,8 +1,9 @@
 from typing import Any
 
 from src.main.api.models.comparison.model_comparator import ModelComparator
-from src.main.api.models.comparison.model_comparison_configuration import \
-    ModelComparisonConfigLoader
+from src.main.api.models.comparison.model_comparison_configuration import (
+    ModelComparisonConfigLoader,
+)
 
 
 def models_match(request: Any, response: Any):

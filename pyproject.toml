@@ -7,3 +7,7 @@ exclude = '''
   | __pycache__
 )/
 '''
+
+[tool.isort]
+profile = "black"
+skip = [".venv"]

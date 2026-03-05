@@ -2,8 +2,7 @@ import pytest
 
 from src.main.api.classes.api_manager import ApiManager
 from src.main.api.generators.random_model_generator import RandomModelGenerator
-from src.main.api.models.create_build_step_request import \
-    CreateBuildStepRequest
+from src.main.api.models.create_build_step_request import CreateBuildStepRequest
 
 
 @pytest.mark.api

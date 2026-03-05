@@ -1,7 +1,10 @@
 from src.main.ui.pages.base_page import BasePage
-from src.main.ui.pages.selectors import (LOGIN_BUTTON, LOGIN_ERROR_MESSAGE,
-                                         LOGIN_PASSWORD_INPUT,
-                                         LOGIN_USERNAME_INPUT)
+from src.main.ui.pages.selectors import (
+    LOGIN_BUTTON,
+    LOGIN_ERROR_MESSAGE,
+    LOGIN_PASSWORD_INPUT,
+    LOGIN_USERNAME_INPUT,
+)
 from src.main.ui.pages.ui_element import UIElement
 
 

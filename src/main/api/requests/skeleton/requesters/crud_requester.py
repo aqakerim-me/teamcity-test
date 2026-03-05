@@ -6,8 +6,9 @@ import requests
 from src.main.api.configs.config import Config
 from src.main.api.models.base_model import BaseModel
 from src.main.api.requests.skeleton.http_request import HttpRequest
-from src.main.api.requests.skeleton.interfaces.crud_end_interface import \
-    CrudEndpointInterface
+from src.main.api.requests.skeleton.interfaces.crud_end_interface import (
+    CrudEndpointInterface,
+)
 
 T = TypeVar("T", bound=BaseModel)
 
