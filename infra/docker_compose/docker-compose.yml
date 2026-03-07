@@ -4,8 +4,6 @@ services:
   teamcity-server:
     image: jetbrains/teamcity-server
     container_name: teamcity-server
-    environment:
-      - TEAMCITY_SERVER_OPTS=-Dteamcity.startup.maintenance=false
     ports:
       - "8111:8111"
     volumes:
