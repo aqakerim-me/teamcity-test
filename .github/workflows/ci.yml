@@ -67,12 +67,25 @@ jobs:
         run: bash scripts/install_deps.sh
 
       - name: Cache Docker images
-        uses: ScribeMD/docker-cache@0.5.0
+        uses: actions/cache@v4
         with:
+          path: /tmp/docker-cache
           key: docker-${{ runner.os }}-${{ hashFiles(env.COMPOSE_FILE) }}
+
+      - name: Load cached Docker images
+        run: |
+          if [ -f /tmp/docker-cache/images.tar ]; then
+            docker load < /tmp/docker-cache/images.tar
+          fi
 
       - name: Start TeamCity infrastructure
         run: bash scripts/start_infra.sh "${{ env.COMPOSE_FILE }}"
+
+      - name: Save Docker images to cache
+        if: always()
+        run: |
+          mkdir -p /tmp/docker-cache
+          docker save $(docker images -q | tr '\n' ' ') -o /tmp/docker-cache/images.tar || true
 
       - name: Run API tests
         env:
@@ -113,12 +126,25 @@ jobs:
         run: bash scripts/install_deps.sh
 
       - name: Cache Docker images
-        uses: ScribeMD/docker-cache@0.5.0
+        uses: actions/cache@v4
         with:
+          path: /tmp/docker-cache
           key: docker-${{ runner.os }}-${{ hashFiles(env.COMPOSE_FILE) }}
+
+      - name: Load cached Docker images
+        run: |
+          if [ -f /tmp/docker-cache/images.tar ]; then
+            docker load < /tmp/docker-cache/images.tar
+          fi
 
       - name: Start TeamCity infrastructure
         run: bash scripts/start_infra.sh "${{ env.COMPOSE_FILE }}"
+
+      - name: Save Docker images to cache
+        if: always()
+        run: |
+          mkdir -p /tmp/docker-cache
+          docker save $(docker images -q | tr '\n' ' ') -o /tmp/docker-cache/images.tar || true
 
       - name: Run UI tests
         env:

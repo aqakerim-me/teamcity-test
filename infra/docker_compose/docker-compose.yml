@@ -6,10 +6,12 @@ services:
     container_name: teamcity-server
     ports:
       - "8111:8111"
+    environment:
+      - TEAMCITY_DATA_PATH=/data/teamcity_server/datadir
+      - TEAMCITY_SERVER_OPTS=-Dteamcity.first.start.data.dir.confirmation.disabled=true
     volumes:
       - teamcity_data:/data/teamcity_server/datadir
       - teamcity_logs:/opt/teamcity/logs
-      - ./infra/teamcity-startup.properties:/opt/teamcity/conf/teamcity-startup.properties
     restart: unless-stopped
 
   teamcity-agent:
