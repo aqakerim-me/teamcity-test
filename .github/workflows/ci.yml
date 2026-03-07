@@ -45,8 +45,8 @@ jobs:
       - name: flake8
         run: flake8 .
 
-  infra:
-    name: Infra
+  tests:
+    name: Tests
     runs-on: ubuntu-latest
     needs: lint
     if: |
@@ -58,15 +58,30 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
       - name: Restore TeamCity Docker image cache
         uses: actions/cache@v4
         with:
           path: ${{ runner.temp }}/docker-cache/teamcity
           key: teamcity-images-${{ runner.os }}-${{ hashFiles('infra/docker_compose/docker-compose.yml') }}
 
+      - name: Ensure TeamCity images
+        env:
+          TEAMCITY_SERVER_IMAGE: ${{ env.TEAMCITY_SERVER_IMAGE }}
+          TEAMCITY_AGENT_IMAGE: ${{ env.TEAMCITY_AGENT_IMAGE }}
+          TEAMCITY_IMAGE_CACHE_DIR: ${{ runner.temp }}/docker-cache/teamcity
+        run: bash scripts/ensure_teamcity_images.sh
+
+      - name: Install dependencies
+        run: bash scripts/install_deps.sh
+
       - name: Debug runner and Docker context
         run: |
-          DEBUG_DIR="${RUNNER_TEMP}/teamcity-infra-debug"
+          DEBUG_DIR="${RUNNER_TEMP}/teamcity-tests-debug"
           mkdir -p "${DEBUG_DIR}"
           echo "DEBUG_DIR=${DEBUG_DIR}" >> "$GITHUB_ENV"
           echo "RUNTIME_ENV_FILE=${RUNNER_TEMP}/teamcity-runtime.env" >> "$GITHUB_ENV"
@@ -87,16 +102,10 @@ jobs:
           echo "Docker cache directory:"
           ls -lah "${RUNNER_TEMP}/docker-cache/teamcity" || true
 
-      - name: Ensure TeamCity images
-        env:
-          TEAMCITY_SERVER_IMAGE: ${{ env.TEAMCITY_SERVER_IMAGE }}
-          TEAMCITY_AGENT_IMAGE: ${{ env.TEAMCITY_AGENT_IMAGE }}
-          TEAMCITY_IMAGE_CACHE_DIR: ${{ runner.temp }}/docker-cache/teamcity
-        run: bash scripts/ensure_teamcity_images.sh
-
       - name: Start TeamCity infrastructure
+        id: start_infra
         run: |
-          DEBUG_DIR="${DEBUG_DIR:-${RUNNER_TEMP}/teamcity-infra-debug}"
+          DEBUG_DIR="${DEBUG_DIR:-${RUNNER_TEMP}/teamcity-tests-debug}"
           RUNTIME_ENV_FILE="${TEAMCITY_RUNTIME_ENV_FILE:-${RUNTIME_ENV_FILE:-${RUNNER_TEMP}/teamcity-runtime.env}}"
 
           load_runtime_env() {
@@ -180,7 +189,7 @@ jobs:
       - name: Debug TeamCity state after startup attempt
         if: always()
         run: |
-          DEBUG_DIR="${DEBUG_DIR:-${RUNNER_TEMP}/teamcity-infra-debug}"
+          DEBUG_DIR="${DEBUG_DIR:-${RUNNER_TEMP}/teamcity-tests-debug}"
           RUNTIME_ENV_FILE="${TEAMCITY_RUNTIME_ENV_FILE:-${RUNTIME_ENV_FILE:-${RUNNER_TEMP}/teamcity-runtime.env}}"
           if [ -f "${RUNTIME_ENV_FILE}" ]; then
             # shellcheck disable=SC1090
@@ -218,7 +227,7 @@ jobs:
       - name: Dump TeamCity logs on failure
         if: failure()
         run: |
-          DEBUG_DIR="${DEBUG_DIR:-${RUNNER_TEMP}/teamcity-infra-debug}"
+          DEBUG_DIR="${DEBUG_DIR:-${RUNNER_TEMP}/teamcity-tests-debug}"
           RUNTIME_ENV_FILE="${TEAMCITY_RUNTIME_ENV_FILE:-${RUNTIME_ENV_FILE:-${RUNNER_TEMP}/teamcity-runtime.env}}"
           mkdir -p "${DEBUG_DIR}"
           echo "Compose logs:"
@@ -237,62 +246,25 @@ jobs:
             cp -R "${TEAMCITY_SERVER_LOGS}" "${DEBUG_DIR}/runtime-logs" || true
           fi
 
-      - name: Upload infra diagnostics
+      - name: Upload TeamCity diagnostics
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: infra-debug-${{ github.run_number }}
-          path: ${{ runner.temp }}/teamcity-infra-debug
+          name: teamcity-debug-${{ github.run_number }}
+          path: ${{ runner.temp }}/teamcity-tests-debug
           retention-days: 14
 
-      - name: Stop infrastructure
-        if: always()
-        run: bash scripts/stop_infra.sh
-
-  api-tests:
-    name: API Tests
-    runs-on: ubuntu-latest
-    needs: [lint, infra]
-    if: |
-      github.event.inputs.suite == '' ||
-      github.event.inputs.suite == 'all' ||
-      github.event.inputs.suite == 'api'
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-          cache: pip
-
-      - name: Restore TeamCity Docker image cache
-        uses: actions/cache@v4
-        with:
-          path: ${{ runner.temp }}/docker-cache/teamcity
-          key: teamcity-images-${{ runner.os }}-${{ hashFiles('infra/docker_compose/docker-compose.yml') }}
-
-      - name: Ensure TeamCity images
-        env:
-          TEAMCITY_SERVER_IMAGE: ${{ env.TEAMCITY_SERVER_IMAGE }}
-          TEAMCITY_AGENT_IMAGE: ${{ env.TEAMCITY_AGENT_IMAGE }}
-          TEAMCITY_IMAGE_CACHE_DIR: ${{ runner.temp }}/docker-cache/teamcity
-        run: bash scripts/ensure_teamcity_images.sh
-
-      - name: Install dependencies
-        run: bash scripts/install_deps.sh
-
-      - name: Start TeamCity infrastructure
-        run: bash scripts/start_infra.sh
-
       - name: Run API tests
+        if: |
+          steps.start_infra.outcome == 'success' &&
+          (
+            github.event.inputs.suite == '' ||
+            github.event.inputs.suite == 'all' ||
+            github.event.inputs.suite == 'api'
+          )
         env:
           TC_ADMIN_BEARERTOKEN: ${{ secrets.TC_ADMIN_BEARERTOKEN }}
         run: bash scripts/run_api_tests.sh
-
-      - name: Stop infrastructure
-        if: always()
-        run: bash scripts/stop_infra.sh
 
       - name: Upload API report
         if: always()
@@ -301,44 +273,17 @@ jobs:
           name: api-report-${{ github.run_number }}
           path: reports/api/
           retention-days: 14
-
-  ui-tests:
-    name: UI Tests
-    runs-on: ubuntu-latest
-    needs: [lint, infra]
-    if: |
-      github.event.inputs.suite == '' ||
-      github.event.inputs.suite == 'all' ||
-      github.event.inputs.suite == 'ui'
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-          cache: pip
-
-      - name: Restore TeamCity Docker image cache
-        uses: actions/cache@v4
-        with:
-          path: ${{ runner.temp }}/docker-cache/teamcity
-          key: teamcity-images-${{ runner.os }}-${{ hashFiles('infra/docker_compose/docker-compose.yml') }}
-
-      - name: Ensure TeamCity images
-        env:
-          TEAMCITY_SERVER_IMAGE: ${{ env.TEAMCITY_SERVER_IMAGE }}
-          TEAMCITY_AGENT_IMAGE: ${{ env.TEAMCITY_AGENT_IMAGE }}
-          TEAMCITY_IMAGE_CACHE_DIR: ${{ runner.temp }}/docker-cache/teamcity
-        run: bash scripts/ensure_teamcity_images.sh
-
-      - name: Install dependencies
-        run: bash scripts/install_deps.sh
-
-      - name: Start TeamCity infrastructure
-        run: bash scripts/start_infra.sh
+          if-no-files-found: ignore
 
       - name: Run UI tests
+        if: |
+          always() &&
+          steps.start_infra.outcome == 'success' &&
+          (
+            github.event.inputs.suite == '' ||
+            github.event.inputs.suite == 'all' ||
+            github.event.inputs.suite == 'ui'
+          )
         env:
           TC_ADMIN_BEARERTOKEN: ${{ secrets.TC_ADMIN_BEARERTOKEN }}
         run: bash scripts/run_ui_tests.sh
@@ -356,11 +301,12 @@ jobs:
             reports/ui/
             screenshots/
           retention-days: 14
+          if-no-files-found: ignore
 
   test-summary:
     name: Test Summary
     runs-on: ubuntu-latest
-    needs: [ api-tests, ui-tests ]
+    needs: [tests]
     if: always()
     steps:
       - name: Download all reports
@@ -374,48 +320,43 @@ jobs:
         uses: EnricoMi/publish-unit-test-result-action@v2
         with:
           files: 'all-reports/**/*.xml'
-          comment_title: '🧪 Test Results'
+          comment_title: 'Test Results'
           check_name: 'Test Results'
 
   notify:
-      name: Notify
-      runs-on: ubuntu-latest
-      needs: [api-tests, ui-tests]
-      if: always()
-      steps:
-        - name: Resolve status
-          id: status
-          run: |
-            API="${{ needs.api-tests.result }}"
-            UI="${{ needs.ui-tests.result }}"
+    name: Notify
+    runs-on: ubuntu-latest
+    needs: [tests]
+    if: always()
+    steps:
+      - name: Resolve status
+        id: status
+        run: |
+          TESTS="${{ needs.tests.result }}"
 
-            if [[ "$API" == "failure" || "$UI" == "failure" ]]; then
-              echo "emoji=🔴" >> "$GITHUB_OUTPUT"
-              echo "text=FAILED" >> "$GITHUB_OUTPUT"
-            elif [[ "$API" == "cancelled" || "$UI" == "cancelled" ]]; then
-              echo "emoji=⚪" >> "$GITHUB_OUTPUT"
-              echo "text=CANCELLED" >> "$GITHUB_OUTPUT"
-            else
-              echo "emoji=🟢" >> "$GITHUB_OUTPUT"
-              echo "text=PASSED" >> "$GITHUB_OUTPUT"
-            fi
+          if [[ "$TESTS" == "failure" ]]; then
+            echo "status=FAILED" >> "$GITHUB_OUTPUT"
+          elif [[ "$TESTS" == "cancelled" ]]; then
+            echo "status=CANCELLED" >> "$GITHUB_OUTPUT"
+          else
+            echo "status=PASSED" >> "$GITHUB_OUTPUT"
+          fi
 
-        - name: Send Telegram notification
-          run: |
-            MESSAGE="${{ steps.status.outputs.emoji }} *${{ github.repository }}* — tests *${{ steps.status.outputs.text }}*
+      - name: Send Telegram notification
+        run: |
+          MESSAGE="TeamCity tests ${{ steps.status.outputs.status }}
 
-            🌿 Branch: \`${{ github.ref_name }}\`
-            👤 Triggered by: ${{ github.actor }}
-            🔁 Event: ${{ github.event_name }}
+          Branch: ${{ github.ref_name }}
+          Triggered by: ${{ github.actor }}
+          Event: ${{ github.event_name }}
+          Suite: ${{ github.event.inputs.suite || 'all' }}
 
-            📋 *Results:*
-            • API Tests: ${{ needs.api-tests.result }}
-            • UI Tests:  ${{ needs.ui-tests.result }}
+          Results:
+          - Combined Tests Job: ${{ needs.tests.result }}
 
-            🔗 [View run \#${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
+          View run #${{ github.run_number }}: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
 
-            curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
-              --data-urlencode "chat_id=${{ secrets.TELEGRAM_CHAT_ID }}" \
-              --data-urlencode "text=${MESSAGE}" \
-              --data-urlencode "parse_mode=Markdown" \
-              --data-urlencode "disable_web_page_preview=true"
+          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
+            --data-urlencode "chat_id=${{ secrets.TELEGRAM_CHAT_ID }}" \
+            --data-urlencode "text=${MESSAGE}" \
+            --data-urlencode "disable_web_page_preview=true"
