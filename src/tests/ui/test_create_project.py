@@ -7,6 +7,7 @@ from src.main.api.models.create_project_request import CreateProjectRequest
 from src.main.ui.pages.conditions import Condition
 from src.main.ui.pages.projects_page import ProjectsPage
 
+
 @pytest.mark.my_ui
 @pytest.mark.ui
 @pytest.mark.admin_session
@@ -21,9 +22,7 @@ class TestCreateProject:
     ):
 
         # Create project
-        (ProjectsPage(page).
-         open().
-         create_new_project(project_id, project_name))
+        (ProjectsPage(page).open().create_new_project(project_id, project_name))
 
         # Asserts
         projects = api_manager.admin_steps.get_all_projects()

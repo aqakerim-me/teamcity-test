@@ -6,13 +6,13 @@ from src.main.ui.pages.selectors import (
     ALERT_SELECTOR,
     CREATE_PROJECT_BUTTON,
     NEW_CONNECTION_TITLE,
+    PROCEED_WITHOUT_REPOSITORY_BUTTON,
     PROJECT_ID_INPUT,
     PROJECT_NAME_INPUT,
     PROJECT_NAVIGATION_MENU,
     PROJECT_SUBMIT_BUTTON,
     PROJECT_WELCOME_TEXT,
     PROJECTS_LIST,
-    PROCEED_WITHOUT_REPOSITORY_BUTTON,
     SET_UP_YOUR_BUILD_SKIP_BUTTON,
     SET_UP_YOUR_BUILD_TITLE,
 )
@@ -229,12 +229,12 @@ class ProjectsPage(BasePage):
 
         def _action():
             (
-                self.open_create_project_form().
-                fill_project_id(project_id).
-                fill_project_name(project_name).
-                submit_project_form().
-                proceed_without_repository().
-                skip_setup_build()
+                self.open_create_project_form()
+                .fill_project_id(project_id)
+                .fill_project_name(project_name)
+                .submit_project_form()
+                .proceed_without_repository()
+                .skip_setup_build()
             )
             return self
 

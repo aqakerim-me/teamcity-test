@@ -1,3 +1,4 @@
+import json
 from typing import Any, Dict, Optional, TypeVar
 from urllib.parse import urlencode
 
@@ -116,7 +117,11 @@ class CrudRequester(HttpRequest, CrudEndpointInterface):
             url = self._build_url(query_params=query_params)
             if id is not None:
                 url += f"/id:{id}"
-        body = {"id": id, "query_params": query_params} if id is not None or query_params else None
+        body = (
+            {"id": id, "query_params": query_params}
+            if id is not None or query_params
+            else None
+        )
         return self._execute(
             method="GET",
             url=url,
@@ -141,30 +146,59 @@ class CrudRequester(HttpRequest, CrudEndpointInterface):
             headers["Accept"] = "text/plain"
 
         if data is None:
-            action = lambda: requests.put(url, headers=headers, data="")
-        elif content_type == "application/json":
+            return self._execute(
+                method="PUT",
+                url=url,
+                body=data,
+                headers=headers,
+                action=lambda: requests.put(url, headers=headers, data=""),
+            )
+        if content_type == "application/json":
             if isinstance(data, BaseModel):
-                action = lambda: requests.put(url, headers=headers, json=data.model_dump())
-            elif isinstance(data, dict):
-                action = lambda: requests.put(url, headers=headers, json=data)
-            elif isinstance(data, str):
-                import json
+                return self._execute(
+                    method="PUT",
+                    url=url,
+                    body=data,
+                    headers=headers,
+                    action=lambda: requests.put(
+                        url, headers=headers, json=data.model_dump()
+                    ),
+                )
+            if isinstance(data, dict):
+                return self._execute(
+                    method="PUT",
+                    url=url,
+                    body=data,
+                    headers=headers,
+                    action=lambda: requests.put(url, headers=headers, json=data),
+                )
+            if isinstance(data, str):
+                return self._execute(
+                    method="PUT",
+                    url=url,
+                    body=data,
+                    headers=headers,
+                    action=lambda: requests.put(
+                        url, headers=headers, json=json.loads(data)
+                    ),
+                )
+            return self._execute(
+                method="PUT",
+                url=url,
+                body=data,
+                headers=headers,
+                action=lambda: requests.put(
+                    url, headers=headers, json=json.loads(str(data))
+                ),
+            )
 
-                action = lambda: requests.put(url, headers=headers, json=json.loads(data))
-            else:
-                import json
-
-                action = lambda: requests.put(url, headers=headers, json=json.loads(str(data)))
-        else:
-            body = data if isinstance(data, str) else str(data)
-            action = lambda: requests.put(url, headers=headers, data=body)
-
+        body = data if isinstance(data, str) else str(data)
         return self._execute(
             method="PUT",
             url=url,
             body=data,
             headers=headers,
-            action=action,
+            action=lambda: requests.put(url, headers=headers, data=body),
         )
 
     def put(
@@ -189,7 +223,11 @@ class CrudRequester(HttpRequest, CrudEndpointInterface):
             url = self._build_url(query_params=query_params)
             if id is not None:
                 url += f"/id:{id}"
-        body = {"id": id, "query_params": query_params} if id is not None or query_params else None
+        body = (
+            {"id": id, "query_params": query_params}
+            if id is not None or query_params
+            else None
+        )
         return self._execute(
             method="DELETE",
             url=url,

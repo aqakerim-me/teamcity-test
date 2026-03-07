@@ -31,7 +31,7 @@ PROCEED_WITHOUT_REPOSITORY_BUTTON = (
 SET_UP_YOUR_BUILD_TITLE = 'h1:has-text("Set up your build")'
 SET_UP_YOUR_BUILD_SKIP_BUTTON = (
     'button:has-text("Skip"), '
-    'button.ring-button-button.ring-button-heightM.ring-button-block'
+    "button.ring-button-button.ring-button-heightM.ring-button-block"
 )
 BUILD_RUN_BUTTON = '[data-test="run-build"], button:has-text("Run"), .runButton'
 BUILD_STATUS_INDICATOR = '[data-test="build-status"], .build-status, .statusIcon'
