@@ -14,7 +14,7 @@ echo "▶ Running UI tests (chromium + firefox + webkit)..."
 # pytest.ini already sets --browser chromium --browser firefox --browser webkit
 # so we just invoke normally — no need to pass browser flags here.
 pytest src/tests/ui/ \
-  -m "ui" \
+  -m "my_ui" \
   --tb=short \
   --junitxml="$REPORT_DIR/results.xml" \
   --html="$REPORT_DIR/report.html" \

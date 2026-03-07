@@ -10,7 +10,7 @@ mkdir -p "$REPORT_DIR"
 
 echo "▶ Running API tests..."
 pytest src/tests/api/ \
-  -m "api" \
+  -m "my_api" \
   --tb=short \
   --junitxml="$REPORT_DIR/results.xml" \
   --html="$REPORT_DIR/report.html" \
