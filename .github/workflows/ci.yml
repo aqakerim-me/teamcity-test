@@ -43,10 +43,117 @@ jobs:
       - name: flake8
         run: flake8 .
 
+  infra:
+    name: Infra
+    runs-on: ubuntu-latest
+    needs: lint
+    if: |
+      github.event.inputs.suite == '' ||
+      github.event.inputs.suite == 'all' ||
+      github.event.inputs.suite == 'api' ||
+      github.event.inputs.suite == 'ui'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Debug runner and Docker context
+        run: |
+          echo "Runner: $RUNNER_NAME"
+          echo "OS: $RUNNER_OS"
+          echo "Arch: $RUNNER_ARCH"
+          echo "Workspace: $GITHUB_WORKSPACE"
+          echo "PWD: $(pwd)"
+          echo "Disk usage:"
+          df -h
+          echo "Docker version:"
+          docker version
+          echo "Docker compose version:"
+          docker compose version
+          echo "Seed archive:"
+          ls -lah infra/teamcity_seed
+
+      - name: Start TeamCity infrastructure
+        run: |
+          print_debug() {
+            echo "===== TeamCity startup debug ====="
+            date -u
+            echo "Docker containers:"
+            docker ps -a || true
+            echo "Temp runtime contents:"
+            find .tmp -maxdepth 3 -type f | sort || true
+            echo "HTTP probe /:"
+            curl -I --max-time 10 http://localhost:8111/ || true
+            echo "HTTP probe /login.html:"
+            curl -I --max-time 10 http://localhost:8111/login.html || true
+            echo "HTTP probe /app/rest/server with basic auth:"
+            curl -I --max-time 10 -u admin:admin http://localhost:8111/app/rest/server || true
+
+            if [ -f .tmp/teamcity-runtime.env ]; then
+              echo "Runtime env file:"
+              cat .tmp/teamcity-runtime.env || true
+              . .tmp/teamcity-runtime.env
+              echo "TeamCity log files:"
+              find "${TEAMCITY_SERVER_LOGS}" -maxdepth 2 -type f | sort || true
+              echo "teamcity-server.log tail:"
+              tail -n 100 "${TEAMCITY_SERVER_LOGS}/teamcity-server.log" || true
+            fi
+          }
+
+          (
+            while true; do
+              sleep 30
+              print_debug
+            done
+          ) &
+          DEBUG_PID=$!
+
+          cleanup() {
+            kill "${DEBUG_PID}" >/dev/null 2>&1 || true
+          }
+
+          trap cleanup EXIT
+          print_debug
+          bash scripts/start_infra.sh
+
+      - name: Debug TeamCity state after startup attempt
+        if: always()
+        run: |
+          echo "Docker containers:"
+          docker ps -a
+          echo "Compose ps:"
+          docker compose -f infra/docker_compose/docker-compose.yml ps || true
+          echo "Runtime env file:"
+          cat .tmp/teamcity-runtime.env || true
+          echo "Temp runtime contents:"
+          find .tmp -maxdepth 3 -type f | sort || true
+          echo "HTTP probe /:"
+          curl -I --max-time 10 http://localhost:8111/ || true
+          echo "HTTP probe /login.html:"
+          curl -I --max-time 10 http://localhost:8111/login.html || true
+          echo "HTTP probe /app/rest/server with basic auth:"
+          curl -I --max-time 10 -u admin:admin http://localhost:8111/app/rest/server || true
+
+      - name: Dump TeamCity logs on failure
+        if: failure()
+        run: |
+          echo "Compose logs:"
+          docker compose -f infra/docker_compose/docker-compose.yml logs --tail=200 || true
+          if [ -f .tmp/teamcity-runtime.env ]; then
+            . .tmp/teamcity-runtime.env
+            echo "TeamCity server logs directory: ${TEAMCITY_SERVER_LOGS}"
+            find "${TEAMCITY_SERVER_LOGS}" -maxdepth 2 -type f | sort || true
+            echo "teamcity-server.log tail:"
+            tail -n 200 "${TEAMCITY_SERVER_LOGS}/teamcity-server.log" || true
+          fi
+
+      - name: Stop infrastructure
+        if: always()
+        run: bash scripts/stop_infra.sh
+
   api-tests:
     name: API Tests
     runs-on: ubuntu-latest
-    needs: lint
+    needs: [lint, infra]
     if: |
       github.event.inputs.suite == '' ||
       github.event.inputs.suite == 'all' ||
@@ -86,7 +193,7 @@ jobs:
   ui-tests:
     name: UI Tests
     runs-on: ubuntu-latest
-    needs: lint
+    needs: [lint, infra]
     if: |
       github.event.inputs.suite == '' ||
       github.event.inputs.suite == 'all' ||
