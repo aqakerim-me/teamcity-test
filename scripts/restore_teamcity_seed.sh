@@ -6,6 +6,13 @@ PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 SEED_ARCHIVE="${1:-$PROJECT_ROOT/infra/teamcity_seed/teamcity-server-seed.tar.gz}"
 RUNTIME_PARENT="${TEAMCITY_RUNTIME_PARENT:-${RUNNER_TEMP:-$PROJECT_ROOT/.tmp}}"
 RUNTIME_ENV_FILE="${TEAMCITY_RUNTIME_ENV_FILE:-$RUNTIME_PARENT/teamcity-runtime.env}"
+REQUIRED_SEED_PATHS=(
+    "config"
+    "system/buildserver.data"
+    "system/buildserver.script"
+    "system/buildserver.properties"
+    "system/dataDirectoryInitialized"
+)
 
 mkdir -p "$RUNTIME_PARENT"
 
@@ -31,6 +38,17 @@ TEAMCITY_SERVER_LOGS="$TEAMCITY_RUNTIME_DIR/logs"
 
 mkdir -p "$TEAMCITY_SERVER_DATADIR" "$TEAMCITY_SERVER_LOGS"
 tar -xzf "$SEED_ARCHIVE" -C "$TEAMCITY_SERVER_DATADIR"
+
+echo "Validating restored TeamCity seed contents..."
+for required_path in "${REQUIRED_SEED_PATHS[@]}"; do
+    if [ ! -e "$TEAMCITY_SERVER_DATADIR/$required_path" ]; then
+        echo "TeamCity seed is missing required path: $required_path"
+        exit 1
+    fi
+done
+
+echo "Restored datadir root:"
+find "$TEAMCITY_SERVER_DATADIR" -maxdepth 2 -mindepth 1 | sort
 
 {
     printf 'export TEAMCITY_SEEDED_STATE=%q\n' "1"

@@ -58,9 +58,14 @@ jobs:
 
       - name: Debug runner and Docker context
         run: |
+          DEBUG_DIR="${RUNNER_TEMP}/teamcity-infra-debug"
+          mkdir -p "${DEBUG_DIR}"
+          echo "DEBUG_DIR=${DEBUG_DIR}" >> "$GITHUB_ENV"
+          echo "RUNTIME_ENV_FILE=${RUNNER_TEMP}/teamcity-runtime.env" >> "$GITHUB_ENV"
           echo "Runner: $RUNNER_NAME"
           echo "OS: $RUNNER_OS"
           echo "Arch: $RUNNER_ARCH"
+          echo "RUNNER_TEMP: $RUNNER_TEMP"
           echo "Workspace: $GITHUB_WORKSPACE"
           echo "PWD: $(pwd)"
           echo "Disk usage:"
@@ -74,28 +79,62 @@ jobs:
 
       - name: Start TeamCity infrastructure
         run: |
+          DEBUG_DIR="${DEBUG_DIR:-${RUNNER_TEMP}/teamcity-infra-debug}"
+          RUNTIME_ENV_FILE="${TEAMCITY_RUNTIME_ENV_FILE:-${RUNTIME_ENV_FILE:-${RUNNER_TEMP}/teamcity-runtime.env}}"
+
+          load_runtime_env() {
+            if [ -f "${RUNTIME_ENV_FILE}" ]; then
+              # shellcheck disable=SC1090
+              . "${RUNTIME_ENV_FILE}"
+            fi
+          }
+
           print_debug() {
+            local stamp
+            stamp="$(date -u +%Y%m%dT%H%M%SZ)"
+            mkdir -p "${DEBUG_DIR}"
+            load_runtime_env
             echo "===== TeamCity startup debug ====="
             date -u
+            echo "RUNTIME_ENV_FILE=${RUNTIME_ENV_FILE}"
+            echo "RUNNER_TEMP=${RUNNER_TEMP}"
+            echo "TEAMCITY_RUNTIME_DIR=${TEAMCITY_RUNTIME_DIR:-}"
+            echo "TEAMCITY_SERVER_DATADIR=${TEAMCITY_SERVER_DATADIR:-}"
+            echo "TEAMCITY_SERVER_LOGS=${TEAMCITY_SERVER_LOGS:-}"
             echo "Docker containers:"
-            docker ps -a || true
-            echo "Temp runtime contents:"
-            find .tmp -maxdepth 3 -type f | sort || true
+            docker ps -a | tee "${DEBUG_DIR}/docker-ps-${stamp}.log" || true
+            echo "Compose ps:"
+            docker compose -f infra/docker_compose/docker-compose.yml ps | tee "${DEBUG_DIR}/compose-ps-${stamp}.log" || true
+            echo "Docker inspect teamcity-server:"
+            docker inspect -f 'status={{.State.Status}} restarts={{.RestartCount}} exitCode={{.State.ExitCode}} error={{.State.Error}} startedAt={{.State.StartedAt}} finishedAt={{.State.FinishedAt}}' teamcity-server | tee "${DEBUG_DIR}/teamcity-server-inspect-${stamp}.log" || true
+            echo "Docker inspect teamcity-agent-01:"
+            docker inspect -f 'status={{.State.Status}} restarts={{.RestartCount}} exitCode={{.State.ExitCode}} error={{.State.Error}} startedAt={{.State.StartedAt}} finishedAt={{.State.FinishedAt}}' teamcity-agent-01 | tee "${DEBUG_DIR}/teamcity-agent-inspect-${stamp}.log" || true
+            echo "Runtime env file contents:"
+            cat "${RUNTIME_ENV_FILE}" | tee "${DEBUG_DIR}/runtime-env-${stamp}.log" || true
+            echo "Runtime directory contents:"
+            if [ -n "${TEAMCITY_RUNTIME_DIR:-}" ] && [ -d "${TEAMCITY_RUNTIME_DIR}" ]; then
+              find "${TEAMCITY_RUNTIME_DIR}" -maxdepth 3 -type f | sort | tee "${DEBUG_DIR}/runtime-files-${stamp}.log" || true
+              echo "Datadir root:"
+              ls -lah "${TEAMCITY_SERVER_DATADIR}" | tee "${DEBUG_DIR}/datadir-root-${stamp}.log" || true
+              echo "Logs root:"
+              ls -lah "${TEAMCITY_SERVER_LOGS}" | tee "${DEBUG_DIR}/logs-root-${stamp}.log" || true
+            fi
             echo "HTTP probe /:"
-            curl -I --max-time 10 http://localhost:8111/ || true
+            curl -I --max-time 10 http://localhost:8111/ | tee "${DEBUG_DIR}/http-root-${stamp}.log" || true
             echo "HTTP probe /login.html:"
-            curl -I --max-time 10 http://localhost:8111/login.html || true
+            curl -I --max-time 10 http://localhost:8111/login.html | tee "${DEBUG_DIR}/http-login-${stamp}.log" || true
             echo "HTTP probe /app/rest/server with basic auth:"
-            curl -I --max-time 10 -u admin:admin http://localhost:8111/app/rest/server || true
+            curl -I --max-time 10 -u admin:admin http://localhost:8111/app/rest/server | tee "${DEBUG_DIR}/http-rest-${stamp}.log" || true
+            echo "Docker logs teamcity-server:"
+            docker logs --tail 100 teamcity-server 2>&1 | tee "${DEBUG_DIR}/teamcity-server-docker-log-${stamp}.log" || true
+            echo "Docker logs teamcity-agent-01:"
+            docker logs --tail 100 teamcity-agent-01 2>&1 | tee "${DEBUG_DIR}/teamcity-agent-docker-log-${stamp}.log" || true
 
-            if [ -f .tmp/teamcity-runtime.env ]; then
-              echo "Runtime env file:"
-              cat .tmp/teamcity-runtime.env || true
-              . .tmp/teamcity-runtime.env
+            if [ -n "${TEAMCITY_SERVER_LOGS:-}" ] && [ -d "${TEAMCITY_SERVER_LOGS}" ]; then
               echo "TeamCity log files:"
-              find "${TEAMCITY_SERVER_LOGS}" -maxdepth 2 -type f | sort || true
+              find "${TEAMCITY_SERVER_LOGS}" -maxdepth 2 -type f | sort | tee "${DEBUG_DIR}/teamcity-log-files-${stamp}.log" || true
               echo "teamcity-server.log tail:"
-              tail -n 100 "${TEAMCITY_SERVER_LOGS}/teamcity-server.log" || true
+              tail -n 100 "${TEAMCITY_SERVER_LOGS}/teamcity-server.log" | tee "${DEBUG_DIR}/teamcity-server-log-tail-${stamp}.log" || true
             fi
           }
 
@@ -118,33 +157,68 @@ jobs:
       - name: Debug TeamCity state after startup attempt
         if: always()
         run: |
+          DEBUG_DIR="${DEBUG_DIR:-${RUNNER_TEMP}/teamcity-infra-debug}"
+          RUNTIME_ENV_FILE="${TEAMCITY_RUNTIME_ENV_FILE:-${RUNTIME_ENV_FILE:-${RUNNER_TEMP}/teamcity-runtime.env}}"
+          if [ -f "${RUNTIME_ENV_FILE}" ]; then
+            # shellcheck disable=SC1090
+            . "${RUNTIME_ENV_FILE}"
+          fi
           echo "Docker containers:"
           docker ps -a
           echo "Compose ps:"
           docker compose -f infra/docker_compose/docker-compose.yml ps || true
           echo "Runtime env file:"
-          cat .tmp/teamcity-runtime.env || true
-          echo "Temp runtime contents:"
-          find .tmp -maxdepth 3 -type f | sort || true
+          cat "${RUNTIME_ENV_FILE}" || true
+          echo "Runtime directory: ${TEAMCITY_RUNTIME_DIR:-}"
+          echo "Server datadir: ${TEAMCITY_SERVER_DATADIR:-}"
+          echo "Server logs: ${TEAMCITY_SERVER_LOGS:-}"
+          if [ -n "${TEAMCITY_RUNTIME_DIR:-}" ] && [ -d "${TEAMCITY_RUNTIME_DIR}" ]; then
+            echo "Runtime contents:"
+            find "${TEAMCITY_RUNTIME_DIR}" -maxdepth 3 -type f | sort || true
+          fi
           echo "HTTP probe /:"
           curl -I --max-time 10 http://localhost:8111/ || true
           echo "HTTP probe /login.html:"
           curl -I --max-time 10 http://localhost:8111/login.html || true
           echo "HTTP probe /app/rest/server with basic auth:"
           curl -I --max-time 10 -u admin:admin http://localhost:8111/app/rest/server || true
+          echo "Docker inspect teamcity-server:"
+          docker inspect -f 'status={{.State.Status}} restarts={{.RestartCount}} exitCode={{.State.ExitCode}} error={{.State.Error}} startedAt={{.State.StartedAt}} finishedAt={{.State.FinishedAt}}' teamcity-server || true
+          mkdir -p "${DEBUG_DIR}"
+          docker ps -a > "${DEBUG_DIR}/docker-ps-final.log" 2>&1 || true
+          docker compose -f infra/docker_compose/docker-compose.yml ps > "${DEBUG_DIR}/compose-ps-final.log" 2>&1 || true
+          docker inspect teamcity-server > "${DEBUG_DIR}/teamcity-server-inspect-final.json" 2>&1 || true
+          docker inspect teamcity-agent-01 > "${DEBUG_DIR}/teamcity-agent-inspect-final.json" 2>&1 || true
 
       - name: Dump TeamCity logs on failure
         if: failure()
         run: |
+          DEBUG_DIR="${DEBUG_DIR:-${RUNNER_TEMP}/teamcity-infra-debug}"
+          RUNTIME_ENV_FILE="${TEAMCITY_RUNTIME_ENV_FILE:-${RUNTIME_ENV_FILE:-${RUNNER_TEMP}/teamcity-runtime.env}}"
+          mkdir -p "${DEBUG_DIR}"
           echo "Compose logs:"
-          docker compose -f infra/docker_compose/docker-compose.yml logs --tail=200 || true
-          if [ -f .tmp/teamcity-runtime.env ]; then
-            . .tmp/teamcity-runtime.env
+          docker compose -f infra/docker_compose/docker-compose.yml logs --tail=200 | tee "${DEBUG_DIR}/compose-logs-tail.log" || true
+          echo "Docker logs teamcity-server:"
+          docker logs teamcity-server 2>&1 | tee "${DEBUG_DIR}/teamcity-server-docker.log" || true
+          echo "Docker logs teamcity-agent-01:"
+          docker logs teamcity-agent-01 2>&1 | tee "${DEBUG_DIR}/teamcity-agent-docker.log" || true
+          if [ -f "${RUNTIME_ENV_FILE}" ]; then
+            # shellcheck disable=SC1090
+            . "${RUNTIME_ENV_FILE}"
             echo "TeamCity server logs directory: ${TEAMCITY_SERVER_LOGS}"
-            find "${TEAMCITY_SERVER_LOGS}" -maxdepth 2 -type f | sort || true
+            find "${TEAMCITY_SERVER_LOGS}" -maxdepth 2 -type f | sort | tee "${DEBUG_DIR}/teamcity-runtime-log-files.log" || true
             echo "teamcity-server.log tail:"
-            tail -n 200 "${TEAMCITY_SERVER_LOGS}/teamcity-server.log" || true
+            tail -n 200 "${TEAMCITY_SERVER_LOGS}/teamcity-server.log" | tee "${DEBUG_DIR}/teamcity-server-runtime-tail.log" || true
+            cp -R "${TEAMCITY_SERVER_LOGS}" "${DEBUG_DIR}/runtime-logs" || true
           fi
+
+      - name: Upload infra diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: infra-debug-${{ github.run_number }}
+          path: ${{ runner.temp }}/teamcity-infra-debug
+          retention-days: 14
 
       - name: Stop infrastructure
         if: always()
