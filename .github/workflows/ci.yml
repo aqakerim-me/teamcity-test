@@ -2,7 +2,9 @@ name: Python Tests CI
 
 on:
   push:
+    paths: ['src/**']
   pull_request:
+    paths: ['src/**']
   workflow_dispatch:
     inputs:
       suite:
@@ -64,12 +66,18 @@ jobs:
       - name: Install dependencies
         run: bash scripts/install_deps.sh
 
+      - name: Cache Docker images
+        uses: ScribeMD/docker-cache@0.5.0
+        with:
+          key: docker-${{ runner.os }}-${{ hashFiles(env.COMPOSE_FILE) }}
+
       - name: Start TeamCity infrastructure
         run: bash scripts/start_infra.sh "${{ env.COMPOSE_FILE }}"
 
       - name: Run API tests
         env:
-          TC_ADMIN_BEARERTOKEN: ${{ secrets.TC_ADMIN_BEARERTOKEN }}
+          TC_ADMIN_USERNAME: admin
+          TC_ADMIN_PASSWORD: admin
         run: bash scripts/run_api_tests.sh
 
       - name: Stop infrastructure
@@ -104,12 +112,18 @@ jobs:
       - name: Install dependencies
         run: bash scripts/install_deps.sh
 
+      - name: Cache Docker images
+        uses: ScribeMD/docker-cache@0.5.0
+        with:
+          key: docker-${{ runner.os }}-${{ hashFiles(env.COMPOSE_FILE) }}
+
       - name: Start TeamCity infrastructure
         run: bash scripts/start_infra.sh "${{ env.COMPOSE_FILE }}"
 
       - name: Run UI tests
         env:
-          TC_ADMIN_BEARERTOKEN: ${{ secrets.TC_ADMIN_BEARERTOKEN }}
+          TC_ADMIN_USERNAME: admin
+          TC_ADMIN_PASSWORD: admin
         run: bash scripts/run_ui_tests.sh
 
       - name: Stop infrastructure

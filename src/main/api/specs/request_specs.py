@@ -22,6 +22,12 @@ class RequestSpecs:
         token = Config.get("admin.bearerToken")
         if token:
             headers["Authorization"] = f"Bearer {token}"
+        else:
+            username = Config.get("admin.username", "admin")
+            password = Config.get("admin.password", "admin")
+            import base64
+            credentials = base64.b64encode(f"{username}:{password}".encode()).decode()
+            headers["Authorization"] = f"Basic {credentials}"
         return headers
 
     @staticmethod
@@ -41,4 +47,10 @@ class RequestSpecs:
         token = Config.get("admin.bearerToken")
         if token:
             headers["Authorization"] = f"Bearer {token}"
+        else:
+            username = Config.get("admin.username", "admin")
+            password = Config.get("admin.password", "admin")
+            import base64
+            credentials = base64.b64encode(f"{username}:{password}".encode()).decode()
+            headers["Authorization"] = f"Basic {credentials}"
         return headers
