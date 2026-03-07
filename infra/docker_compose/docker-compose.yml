@@ -8,7 +8,6 @@ services:
       - "8111:8111"
     environment:
       - TEAMCITY_DATA_PATH=/data/teamcity_server/datadir
-      - TEAMCITY_SERVER_OPTS=-Dteamcity.first.start.data.dir.confirmation.disabled=true
     volumes:
       - teamcity_data:/data/teamcity_server/datadir
       - teamcity_logs:/opt/teamcity/logs
