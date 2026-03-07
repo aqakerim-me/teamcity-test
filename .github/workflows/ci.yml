@@ -20,6 +20,9 @@ env:
   PYTHON_VERSION: "3.12"
   COMPOSE_FILE: infra/docker_compose/docker-compose.yml
 
+permissions:
+  contents: write
+
 jobs:
   lint:
     name: Lint
@@ -94,62 +97,62 @@ jobs:
           if-no-files-found: ignore
           retention-days: 14
 
-#  ui-tests:
-#    name: UI Tests
-#    runs-on: ubuntu-latest
-#    needs: lint
-#    if: |
-#      github.event.inputs.suite == '' ||
-#      github.event.inputs.suite == 'all' ||
-#      github.event.inputs.suite == 'ui' ||
-#      github.event.inputs.suite == 'my_ui'
-#
-#    steps:
-#      - uses: actions/checkout@v4
-#
-#      - uses: actions/setup-python@v5
-#        with:
-#          python-version: ${{ env.PYTHON_VERSION }}
-#          cache: pip
-#
-#      - name: Install dependencies
-#        run: bash scripts/install_deps.sh
-#
-#      - name: Start TeamCity infrastructure
-#        run: bash scripts/start_infra.sh "${{ env.COMPOSE_FILE }}"
-#
-#      - name: Run UI tests
-#        env:
-#          TC_ADMIN_BEARERTOKEN: ${{ secrets.TC_ADMIN_BEARERTOKEN }}
-#        run: bash scripts/run_ui_tests.sh
-#
-#      - name: Stop infrastructure
-#        if: always()
-#        run: bash scripts/stop_infra.sh "${{ env.COMPOSE_FILE }}"
-#
-#      - name: Upload UI report + screenshots
-#        if: always()
-#        uses: actions/upload-artifact@v4
-#        with:
-#          name: ui-report-${{ github.run_number }}
-#          path: |
-#            reports/ui/
-#            screenshots/
-#          retention-days: 14
-#
-#      - name: Upload UI allure results
-#        if: always()
-#        uses: actions/upload-artifact@v4
-#        with:
-#          name: ui-allure-results-${{ github.run_number }}
-#          path: allure-results/
-#          if-no-files-found: ignore
-#          retention-days: 14
+  ui-tests:
+    name: UI Tests
+    runs-on: ubuntu-latest
+    needs: lint
+    if: |
+      github.event.inputs.suite == '' ||
+      github.event.inputs.suite == 'all' ||
+      github.event.inputs.suite == 'ui' ||
+      github.event.inputs.suite == 'my_ui'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Install dependencies
+        run: bash scripts/install_deps.sh
+
+      - name: Start TeamCity infrastructure
+        run: bash scripts/start_infra.sh "${{ env.COMPOSE_FILE }}"
+
+      - name: Run UI tests
+        env:
+          TC_ADMIN_BEARERTOKEN: ${{ secrets.TC_ADMIN_BEARERTOKEN }}
+        run: bash scripts/run_ui_tests.sh
+
+      - name: Stop infrastructure
+        if: always()
+        run: bash scripts/stop_infra.sh "${{ env.COMPOSE_FILE }}"
+
+      - name: Upload UI report + screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-report-${{ github.run_number }}
+          path: |
+            reports/ui/
+            screenshots/
+          retention-days: 14
+
+      - name: Upload UI allure results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-allure-results-${{ github.run_number }}
+          path: allure-results/
+          if-no-files-found: ignore
+          retention-days: 14
 
   allure-report:
     name: Allure Report
     runs-on: ubuntu-latest
-    needs: [api-tests]
+    needs: [api-tests, ui-tests]
     if: always()
     steps:
       - uses: actions/checkout@v4
@@ -179,7 +182,7 @@ jobs:
 
       - name: Publish test report
         uses: peaceiris/actions-gh-pages@v3
-        if: always()
+        if: always() && github.event_name == 'push'
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_branch: gh-pages
@@ -189,7 +192,7 @@ jobs:
   test-summary:
     name: Test Summary
     runs-on: ubuntu-latest
-    needs: [api-tests]
+    needs: [api-tests, ui-tests]
     if: always()
     steps:
       - name: Download all reports
@@ -209,7 +212,7 @@ jobs:
   notify:
     name: Notify
     runs-on: ubuntu-latest
-    needs: [api-tests]
+    needs: [api-tests, ui-tests]
     if: always()
     steps:
       - name: Resolve status
@@ -251,4 +254,3 @@ jobs:
             --data-urlencode "text=${MESSAGE}" \
             --data-urlencode "parse_mode=Markdown" \
             --data-urlencode "disable_web_page_preview=true"
-
