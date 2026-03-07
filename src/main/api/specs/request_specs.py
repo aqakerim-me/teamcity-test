@@ -26,6 +26,7 @@ class RequestSpecs:
             username = Config.get("admin.username", "admin")
             password = Config.get("admin.password", "admin")
             import base64
+
             credentials = base64.b64encode(f"{username}:{password}".encode()).decode()
             headers["Authorization"] = f"Basic {credentials}"
         return headers
@@ -51,6 +52,7 @@ class RequestSpecs:
             username = Config.get("admin.username", "admin")
             password = Config.get("admin.password", "admin")
             import base64
+
             credentials = base64.b64encode(f"{username}:{password}".encode()).decode()
             headers["Authorization"] = f"Basic {credentials}"
         return headers
