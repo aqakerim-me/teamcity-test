@@ -18,6 +18,8 @@ concurrency:
 
 env:
   PYTHON_VERSION: '3.12'
+  TEAMCITY_SERVER_IMAGE: 'jetbrains/teamcity-server:2025.11.2'
+  TEAMCITY_AGENT_IMAGE: 'jetbrains/teamcity-agent:2025.11.2'
 
 jobs:
   lint:
@@ -56,6 +58,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Restore TeamCity Docker image cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/docker-cache/teamcity
+          key: teamcity-images-${{ runner.os }}-${{ hashFiles('infra/docker_compose/docker-compose.yml') }}
+
       - name: Debug runner and Docker context
         run: |
           DEBUG_DIR="${RUNNER_TEMP}/teamcity-infra-debug"
@@ -76,6 +84,15 @@ jobs:
           docker compose version
           echo "Seed archive:"
           ls -lah infra/teamcity_seed
+          echo "Docker cache directory:"
+          ls -lah "${RUNNER_TEMP}/docker-cache/teamcity" || true
+
+      - name: Ensure TeamCity images
+        env:
+          TEAMCITY_SERVER_IMAGE: ${{ env.TEAMCITY_SERVER_IMAGE }}
+          TEAMCITY_AGENT_IMAGE: ${{ env.TEAMCITY_AGENT_IMAGE }}
+          TEAMCITY_IMAGE_CACHE_DIR: ${{ runner.temp }}/docker-cache/teamcity
+        run: bash scripts/ensure_teamcity_images.sh
 
       - name: Start TeamCity infrastructure
         run: |
@@ -103,6 +120,10 @@ jobs:
             echo "TEAMCITY_SERVER_LOGS=${TEAMCITY_SERVER_LOGS:-}"
             echo "Docker containers:"
             docker ps -a | tee "${DEBUG_DIR}/docker-ps-${stamp}.log" || true
+            echo "Docker images:"
+            docker image ls | grep teamcity | tee "${DEBUG_DIR}/docker-images-${stamp}.log" || true
+            echo "Docker cache files:"
+            ls -lah "${RUNNER_TEMP}/docker-cache/teamcity" | tee "${DEBUG_DIR}/docker-cache-${stamp}.log" || true
             echo "Compose ps:"
             docker compose -f infra/docker_compose/docker-compose.yml ps | tee "${DEBUG_DIR}/compose-ps-${stamp}.log" || true
             echo "Docker inspect teamcity-server:"
@@ -241,6 +262,19 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: pip
 
+      - name: Restore TeamCity Docker image cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/docker-cache/teamcity
+          key: teamcity-images-${{ runner.os }}-${{ hashFiles('infra/docker_compose/docker-compose.yml') }}
+
+      - name: Ensure TeamCity images
+        env:
+          TEAMCITY_SERVER_IMAGE: ${{ env.TEAMCITY_SERVER_IMAGE }}
+          TEAMCITY_AGENT_IMAGE: ${{ env.TEAMCITY_AGENT_IMAGE }}
+          TEAMCITY_IMAGE_CACHE_DIR: ${{ runner.temp }}/docker-cache/teamcity
+        run: bash scripts/ensure_teamcity_images.sh
+
       - name: Install dependencies
         run: bash scripts/install_deps.sh
 
@@ -280,6 +314,19 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: pip
+
+      - name: Restore TeamCity Docker image cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/docker-cache/teamcity
+          key: teamcity-images-${{ runner.os }}-${{ hashFiles('infra/docker_compose/docker-compose.yml') }}
+
+      - name: Ensure TeamCity images
+        env:
+          TEAMCITY_SERVER_IMAGE: ${{ env.TEAMCITY_SERVER_IMAGE }}
+          TEAMCITY_AGENT_IMAGE: ${{ env.TEAMCITY_AGENT_IMAGE }}
+          TEAMCITY_IMAGE_CACHE_DIR: ${{ runner.temp }}/docker-cache/teamcity
+        run: bash scripts/ensure_teamcity_images.sh
 
       - name: Install dependencies
         run: bash scripts/install_deps.sh
