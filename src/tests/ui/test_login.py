@@ -8,7 +8,7 @@ from src.main.ui.pages.login_page import LoginPage
 from src.main.ui.pages.projects_page import ProjectsPage
 from src.main.ui.pages.teamcity_alerts import TeamCityAlert
 
-
+@pytest.mark.my_ui
 @pytest.mark.ui
 class TestLoginPositive:
 
@@ -39,7 +39,7 @@ class TestLoginPositive:
             .should_be(Condition.visible, ProjectsPage(page).welcome_text)
         )
 
-
+@pytest.mark.my_ui
 @pytest.mark.ui
 class TestLoginNegative:
 

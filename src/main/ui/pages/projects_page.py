@@ -1,16 +1,87 @@
 from src.main.api.generators.generate_data import GenerateData
+from src.main.api.models.create_project_request import CreateProjectRequest
+from src.main.ui.classes.session_storage import SessionStorage
 from src.main.ui.pages.base_page import BasePage
 from src.main.ui.pages.selectors import (
     ALERT_SELECTOR,
     CREATE_PROJECT_BUTTON,
+    NEW_CONNECTION_TITLE,
     PROJECT_ID_INPUT,
     PROJECT_NAME_INPUT,
     PROJECT_NAVIGATION_MENU,
     PROJECT_SUBMIT_BUTTON,
     PROJECT_WELCOME_TEXT,
     PROJECTS_LIST,
+    PROCEED_WITHOUT_REPOSITORY_BUTTON,
+    SET_UP_YOUR_BUILD_SKIP_BUTTON,
+    SET_UP_YOUR_BUILD_TITLE,
 )
 from src.main.ui.pages.ui_element import UIElement
+
+
+class ConnectionVCS(BasePage):
+    def url(self) -> str:
+        return "/projects/create"
+
+    @property
+    def new_connection_title(self) -> UIElement:
+        return UIElement(
+            self.page.locator(NEW_CONNECTION_TITLE).first,
+            name="New connection title",
+        )
+
+    @property
+    def proceed_without_repository_button(self) -> UIElement:
+        return UIElement(
+            self.page.locator(PROCEED_WITHOUT_REPOSITORY_BUTTON).first,
+            name="Proceed without repository button",
+        )
+
+    def proceed_without_repository(self) -> "SetUpBuild":
+        def _action():
+            self.new_connection_title.to_be_visible(timeout=15_000)
+            btn = self.proceed_without_repository_button.locator
+            btn.wait_for(state="visible", timeout=10_000)
+            btn.scroll_into_view_if_needed()
+            btn.click()
+            return self.get_page(SetUpBuild)
+
+        return self._step(
+            title="Connection VCS: Proceed without repository",
+            action=_action,
+        )
+
+
+class SetUpBuild(BasePage):
+    def url(self) -> str:
+        return "/projects/create"
+
+    @property
+    def set_up_your_build_title(self) -> UIElement:
+        return UIElement(
+            self.page.locator(SET_UP_YOUR_BUILD_TITLE).first,
+            name="Set up your build title",
+        )
+
+    @property
+    def skip_button(self) -> UIElement:
+        return UIElement(
+            self.page.locator(SET_UP_YOUR_BUILD_SKIP_BUTTON).first,
+            name="Skip button",
+        )
+
+    def skip_setup_build(self) -> "SetUpBuild":
+        def _action():
+            self.set_up_your_build_title.to_be_visible(timeout=15_000)
+            btn = self.skip_button.locator
+            btn.wait_for(state="visible", timeout=10_000)
+            if not btn.is_enabled():
+                raise AssertionError("Skip button should be enabled")
+            btn.scroll_into_view_if_needed()
+            btn.click()
+            return self
+
+        return self._step(title="Set up build: Skip", action=_action)
 
 
 class ProjectsPage(BasePage):
@@ -137,15 +208,12 @@ class ProjectsPage(BasePage):
         locator.fill(project_name)
         return self
 
-    def submit_project_form(self) -> "ProjectsPage":
+    def submit_project_form(self) -> "ConnectionVCS":
         locator = self.submit_button.locator
         locator.wait_for(state="visible", timeout=10_000)
         locator.scroll_into_view_if_needed()
         locator.click()
-        self.page.wait_for_selector(
-            f"{PROJECTS_LIST}, {ALERT_SELECTOR}", timeout=10_000
-        )
-        return self
+        return self.get_page(ConnectionVCS)
 
     def create_new_project(
         self,
@@ -155,13 +223,18 @@ class ProjectsPage(BasePage):
         """High-level action: opens the form, fills fields, and submits."""
         project_id = project_id or GenerateData.get_project_id()
         project_name = project_name or GenerateData.get_project_name()
+        SessionStorage.add_projects(
+            [CreateProjectRequest(id=project_id, name=project_name)]
+        )
 
         def _action():
             (
-                self.open_create_project_form()
-                .fill_project_id(project_id)
-                .fill_project_name(project_name)
-                .submit_project_form()
+                self.open_create_project_form().
+                fill_project_id(project_id).
+                fill_project_name(project_name).
+                submit_project_form().
+                proceed_without_repository().
+                skip_setup_build()
             )
             return self
 

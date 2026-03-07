@@ -1,0 +1,41 @@
+{
+  "username": "m5j8gse_k",
+  "id": 332,
+  "href": "/app/rest/users/id:332",
+  "properties": {
+    "href": "/app/rest/users/id:332/properties",
+    "count": 4,
+    "property": [
+      {
+        "name": "addTriggeredBuildToFavorites",
+        "value": "true"
+      },
+      {
+        "name": "fus_session",
+        "value": "9668f416-a1f4-4192-b503-ba5e231e5e6b:1772898662915"
+      },
+      {
+        "name": "plugin:vcs:anyVcs:anyVcsRoot",
+        "value": "m5j8gse_k"
+      },
+      {
+        "name": "teamcity.server.buildNumber",
+        "value": "208045"
+      }
+    ]
+  },
+  "roles": {
+    "role": []
+  },
+  "groups": {
+    "count": 1,
+    "group": [
+      {
+        "key": "ALL_USERS_GROUP",
+        "name": "All Users",
+        "href": "/app/rest/userGroups/key:ALL_USERS_GROUP",
+        "description": "Contains all TeamCity users"
+      }
+    ]
+  }
+}

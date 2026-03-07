@@ -7,7 +7,7 @@ from src.main.api.models.create_user_request import CreateUserRequest
 from src.main.ui.pages.admin_page import AdminPage
 from src.main.ui.pages.conditions import Condition
 
-
+@pytest.mark.my_ui
 @pytest.mark.ui
 @pytest.mark.admin_session
 class TestCreateUser:

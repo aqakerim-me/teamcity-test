@@ -20,9 +20,19 @@ PROJECTS_LIST = '[data-test="projects-list"], [data-test="sidebar"]'
 CREATE_PROJECT_BUTTON = '[data-test="create-project"]'
 PROJECT_ID_INPUT = '[data-test="project-id-input"]'
 PROJECT_NAME_INPUT = '[data-test="project-name-input"]'
-PROJECT_SUBMIT_BUTTON = '[data-test="submit"]'
+PROJECT_SUBMIT_BUTTON = 'role=button[name="Create"]'
 PROJECT_WELCOME_TEXT = "main h1, h1"
 PROJECT_NAVIGATION_MENU = '[data-test="sidebar"], nav'
+NEW_CONNECTION_TITLE = 'h1:has-text("New connection")'
+PROCEED_WITHOUT_REPOSITORY_BUTTON = (
+    'button:has-text("Proceed without repository"), '
+    ".AddVcsConnectionScreen-module__skip--nr"
+)
+SET_UP_YOUR_BUILD_TITLE = 'h1:has-text("Set up your build")'
+SET_UP_YOUR_BUILD_SKIP_BUTTON = (
+    'button:has-text("Skip"), '
+    'button.ring-button-button.ring-button-heightM.ring-button-block'
+)
 BUILD_RUN_BUTTON = '[data-test="run-build"], button:has-text("Run"), .runButton'
 BUILD_STATUS_INDICATOR = '[data-test="build-status"], .build-status, .statusIcon'
 BUILD_STATE_TEXT = '[data-test="build-state"], .buildStateText, .status-text'

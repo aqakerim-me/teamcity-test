@@ -1,11 +1,10 @@
-from typing import Optional, TypeVar, Union
+from typing import Optional, TypeVar
 
 from pydantic import TypeAdapter
 
 from src.main.api.models.base_model import BaseModel
 from src.main.api.requests.skeleton.http_request import HttpRequest
 from src.main.api.requests.skeleton.requesters.crud_requester import CrudRequester
-
 T = TypeVar("T", bound=BaseModel)
 
 

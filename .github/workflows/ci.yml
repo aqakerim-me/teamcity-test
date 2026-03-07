@@ -6,9 +6,9 @@ on:
   workflow_dispatch:
     inputs:
       suite:
-        description: 'Test suite to run'
+        description: "Test suite to run"
         required: true
-        default: 'all'
+        default: "all"
         type: choice
         options: [all, api, ui]
 
@@ -17,7 +17,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  PYTHON_VERSION: '3.12'
+  PYTHON_VERSION: "3.12"
   COMPOSE_FILE: infra/docker_compose/docker-compose.yml
 
 jobs:
@@ -84,6 +84,15 @@ jobs:
           path: reports/api/
           retention-days: 14
 
+      - name: Upload API allure results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-allure-results-${{ github.run_number }}
+          path: allure-results/
+          if-no-files-found: ignore
+          retention-days: 14
+
   ui-tests:
     name: UI Tests
     runs-on: ubuntu-latest
@@ -126,65 +135,117 @@ jobs:
             screenshots/
           retention-days: 14
 
+      - name: Upload UI allure results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-allure-results-${{ github.run_number }}
+          path: allure-results/
+          if-no-files-found: ignore
+          retention-days: 14
+
+  allure-report:
+    name: Allure Report
+    runs-on: ubuntu-latest
+    needs: [api-tests, ui-tests]
+    if: always()
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download allure results
+        uses: actions/download-artifact@v4
+        with:
+          pattern: "*-allure-results-*"
+          merge-multiple: true
+          path: allure-results
+
+      - name: Checkout gh-pages
+        if: always()
+        uses: actions/checkout@v4
+        continue-on-error: true
+        with:
+          ref: gh-pages
+          path: gh-pages
+
+      - name: Build test report
+        uses: simple-elf/allure-report-action@master
+        if: always()
+        with:
+          gh_pages: gh-pages
+          allure_results: allure-results
+          allure_history: allure-history
+
+      - name: Publish test report
+        uses: peaceiris/actions-gh-pages@v3
+        if: always()
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: allure-history
+
   test-summary:
     name: Test Summary
     runs-on: ubuntu-latest
-    needs: [ api-tests, ui-tests ]
+    needs: [api-tests, ui-tests]
     if: always()
     steps:
       - name: Download all reports
         uses: actions/download-artifact@v4
         with:
-          pattern: '*-report-*'
+          pattern: "*-report-*"
           merge-multiple: true
           path: all-reports/
 
       - name: Publish results to GitHub checks
         uses: EnricoMi/publish-unit-test-result-action@v2
         with:
-          files: 'all-reports/**/*.xml'
-          comment_title: '🧪 Test Results'
-          check_name: 'Test Results'
+          files: "all-reports/**/*.xml"
+          comment_title: "Test Results"
+          check_name: "Test Results"
 
   notify:
-      name: Notify
-      runs-on: ubuntu-latest
-      needs: [api-tests, ui-tests]
-      if: always()
-      steps:
-        - name: Resolve status
-          id: status
-          run: |
-            API="${{ needs.api-tests.result }}"
-            UI="${{ needs.ui-tests.result }}"
+    name: Notify
+    runs-on: ubuntu-latest
+    needs: [api-tests, ui-tests]
+    if: always()
+    steps:
+      - name: Resolve status
+        id: status
+        run: |
+          API="${{ needs.api-tests.result }}"
+          UI="${{ needs.ui-tests.result }}"
 
-            if [[ "$API" == "failure" || "$UI" == "failure" ]]; then
-              echo "emoji=🔴" >> "$GITHUB_OUTPUT"
-              echo "text=FAILED" >> "$GITHUB_OUTPUT"
-            elif [[ "$API" == "cancelled" || "$UI" == "cancelled" ]]; then
-              echo "emoji=⚪" >> "$GITHUB_OUTPUT"
-              echo "text=CANCELLED" >> "$GITHUB_OUTPUT"
-            else
-              echo "emoji=🟢" >> "$GITHUB_OUTPUT"
-              echo "text=PASSED" >> "$GITHUB_OUTPUT"
-            fi
+          if [[ "$API" == "failure" || "$UI" == "failure" ]]; then
+            echo "emoji=🔴" >> "$GITHUB_OUTPUT"
+            echo "text=FAILED" >> "$GITHUB_OUTPUT"
+          elif [[ "$API" == "cancelled" || "$UI" == "cancelled" ]]; then
+            echo "emoji=⚪" >> "$GITHUB_OUTPUT"
+            echo "text=CANCELLED" >> "$GITHUB_OUTPUT"
+          else
+            echo "emoji=🟢" >> "$GITHUB_OUTPUT"
+            echo "text=PASSED" >> "$GITHUB_OUTPUT"
+          fi
 
-        - name: Send Telegram notification
-          run: |
-            MESSAGE="${{ steps.status.outputs.emoji }} *${{ github.repository }}* — tests *${{ steps.status.outputs.text }}*
+      - name: Send Telegram notification
+        run: |
+          ALLURE_URL="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/"
 
-            🌿 Branch: \`${{ github.ref_name }}\`
-            👤 Triggered by: ${{ github.actor }}
-            🔁 Event: ${{ github.event_name }}
+          MESSAGE="${{ steps.status.outputs.emoji }} *${{ github.repository }}* — tests *${{ steps.status.outputs.text }}*
 
-            📋 *Results:*
-            • API Tests: ${{ needs.api-tests.result }}
-            • UI Tests:  ${{ needs.ui-tests.result }}
+          🌿 Branch: \`${{ github.ref_name }}\`
+          👤 Triggered by: ${{ github.actor }}
+          🔃 Event: ${{ github.event_name }}
 
-            🔗 [View run \#${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
+          📋 *Results:*
+          • API Tests: ${{ needs.api-tests.result }}
+          • UI Tests:  ${{ needs.ui-tests.result }}
+          • [Allure report](${ALLURE_URL})
 
-            curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
-              --data-urlencode "chat_id=${{ secrets.TELEGRAM_CHAT_ID }}" \
-              --data-urlencode "text=${MESSAGE}" \
-              --data-urlencode "parse_mode=Markdown" \
-              --data-urlencode "disable_web_page_preview=true"
+          🔗 [View run \#${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
+
+          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
+            --data-urlencode "chat_id=${{ secrets.TELEGRAM_CHAT_ID }}" \
+            --data-urlencode "text=${MESSAGE}" \
+            --data-urlencode "parse_mode=Markdown" \
+            --data-urlencode "disable_web_page_preview=true"
+

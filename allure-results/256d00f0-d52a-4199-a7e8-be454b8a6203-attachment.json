@@ -1,0 +1,41 @@
+{
+  "username": "pvtp.cks2q04dcll",
+  "id": 334,
+  "href": "/app/rest/users/id:334",
+  "properties": {
+    "href": "/app/rest/users/id:334/properties",
+    "count": 4,
+    "property": [
+      {
+        "name": "addTriggeredBuildToFavorites",
+        "value": "true"
+      },
+      {
+        "name": "fus_session",
+        "value": "4074a53d-7499-4ecd-b38d-44c5bb62d9d4:1772898732297"
+      },
+      {
+        "name": "plugin:vcs:anyVcs:anyVcsRoot",
+        "value": "pvtp.cks2q04dcll"
+      },
+      {
+        "name": "teamcity.server.buildNumber",
+        "value": "208045"
+      }
+    ]
+  },
+  "roles": {
+    "role": []
+  },
+  "groups": {
+    "count": 1,
+    "group": [
+      {
+        "key": "ALL_USERS_GROUP",
+        "name": "All Users",
+        "href": "/app/rest/userGroups/key:ALL_USERS_GROUP",
+        "description": "Contains all TeamCity users"
+      }
+    ]
+  }
+}

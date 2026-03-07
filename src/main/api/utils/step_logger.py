@@ -17,6 +17,42 @@ except ImportError:
 
 class StepLogger:
     @staticmethod
+    def api_log(
+        *,
+        method: str,
+        url: str,
+        request_headers: dict | None = None,
+        request_body: dict | str | None = None,
+        action: Callable[[], Any] | None = None,
+    ) -> Any:
+        step_title = f"{method.upper()} request to {url}"
+        if request_body is not None and request_body != "":
+            step_title += f" with body {request_body}"
+
+        def _run():
+            if request_headers:
+                StepLogger._attach("Request headers", request_headers)
+            if request_body is not None and request_body != "":
+                StepLogger._attach("Request body", request_body)
+
+            response = action() if action else None
+            if response is not None and hasattr(response, "status_code"):
+                StepLogger._attach("Status code", response.status_code)
+                try:
+                    response_body = response.json()
+                except Exception:
+                    response_body = response.text
+                StepLogger._attach("Response body", response_body)
+            return response
+
+        if allure:
+            with allure.step(step_title):
+                return _run()
+
+        logger.info("[API STEP] %s", step_title)
+        return _run()
+
+    @staticmethod
     def ui_log(
         *,
         title: str,
@@ -25,7 +61,7 @@ class StepLogger:
         screenshot_on_fail: bool = True,
         attach_dom_on_fail: bool = True,
     ) -> T | None:
-        """Логирование шагов UI тестов с Allure (screenshot/DOM при падении)."""
+        """Logging UI steps with Allure (screenshot/DOM on failure)."""
         start_time = time.time()
 
         def _run():
@@ -38,7 +74,7 @@ class StepLogger:
                 try:
                     result = _run()
                     elapsed = time.time() - start_time
-                    logger.info(f"[UI STEP] {title} - {elapsed:.2f}s")
+                    logger.info("[UI STEP] %s - %.2fs", title, elapsed)
                     return result
                 except Exception:
                     if page:
@@ -48,11 +84,11 @@ class StepLogger:
                             StepLogger._attach_dom(page)
                     raise
         else:
-            logger.info(f"[UI STEP] {title}")
+            logger.info("[UI STEP] %s", title)
             try:
                 result = _run()
                 elapsed = time.time() - start_time
-                logger.info(f"[UI STEP] {title} - {elapsed:.2f}s")
+                logger.info("[UI STEP] %s - %.2fs", title, elapsed)
                 return result
             except Exception:
                 if page and screenshot_on_fail:
@@ -66,8 +102,6 @@ class StepLogger:
                     except Exception:
                         pass
                 raise
-
-    # ---------- UI ATTACHMENTS ----------
 
     @staticmethod
     def _attach_screenshot(page: Page) -> None:

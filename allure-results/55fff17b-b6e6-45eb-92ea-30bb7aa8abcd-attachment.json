@@ -1,0 +1,41 @@
+{
+  "username": "eq2nj.c",
+  "id": 333,
+  "href": "/app/rest/users/id:333",
+  "properties": {
+    "href": "/app/rest/users/id:333/properties",
+    "count": 4,
+    "property": [
+      {
+        "name": "addTriggeredBuildToFavorites",
+        "value": "true"
+      },
+      {
+        "name": "fus_session",
+        "value": "0ac648a1-02c2-45d0-8ea9-bc9db9212eaa:1772898702707"
+      },
+      {
+        "name": "plugin:vcs:anyVcs:anyVcsRoot",
+        "value": "eq2nj.c"
+      },
+      {
+        "name": "teamcity.server.buildNumber",
+        "value": "208045"
+      }
+    ]
+  },
+  "roles": {
+    "role": []
+  },
+  "groups": {
+    "count": 1,
+    "group": [
+      {
+        "key": "ALL_USERS_GROUP",
+        "name": "All Users",
+        "href": "/app/rest/userGroups/key:ALL_USERS_GROUP",
+        "description": "Contains all TeamCity users"
+      }
+    ]
+  }
+}

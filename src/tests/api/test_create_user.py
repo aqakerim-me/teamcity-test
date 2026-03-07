@@ -6,7 +6,7 @@ from src.main.api.models.alert_messages import AlertMessages
 from src.main.api.models.create_user_request import CreateUserRequest
 
 
-@pytest.mark.api
+@pytest.mark.my_api
 class TestCreateUserPositive:
     def test_create_user_with_valid_username(self, api_manager: ApiManager):
         create_user_request = CreateUserRequest(
@@ -62,7 +62,7 @@ class TestCreateUserPositive:
         ), f"Created user username '{created_user.username}' not found in users list"
 
 
-@pytest.mark.api
+@pytest.mark.my_api
 class TestCreateUserNegative:
 
     @pytest.mark.parametrize(

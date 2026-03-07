@@ -6,7 +6,7 @@ from src.main.api.models.alert_messages import AlertMessages
 from src.main.api.models.create_project_request import CreateProjectRequest
 
 
-@pytest.mark.api
+@pytest.mark.my_api
 class TestCreateProjectPositive:
     def test_create_project_with_valid_id(self, api_manager: ApiManager):
         create_project_request = CreateProjectRequest(
@@ -62,7 +62,7 @@ class TestCreateProjectPositive:
         ), f"Created project name '{create_project_request.name}' not found in projects list"
 
 
-@pytest.mark.api
+@pytest.mark.my_api
 class TestCreateProjectNegative:
 
     @pytest.mark.parametrize(

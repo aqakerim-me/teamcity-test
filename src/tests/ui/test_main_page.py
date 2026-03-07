@@ -4,7 +4,7 @@ from playwright.sync_api import Page
 from src.main.ui.pages.conditions import Condition
 from src.main.ui.pages.projects_page import ProjectsPage
 
-
+@pytest.mark.my_ui
 @pytest.mark.ui
 @pytest.mark.admin_session
 class TestMainPage:
