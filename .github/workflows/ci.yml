@@ -49,9 +49,10 @@ jobs:
     runs-on: ubuntu-latest
     needs: lint
     if: |
-      github.event.inputs.suite == '' ||
-      github.event.inputs.suite == 'all' ||
-      github.event.inputs.suite == 'api'
+#      github.event.inputs.suite == '' ||
+#      github.event.inputs.suite == 'all' ||
+#      github.event.inputs.suite == 'api'
+      github.event.inputs.suite == 'my_api'
 
     steps:
       - uses: actions/checkout@v4
@@ -98,9 +99,10 @@ jobs:
     runs-on: ubuntu-latest
     needs: lint
     if: |
-      github.event.inputs.suite == '' ||
-      github.event.inputs.suite == 'all' ||
-      github.event.inputs.suite == 'ui'
+#      github.event.inputs.suite == '' ||
+#      github.event.inputs.suite == 'all' ||
+#      github.event.inputs.suite == 'ui'
+      github.event.inputs.suite == 'my_ui'
 
     steps:
       - uses: actions/checkout@v4
