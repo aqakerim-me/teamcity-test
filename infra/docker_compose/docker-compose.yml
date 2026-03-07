@@ -9,8 +9,8 @@ services:
     ports:
       - "8111:8111"
     volumes:
-      - teamcity_data:/data/teamcity_server/datadir
-      - teamcity_logs:/opt/teamcity/logs
+      - ${TEAMCITY_SERVER_DATADIR}:/data/teamcity_server/datadir
+      - ${TEAMCITY_SERVER_LOGS}:/opt/teamcity/logs
     restart: unless-stopped
 
   teamcity-agent:
@@ -27,6 +27,4 @@ services:
     restart: unless-stopped
 
 volumes:
-  teamcity_data:
-  teamcity_logs:
   teamcity_agent:
