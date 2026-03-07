@@ -12,11 +12,11 @@ docker compose -f "$COMPOSE_FILE" pull
 echo "▶ Starting TeamCity infrastructure..."
 docker compose -f "$COMPOSE_FILE" up -d
 
-echo "⏳ Waiting for TeamCity to respond..."
+echo "⏳ Waiting for TeamCity setup page..."
 elapsed=0
-until curl -s -o /dev/null -w "%{http_code}" "$TC_URL/" | grep -qE "^(200|302|401|503)"; do
+until curl -s "$TC_URL/showAgreement.html" | grep -q "license"; do
     if [ "$elapsed" -ge "$TIMEOUT" ]; then
-        echo "❌ TeamCity did not respond within ${TIMEOUT}s"
+        echo "❌ TeamCity setup page did not appear within ${TIMEOUT}s"
         docker compose -f "$COMPOSE_FILE" logs --tail=50
         exit 1
     fi
@@ -25,17 +25,29 @@ until curl -s -o /dev/null -w "%{http_code}" "$TC_URL/" | grep -qE "^(200|302|40
     elapsed=$((elapsed + 10))
 done
 
-echo "✅ TeamCity responded — running first-time setup..."
+echo "✅ Setup page ready"
 
-# Step 1: Accept license agreement (maintain cookies throughout)
+# Step 1: Accept license agreement
 echo "📋 Accepting license agreement..."
 curl -s -X POST "$TC_URL/showAgreement.html" \
     -c "$COOKIES" -b "$COOKIES" \
     -d "accept=true" > /dev/null
 
-sleep 3
+sleep 5
 
-# Step 2: Create admin user
+# Step 2: Wait for admin setup page
+echo "⏳ Waiting for admin setup page..."
+elapsed=0
+until curl -s -c "$COOKIES" -b "$COOKIES" "$TC_URL/setupAdmin.html" | grep -q "userName"; do
+    if [ "$elapsed" -ge 60 ]; then
+        echo "❌ Admin setup page did not appear"
+        exit 1
+    fi
+    sleep 5
+    elapsed=$((elapsed + 5))
+done
+
+# Step 3: Create admin user
 echo "👤 Creating admin user..."
 curl -s -X POST "$TC_URL/setupAdmin.html" \
     -c "$COOKIES" -b "$COOKIES" \
@@ -43,18 +55,19 @@ curl -s -X POST "$TC_URL/setupAdmin.html" \
 
 sleep 5
 
-# Step 3: Wait until REST API accepts requests
+# Step 4: Wait until REST API accepts requests
 echo "⏳ Waiting for REST API to be ready..."
 elapsed=0
 until curl -s -o /dev/null -w "%{http_code}" \
     -u admin:admin "$TC_URL/app/rest/server" | grep -qE "^200$"; do
-    if [ "$elapsed" -ge 120 ]; then
+    if [ "$elapsed" -ge 180 ]; then
         echo "❌ REST API not ready after setup"
+        docker compose -f "$COMPOSE_FILE" logs teamcity-server --tail=30
         exit 1
     fi
     echo "  ... REST not ready yet (${elapsed}s)"
-    sleep 5
-    elapsed=$((elapsed + 5))
+    sleep 10
+    elapsed=$((elapsed + 10))
 done
 
 echo "✅ TeamCity is fully ready at $TC_URL"
