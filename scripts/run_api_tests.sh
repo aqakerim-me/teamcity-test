@@ -1,9 +1,20 @@
 #!/usr/bin/env bash
-# Runs the API test suite. Bearer token is expected in TC_ADMIN_BEARERTOKEN env var.
+# Runs the API test suite using the admin bearer token from resources/config.properties.
 
 set -euo pipefail
 
-: "${TC_ADMIN_BEARERTOKEN:?TC_ADMIN_BEARERTOKEN env var must be set}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+CONFIG_FILE="$SCRIPT_DIR/../resources/config.properties"
+
+if [ ! -f "$CONFIG_FILE" ]; then
+    echo "Config file not found: $CONFIG_FILE" >&2
+    exit 1
+fi
+
+if ! grep -Eq '^admin\.bearerToken=.+$' "$CONFIG_FILE"; then
+    echo "resources/config.properties must contain a non-empty admin.bearerToken before running API tests." >&2
+    exit 1
+fi
 
 REPORT_DIR="reports/api"
 mkdir -p "$REPORT_DIR"

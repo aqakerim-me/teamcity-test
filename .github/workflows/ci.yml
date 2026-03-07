@@ -262,8 +262,6 @@ jobs:
             github.event.inputs.suite == 'all' ||
             github.event.inputs.suite == 'api'
           )
-        env:
-          TC_ADMIN_BEARERTOKEN: ${{ secrets.TC_ADMIN_BEARERTOKEN }}
         run: bash scripts/run_api_tests.sh
 
       - name: Upload API report
@@ -284,8 +282,6 @@ jobs:
             github.event.inputs.suite == 'all' ||
             github.event.inputs.suite == 'ui'
           )
-        env:
-          TC_ADMIN_BEARERTOKEN: ${{ secrets.TC_ADMIN_BEARERTOKEN }}
         run: bash scripts/run_ui_tests.sh
 
       - name: Stop infrastructure
