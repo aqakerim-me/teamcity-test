@@ -134,6 +134,8 @@ jobs:
             cat "${RUNTIME_ENV_FILE}" | tee "${DEBUG_DIR}/runtime-env-${stamp}.log" || true
             echo "Runtime directory contents:"
             if [ -n "${TEAMCITY_RUNTIME_DIR:-}" ] && [ -d "${TEAMCITY_RUNTIME_DIR}" ]; then
+              echo "Runtime directory permissions:"
+              ls -ld "${TEAMCITY_RUNTIME_DIR}" "${TEAMCITY_SERVER_DATADIR}" "${TEAMCITY_SERVER_LOGS}" | tee "${DEBUG_DIR}/runtime-permissions-${stamp}.log" || true
               find "${TEAMCITY_RUNTIME_DIR}" -maxdepth 3 -type f | sort | tee "${DEBUG_DIR}/runtime-files-${stamp}.log" || true
               echo "Datadir root:"
               ls -lah "${TEAMCITY_SERVER_DATADIR}" | tee "${DEBUG_DIR}/datadir-root-${stamp}.log" || true
@@ -194,6 +196,8 @@ jobs:
           echo "Server datadir: ${TEAMCITY_SERVER_DATADIR:-}"
           echo "Server logs: ${TEAMCITY_SERVER_LOGS:-}"
           if [ -n "${TEAMCITY_RUNTIME_DIR:-}" ] && [ -d "${TEAMCITY_RUNTIME_DIR}" ]; then
+            echo "Runtime directory permissions:"
+            ls -ld "${TEAMCITY_RUNTIME_DIR}" "${TEAMCITY_SERVER_DATADIR}" "${TEAMCITY_SERVER_LOGS}" || true
             echo "Runtime contents:"
             find "${TEAMCITY_RUNTIME_DIR}" -maxdepth 3 -type f | sort || true
           fi

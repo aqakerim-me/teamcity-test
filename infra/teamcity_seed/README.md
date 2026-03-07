@@ -17,4 +17,5 @@ Default startup and teardown now use the same seeded TeamCity baseline everywher
 - `scripts/stop_infra.sh` removes the disposable runtime and Docker volumes by default.
 - Local development and CI both use the same no-argument flow: `bash scripts/start_infra.sh` and `bash scripts/stop_infra.sh`.
 - The single `infra/docker_compose/docker-compose.yml` file assumes those runtime bind-mount paths have been prepared by the seed restore step.
+- The restored runtime is intentionally chmod'd so the TeamCity container user can write the disposable bind-mounted datadir and logs on GitHub Actions.
 - Use `scripts/stop_infra.sh --preserve-volumes` only when you intentionally want to keep Docker volumes around for debugging.

@@ -38,6 +38,7 @@ TEAMCITY_SERVER_LOGS="$TEAMCITY_RUNTIME_DIR/logs"
 
 mkdir -p "$TEAMCITY_SERVER_DATADIR" "$TEAMCITY_SERVER_LOGS"
 tar -xzf "$SEED_ARCHIVE" -C "$TEAMCITY_SERVER_DATADIR"
+chmod -R a+rwX "$TEAMCITY_RUNTIME_DIR"
 
 echo "Validating restored TeamCity seed contents..."
 for required_path in "${REQUIRED_SEED_PATHS[@]}"; do
@@ -49,6 +50,8 @@ done
 
 echo "Restored datadir root:"
 find "$TEAMCITY_SERVER_DATADIR" -maxdepth 2 -mindepth 1 | sort
+echo "Runtime directory permissions:"
+ls -ld "$TEAMCITY_RUNTIME_DIR" "$TEAMCITY_SERVER_DATADIR" "$TEAMCITY_SERVER_LOGS"
 
 {
     printf 'export TEAMCITY_SEEDED_STATE=%q\n' "1"
